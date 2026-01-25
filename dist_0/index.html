@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NGO Visitor & Reminder Manager - Developed by Sewa Sankalp Pratishthan">
+  <title>Dnyani Mitra</title>
+  <script type="module" crossorigin>(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const r of document.querySelectorAll('link[rel="modulepreload"]'))i(r);new MutationObserver(r=>{for(const s of r)if(s.type==="childList")for(const n of s.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&i(n)}).observe(document,{childList:!0,subtree:!0});function e(r){const s={};return r.integrity&&(s.integrity=r.integrity),r.referrerPolicy&&(s.referrerPolicy=r.referrerPolicy),r.crossOrigin==="use-credentials"?s.credentials="include":r.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function i(r){if(r.ep)return;r.ep=!0;const s=e(r);fetch(r.href,s)}})();const V="2.0.0",z="NGO Visitor & Reminder Manager",I="Sewa Sankalp Pratishthan",x="https://sewasankalp.org/",A={SELF:"SELF",SPOUSE:"SPOUSE",CHILD:"CHILD",PARENT:"PARENT",FRIEND:"FRIEND"},Z={[A.SELF]:"👤 Self",[A.SPOUSE]:"💑 Spouse",[A.CHILD]:"👶 Child",[A.PARENT]:"👴 Parent",[A.FRIEND]:"🤝 Friend"},B={CONTACTED:"contacted",MISSED:"missed",SNOOZED:"snoozed",COMPLETED:"completed"},$={CALL:"call",VISIT:"visit",EMAIL:"email",LETTER:"letter",OTHER:"other"},Q={[$.CALL]:"📞 Phone Call",[$.VISIT]:"🏠 Visit",[$.EMAIL]:"📧 Email",[$.LETTER]:"✉️ Letter",[$.OTHER]:"📝 Other"},k={ROOT:"root",SATELLITE:"satellite"},U={APP_STATE:"NGOApp_v2_State",ACTIVATION:"NGOApp_v2_Activation"},X={reminderLookahead:7,autoBackupDays:7,theme:"light",language:"en"},w={MIN_NAME_LENGTH:2,MAX_NAME_LENGTH:100,PHONE_PATTERN:/^[\d\s\-\+\(\)]+$/,EMAIL_PATTERN:/^[^\s@]+@[^\s@]+\.[^\s@]+$/};function C(a="id"){const t=Date.now().toString(36),e=Math.random().toString(36).substring(2,11);return`${a}_${t}_${e}`}function tt(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(a){const t=Math.random()*16|0;return(a==="x"?t:t&3|8).toString(16)})}function T(a){if(a===null||typeof a!="object")return a;if(a instanceof Date)return new Date(a.getTime());if(a instanceof Array)return a.map(e=>T(e));const t={};for(const e in a)a.hasOwnProperty(e)&&(t[e]=T(a[e]));return t}function et(a,t){let e;return function(...r){const s=()=>{clearTimeout(e),a(...r)};clearTimeout(e),e=setTimeout(s,t)}}function G(a,t=null){try{return JSON.parse(a)}catch(e){return console.error("JSON parse error:",e),t}}function it(a,t,e="application/json"){const i=new Blob([a],{type:e}),r=URL.createObjectURL(i),s=document.createElement("a");s.href=r,s.download=t,document.body.appendChild(s),s.click(),document.body.removeChild(s),URL.revokeObjectURL(r)}function _(a){let t=0;for(let e=0;e<a.length;e++){const i=a.charCodeAt(e);t=(t<<5)-t+i,t=t&t}return Math.abs(t).toString(36)}class rt{constructor(){this.storageKey=U.APP_STATE,this.activationKey=U.ACTIVATION}loadState(){try{const t=localStorage.getItem(this.storageKey);if(!t)return this.getDefaultState();const e=G(t,this.getDefaultState());return e.version!==V?this.migrateState(e):e}catch(t){return console.error("Error loading state:",t),this.getDefaultState()}}saveState(t){try{const e=JSON.stringify(t);return localStorage.setItem(this.storageKey,e),!0}catch(e){return console.error("Error saving state:",e),e.name==="QuotaExceededError"&&console.error("LocalStorage quota exceeded!"),!1}}getDefaultState(){return{version:V,activated:!1,machineId:null,machineRole:null,machineName:null,visitors:[],reminderActions:[],interactions:[],settings:{...X}}}loadActivation(){try{const t=localStorage.getItem(this.activationKey);return G(t,null)}catch(t){return console.error("Error loading activation:",t),null}}saveActivation(t){try{const e=JSON.stringify(t);return localStorage.setItem(this.activationKey,e),!0}catch(e){return console.error("Error saving activation:",e),!1}}clearAll(){try{return localStorage.removeItem(this.storageKey),localStorage.removeItem(this.activationKey),!0}catch(t){return console.error("Error clearing storage:",t),!1}}migrateState(t){console.log(`Migrating from version ${t.version} to ${V}`);const e=this.getDefaultState();return t.version&&t.version.startsWith("1.")?(e.visitors=this.migrateV1Visitors(t.visitors||[]),e.reminderActions=t.reminderActions||[]):(e.visitors=t.visitors||[],e.reminderActions=t.reminderActions||[],e.interactions=t.interactions||[],e.settings={...X,...t.settings}),this.saveState(e),e}migrateV1Visitors(t){return t.map(e=>({...e,tags:e.tags||[],status:e.status||"active",customFields:e.customFields||{},deletedAt:e.deletedAt||null}))}getStorageInfo(){var t,e;try{const i=((t=localStorage.getItem(this.storageKey))==null?void 0:t.length)||0,r=((e=localStorage.getItem(this.activationKey))==null?void 0:e.length)||0,s=i+r,n=(s/1024).toFixed(2);return{totalSize:s,sizeKB:n,stateSize:i,activationSize:r}}catch(i){return console.error("Error getting storage info:",i),null}}}const E=new rt;class st{constructor(){this.listeners=new Map}on(t,e){return this.listeners.has(t)||this.listeners.set(t,[]),this.listeners.get(t).push(e),()=>this.off(t,e)}off(t,e){if(!this.listeners.has(t))return;const i=this.listeners.get(t),r=i.indexOf(e);r>-1&&i.splice(r,1)}emit(t,e=null){if(!this.listeners.has(t))return;this.listeners.get(t).forEach(r=>{try{r(e)}catch(s){console.error(`Error in event listener for "${t}":`,s)}})}once(t,e){const i=r=>{e(r),this.off(t,i)};this.on(t,i)}clear(t){t?this.listeners.delete(t):this.listeners.clear()}listenerCount(t){var e;return((e=this.listeners.get(t))==null?void 0:e.length)||0}}const f=new st,v={STATE_LOADED:"state:loaded",STATE_CHANGED:"state:changed",STATE_SAVED:"state:saved",VISITOR_ADDED:"visitor:added",VISITOR_UPDATED:"visitor:updated",VISITOR_DELETED:"visitor:deleted",REMINDER_ACTION_CREATED:"reminder:action_created",REMINDERS_UPDATED:"reminders:updated",INTERACTION_ADDED:"interaction:added",IMPORT_STARTED:"sync:import_started",IMPORT_COMPLETED:"sync:import_completed",IMPORT_FAILED:"sync:import_failed",EXPORT_COMPLETED:"sync:export_completed",ACTIVATION_SUCCESS:"activation:success",ACTIVATION_FAILED:"activation:failed",ROUTE_CHANGED:"route:changed",MODAL_OPENED:"modal:opened",MODAL_CLOSED:"modal:closed",TOAST_SHOW:"toast:show"};class nt{constructor(){this.state=null,this.observers=[],this.initialized=!1}async init(){return this.initialized?this.state:(this.state=E.loadState(),this.initialized=!0,f.emit(v.STATE_LOADED,this.state),this.state)}getState(){if(!this.initialized)throw new Error("State not initialized. Call init() first.");return T(this.state)}setState(t){if(!this.initialized)throw new Error("State not initialized. Call init() first.");this.state={...this.state,...t};const e=E.saveState(this.state);return e&&(this.notifyObservers(),f.emit(v.STATE_CHANGED,this.state),f.emit(v.STATE_SAVED,this.state)),e}updateState(t,e){if(!this.initialized)throw new Error("State not initialized. Call init() first.");const i=t.split(".");let r=this.state;for(let n=0;n<i.length-1;n++)r[i[n]]||(r[i[n]]={}),r=r[i[n]];r[i[i.length-1]]=e;const s=E.saveState(this.state);return s&&(this.notifyObservers(),f.emit(v.STATE_CHANGED,this.state),f.emit(v.STATE_SAVED,this.state)),s}subscribe(t){return this.observers.push(t),()=>{const e=this.observers.indexOf(t);e>-1&&this.observers.splice(e,1)}}notifyObservers(){const t=this.getState();this.observers.forEach(e=>{try{e(t)}catch(i){console.error("Error in state observer:",i)}})}getVisitors(){return T(this.state.visitors||[])}addVisitor(t){this.state.visitors.push(t);const e=E.saveState(this.state);return e&&(this.notifyObservers(),f.emit(v.VISITOR_ADDED,t),f.emit(v.STATE_CHANGED,this.state)),e}updateVisitor(t,e){const i=this.state.visitors.findIndex(s=>s.id===t);if(i===-1)return console.error("Visitor not found:",t),!1;this.state.visitors[i]={...this.state.visitors[i],...e,updatedAt:new Date().toISOString()};const r=E.saveState(this.state);return r&&(this.notifyObservers(),f.emit(v.VISITOR_UPDATED,this.state.visitors[i]),f.emit(v.STATE_CHANGED,this.state)),r}deleteVisitor(t){const e=this.state.visitors.findIndex(r=>r.id===t);if(e===-1)return console.error("Visitor not found:",t),!1;this.state.visitors[e].deletedAt=new Date().toISOString(),this.state.visitors[e].status="deleted";const i=E.saveState(this.state);return i&&(this.notifyObservers(),f.emit(v.VISITOR_DELETED,t),f.emit(v.STATE_CHANGED,this.state)),i}getReminderActions(){return T(this.state.reminderActions||[])}addReminderAction(t){this.state.reminderActions.push(t);const e=E.saveState(this.state);return e&&(this.notifyObservers(),f.emit(v.REMINDER_ACTION_CREATED,t),f.emit(v.STATE_CHANGED,this.state)),e}getInteractions(){return T(this.state.interactions||[])}addInteraction(t){this.state.interactions.push(t);const e=E.saveState(this.state);return e&&(this.notifyObservers(),f.emit(v.INTERACTION_ADDED,t),f.emit(v.STATE_CHANGED,this.state)),e}getSettings(){return T(this.state.settings||{})}updateSettings(t){return this.state.settings={...this.state.settings,...t},E.saveState(this.state)}isActivated(){return this.state.activated===!0}getMachineInfo(){return{machineId:this.state.machineId,machineRole:this.state.machineRole,machineName:this.state.machineName}}}const y=new nt;class at{constructor(){this.routes=new Map,this.currentRoute=null,this.defaultRoute="/",window.addEventListener("hashchange",()=>this.handleRouteChange()),window.addEventListener("load",()=>this.handleRouteChange())}register(t,e){this.routes.set(t,e)}navigate(t){window.location.hash=t}handleRouteChange(){const t=window.location.hash.slice(1)||this.defaultRoute,[e,i]=t.split("?"),r=this.parseQueryString(i),s=this.routes.get(e);if(s){this.currentRoute=e;try{s(r),f.emit(v.ROUTE_CHANGED,{path:e,params:r})}catch(n){console.error("Error handling route:",n),this.navigate(this.defaultRoute)}}else console.warn("Route not found:",e),this.navigate(this.defaultRoute)}parseQueryString(t){if(!t)return{};const e={};return t.split("&").forEach(r=>{const[s,n]=r.split("=");e[decodeURIComponent(s)]=decodeURIComponent(n||"")}),e}getCurrentRoute(){return this.currentRoute}setDefaultRoute(t){this.defaultRoute=t}}const p=new at,m={ACTIVATION:"/activation",VISITORS:"/",VISITOR_VIEW:"/visitor/view",VISITOR_ADD:"/visitor/add",VISITOR_EDIT:"/visitor/edit",REMINDERS:"/reminders",INTERACTIONS:"/interactions",SYNC:"/sync",BACKUP:"/backup",SETTINGS:"/settings",ABOUT:"/about"};function ot(a){if(!a)return!1;const t=a.toUpperCase().trim();if(!/^SSP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(t))return!1;if(t==="SSP-DEV1-2026-TEST")return!0;const e=_(t);return lt().includes(e)}function lt(){return[_("SSP-DEV1-2026-TEST"),"azia10","385p02","8nibbu"]}function j(a){const t=[];if(!a.contacts||!Array.isArray(a.contacts))return t.push("Visitor must have a contacts array"),{valid:!1,errors:t};const e=a.contacts.filter(i=>i.relationType===A.SELF);return e.length===0?t.push("Visitor must have exactly one SELF contact"):e.length>1&&t.push("Visitor cannot have more than one SELF contact"),a.contacts.forEach((i,r)=>{const s=ct(i);s.valid||t.push(`Contact ${r+1}: ${s.errors.join(", ")}`)}),{valid:t.length===0,errors:t}}function ct(a){const t=[];return(!a.name||a.name.trim().length<w.MIN_NAME_LENGTH)&&t.push(`Name must be at least ${w.MIN_NAME_LENGTH} characters`),a.name&&a.name.length>w.MAX_NAME_LENGTH&&t.push(`Name cannot exceed ${w.MAX_NAME_LENGTH} characters`),Object.values(A).includes(a.relationType)||t.push("Invalid relationship type"),a.phones&&Array.isArray(a.phones)&&a.phones.forEach((e,i)=>{e&&!w.PHONE_PATTERN.test(e)&&t.push(`Phone ${i+1} has invalid format`)}),a.emails&&Array.isArray(a.emails)&&a.emails.forEach((e,i)=>{e&&!w.EMAIL_PATTERN.test(e)&&t.push(`Email ${i+1} has invalid format`)}),a.dob&&!P(a.dob)&&t.push("Invalid date of birth"),a.deathDate&&!P(a.deathDate)&&t.push("Invalid death date"),a.marriageDate&&!P(a.marriageDate)&&t.push("Invalid marriage date"),{valid:t.length===0,errors:t}}function P(a){if(!a)return!0;const t=new Date(a);return!isNaN(t.getTime())}function dt(a){return a?/^SSP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(a.toUpperCase()):!1}class ht{constructor(){this.activationData=null}isActivated(){return this.activationData?!0:(this.activationData=E.loadActivation(),this.activationData!==null&&this.activationData.activated===!0)}activate(t,e){if(!dt(t))return f.emit(v.ACTIVATION_FAILED,"Invalid key format"),{success:!1,error:"Invalid key format. Expected format: SSP-XXXX-XXXX-XXXX"};if(!ot(t))return f.emit(v.ACTIVATION_FAILED,"Invalid key"),{success:!1,error:"Invalid master key. Please check your key and try again."};if(!e||!e.machineName||!e.machineRole)return{success:!1,error:"Machine name and role are required"};if(!Object.values(k).includes(e.machineRole))return{success:!1,error:"Invalid machine role"};const i=tt();return this.activationData={activated:!0,activatedAt:new Date().toISOString(),machineId:i,machineName:e.machineName,machineRole:e.machineRole},E.saveActivation(this.activationData)?(y.setState({activated:!0,machineId:i,machineName:e.machineName,machineRole:e.machineRole}),f.emit(v.ACTIVATION_SUCCESS,this.activationData),{success:!0,data:this.activationData}):{success:!1,error:"Failed to save activation data"}}getActivationData(){return this.activationData||(this.activationData=E.loadActivation()),this.activationData}getMachineInfo(){const t=this.getActivationData();return t?{machineId:t.machineId,machineName:t.machineName,machineRole:t.machineRole,activatedAt:t.activatedAt}:null}deactivate(){return this.activationData=null,E.saveActivation(null),y.setState({activated:!1,machineId:null,machineName:null,machineRole:null}),!0}}const D=new ht;class mt{constructor(){this.container=null}render(){const t=document.createElement("div");return t.className="activation-screen",t.innerHTML=`
+      <div class="container container-narrow">
+        <div class="card" style="margin-top: 3rem;">
+          <div class="card-body text-center">
+            <div class="activation-logo" style="margin-bottom: 2rem;">
+              <img src="/sewa-sankalp-logo.png" alt="${I}" style="max-width: 300px; height: auto;" />
+            </div>
+            
+            <h1>NGO Visitor & Reminder Manager</h1>
+            <p class="text-secondary">Version 2.0</p>
+            
+            <div style="margin: 2rem 0; padding: 1.5rem; background-color: var(--color-bg); border-radius: var(--radius-md);">
+              <h3>Welcome!</h3>
+              <p>This application requires activation with a master key provided by ${I}.</p>
+            </div>
+            
+            <form id="activation-form" style="text-align: left;">
+              <div class="form-group">
+                <label class="form-label" for="master-key">Master Key *</label>
+                <input 
+                  type="text" 
+                  id="master-key" 
+                  class="form-input" 
+                  placeholder="SSP-XXXX-XXXX-XXXX"
+                  required
+                  autocomplete="off"
+                  style="text-transform: uppercase; font-family: monospace; font-size: 1.1rem;"
+                />
+                <p class="form-help">Enter the master key in format: SSP-XXXX-XXXX-XXXX</p>
+              </div>
+              
+              <div id="machine-setup" class="hidden">
+                <h3 style="margin-top: 2rem;">Machine Setup</h3>
+                
+                <div class="form-group">
+                  <label class="form-label" for="machine-name">Machine Name *</label>
+                  <input 
+                    type="text" 
+                    id="machine-name" 
+                    class="form-input" 
+                    placeholder="e.g., Head Office or Field Worker 1"
+                    required
+                  />
+                  <p class="form-help">A friendly name to identify this machine</p>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Machine Role *</label>
+                  <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <label class="form-checkbox">
+                      <input type="radio" name="machine-role" value="${k.ROOT}" required />
+                      <span>
+                        <strong>Root Machine</strong> (Data Aggregator)
+                        <br/>
+                        <small class="text-secondary">Imports and merges data from satellite machines</small>
+                      </span>
+                    </label>
+                    <label class="form-checkbox">
+                      <input type="radio" name="machine-role" value="${k.SATELLITE}" required />
+                      <span>
+                        <strong>Satellite Machine</strong> (Field Data Collection)
+                        <br/>
+                        <small class="text-secondary">Collects data in the field, exports to root machine</small>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="activation-error" class="form-error hidden" style="margin-bottom: 1rem;"></div>
+              
+              <div class="card-footer" style="margin-top: 2rem; border-top: none; padding-top: 0;">
+                <button type="button" id="validate-key-btn" class="btn btn-primary btn-lg">
+                  Validate Key
+                </button>
+                <button type="submit" id="activate-btn" class="btn btn-success btn-lg hidden">
+                  Activate
+                </button>
+              </div>
+            </form>
+            
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--color-border);">
+              <p class="text-secondary" style="font-size: 0.875rem;">
+                Don't have a master key?<br/>
+                Contact: <a href="${x}" target="_blank">${x}</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,this.container=t,this.attachEventListeners(),t}attachEventListeners(){const t=this.container.querySelector("#activation-form"),e=this.container.querySelector("#master-key"),i=this.container.querySelector("#validate-key-btn"),r=this.container.querySelector("#activate-btn"),s=this.container.querySelector("#machine-setup");this.container.querySelector("#activation-error"),i.addEventListener("click",()=>{const n=e.value.trim().toUpperCase();if(!n){this.showError("Please enter a master key");return}if(!/^SSP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(n)){this.showError("Invalid key format. Expected: SSP-XXXX-XXXX-XXXX");return}s.classList.remove("hidden"),i.classList.add("hidden"),r.classList.remove("hidden"),e.disabled=!0,this.hideError()}),t.addEventListener("submit",n=>{n.preventDefault(),this.handleActivation()})}handleActivation(){var s;const t=this.container.querySelector("#master-key").value.trim().toUpperCase(),e=this.container.querySelector("#machine-name").value.trim(),i=(s=this.container.querySelector('input[name="machine-role"]:checked'))==null?void 0:s.value;if(!e){this.showError("Please enter a machine name");return}if(!i){this.showError("Please select a machine role");return}const r=D.activate(t,{machineName:e,machineRole:i});r.success?(this.showSuccess("Activation successful! Redirecting..."),setTimeout(()=>{window.location.reload()},1500)):this.showError(r.error)}showError(t){const e=this.container.querySelector("#activation-error");e.textContent=t,e.classList.remove("hidden")}hideError(){this.container.querySelector("#activation-error").classList.add("hidden")}showSuccess(t){const e=this.container.querySelector("#activation-error");e.textContent=t,e.className="text-success",e.classList.remove("hidden")}destroy(){this.container&&this.container.parentNode&&this.container.parentNode.removeChild(this.container),this.container=null}}function O(a,t=!1){if(!a)return"N/A";const e=new Date(a);if(isNaN(e.getTime()))return"Invalid Date";const i=t?{month:"long",year:"numeric"}:{month:"short",day:"numeric",year:"numeric"};return e.toLocaleDateString("en-US",i)}function ut(a){if(!a)return"N/A";const t=new Date(a);return isNaN(t.getTime())?"Invalid Date":t.toLocaleDateString("en-US",{month:"short",day:"numeric"})}function W(a){if(!a)return"Never";const t=new Date(a),i=new Date-t,r=Math.floor(i/(1e3*60*60*24));return r===0?"Today":r===1?"Yesterday":r<7?`${r} days ago`:r<30?`${Math.floor(r/7)} weeks ago`:r<365?`${Math.floor(r/30)} months ago`:`${Math.floor(r/365)} years ago`}function M(a){if(!a)return null;const t=new Date(a),e=new Date;e.setHours(0,0,0,0),t.setHours(0,0,0,0);const i=t-e;return Math.floor(i/(1e3*60*60*24))}function pt(a){const t=a.getFullYear(),e=String(a.getMonth()+1).padStart(2,"0"),i=String(a.getDate()).padStart(2,"0");return`${t}-${e}-${i}`}function ft(a,t=!1){const e=new Date(a),i=new Date;i.setHours(0,0,0,0);let r=new Date(i.getFullYear(),e.getMonth(),t?1:e.getDate());return r<i&&(r=new Date(i.getFullYear()+1,e.getMonth(),t?1:e.getDate())),pt(r)}function g(){return new Date().toISOString()}class R{constructor(t={}){this.id=t.id||C("visitor"),this.primaryContactId=t.primaryContactId||null,this.category=t.category||"",this.tags=t.tags||[],this.status=t.status||"active",this.customFields=t.customFields||{},this.address=t.address||"",this.city=t.city||"",this.communicationPreference=t.communicationPreference||"whatsapp",this.notes=t.notes||"",this.contacts=t.contacts||[],this.createdAt=t.createdAt||g(),this.updatedAt=t.updatedAt||g(),this.deletedAt=t.deletedAt||null,this.createdBy=t.createdBy||null,this.updatedBy=t.updatedBy||null}getSelfContact(){return this.contacts.find(t=>t.relationType===A.SELF)}getDisplayName(){const t=this.getSelfContact();return t?t.name:"Unknown"}addContact(t){this.contacts.push(t),this.updatedAt=g()}updateContact(t,e){const i=this.contacts.findIndex(r=>r.id===t);return i!==-1?(this.contacts[i]={...this.contacts[i],...e},this.updatedAt=g(),!0):!1}removeContact(t){const e=this.contacts.findIndex(i=>i.id===t);return e!==-1&&this.contacts[e].relationType!==A.SELF?(this.contacts.splice(e,1),this.updatedAt=g(),!0):!1}isActive(){return this.status==="active"&&!this.deletedAt}delete(){this.deletedAt=g(),this.status="deleted",this.updatedAt=g()}toJSON(){return{id:this.id,primaryContactId:this.primaryContactId,category:this.category,tags:this.tags,status:this.status,customFields:this.customFields,address:this.address,city:this.city,communicationPreference:this.communicationPreference,notes:this.notes,contacts:this.contacts,createdAt:this.createdAt,updatedAt:this.updatedAt,deletedAt:this.deletedAt,createdBy:this.createdBy,updatedBy:this.updatedBy}}static fromJSON(t){return new R(t)}}class F{constructor(t={}){this.id=t.id||C("contact"),this.visitorId=t.visitorId||null,this.relationType=t.relationType||A.SELF,this.name=t.name||"",this.phones=t.phones||[],this.emails=t.emails||[],this.dob=t.dob||null,this.dobMonthOnly=t.dobMonthOnly||!1,this.deathDate=t.deathDate||null,this.deathMonthOnly=t.deathMonthOnly||!1,this.marriageDate=t.marriageDate||null,this.marriageMonthOnly=t.marriageMonthOnly||!1,this.customEvents=t.customEvents||[],this.notes=t.notes||"",this.createdAt=t.createdAt||g(),this.updatedAt=t.updatedAt||g()}addPhone(t){t&&!this.phones.includes(t)&&(this.phones.push(t),this.updatedAt=g())}removePhone(t){const e=this.phones.indexOf(t);e!==-1&&(this.phones.splice(e,1),this.updatedAt=g())}addEmail(t){t&&!this.emails.includes(t)&&(this.emails.push(t),this.updatedAt=g())}removeEmail(t){const e=this.emails.indexOf(t);e!==-1&&(this.emails.splice(e,1),this.updatedAt=g())}getPrimaryPhone(){return this.phones[0]||null}getPrimaryEmail(){return this.emails[0]||null}isSelf(){return this.relationType===A.SELF}getEventDates(){const t=[];return this.dob&&t.push({type:"Birthday",date:this.dob,monthOnly:this.dobMonthOnly}),this.marriageDate&&t.push({type:"Anniversary",date:this.marriageDate,monthOnly:this.marriageMonthOnly}),this.deathDate&&t.push({type:"Death",date:this.deathDate,monthOnly:this.deathMonthOnly}),this.customEvents.forEach(e=>{t.push({type:e.eventType||"Custom",date:e.eventDate,monthOnly:e.monthOnly||!1})}),t}toJSON(){return{id:this.id,visitorId:this.visitorId,relationType:this.relationType,name:this.name,phones:this.phones,emails:this.emails,dob:this.dob,dobMonthOnly:this.dobMonthOnly,deathDate:this.deathDate,deathMonthOnly:this.deathMonthOnly,marriageDate:this.marriageDate,marriageMonthOnly:this.marriageMonthOnly,customEvents:this.customEvents,notes:this.notes,createdAt:this.createdAt,updatedAt:this.updatedAt}}static fromJSON(t){return new F(t)}}class vt{getAll(t=!1){const e=y.getVisitors();return t?e:e.filter(i=>i.status==="active"&&!i.deletedAt)}getById(t){return y.getVisitors().find(i=>i.id===t)}search(t,e={}){const{category:i=null,city:r=null,tags:s=[],status:n="active",includeDeleted:o=!1}=e;let c=this.getAll(o);if(n&&(c=c.filter(l=>l.status===n)),i&&(c=c.filter(l=>l.category===i)),r&&(c=c.filter(l=>l.city===r)),s.length>0&&(c=c.filter(l=>s.some(d=>l.tags.includes(d)))),t&&t.trim()){const l=t.toLowerCase().trim();c=c.filter(d=>d.category&&d.category.toLowerCase().includes(l)||d.city&&d.city.toLowerCase().includes(l)||d.notes&&d.notes.toLowerCase().includes(l)||d.notes&&d.notes.toLowerCase().includes(l)||d.tags.some(u=>u.toLowerCase().includes(l))?!0:d.contacts.some(u=>!!(u.name.toLowerCase().includes(l)||u.phones.some(S=>S.includes(l))||u.emails.some(S=>S.toLowerCase().includes(l))||u.notes&&u.notes.toLowerCase().includes(l))))}return c}create(t){const e=D.getMachineInfo(),i=new R({...t,createdBy:e.machineId,updatedBy:e.machineId,createdAt:g(),updatedAt:g()}),r=j(i);if(!r.valid)throw new Error(`Validation failed: ${r.errors.join(", ")}`);if(!y.addVisitor(i.toJSON()))throw new Error("Failed to save visitor");return i}update(t,e){const i=this.getById(t);if(!i)throw new Error(`Visitor not found: ${t}`);const r=D.getMachineInfo(),s={...i,...e,id:i.id,createdAt:i.createdAt,createdBy:i.createdBy,updatedBy:r.machineId,updatedAt:g()},n=new R(s),o=j(n);if(!o.valid)throw new Error(`Validation failed: ${o.errors.join(", ")}`);if(!y.updateVisitor(t,n.toJSON()))throw new Error("Failed to update visitor");return n}delete(t){if(!this.getById(t))throw new Error(`Visitor not found: ${t}`);if(!y.deleteVisitor(t))throw new Error("Failed to delete visitor");return!0}addContact(t,e){const i=this.getById(t);if(!i)throw new Error(`Visitor not found: ${t}`);const r=new F({...e,visitorId:t}),s=[...i.contacts,r.toJSON()];return this.update(t,{contacts:s})}updateContact(t,e,i){const r=this.getById(t);if(!r)throw new Error(`Visitor not found: ${t}`);const s=r.contacts.findIndex(o=>o.id===e);if(s===-1)throw new Error(`Contact not found: ${e}`);const n=[...r.contacts];return n[s]={...n[s],...i,id:e,visitorId:t,updatedAt:g()},this.update(t,{contacts:n})}removeContact(t,e){const i=this.getById(t);if(!i)throw new Error(`Visitor not found: ${t}`);const r=i.contacts.find(n=>n.id===e);if(!r)throw new Error(`Contact not found: ${e}`);if(r.relationType==="SELF")throw new Error("Cannot remove SELF contact");const s=i.contacts.filter(n=>n.id!==e);return this.update(t,{contacts:s})}getCategories(){const t=this.getAll(),e=new Set;return t.forEach(i=>{i.category&&e.add(i.category)}),Array.from(e).sort()}getTags(){const t=this.getAll(),e=new Set;return t.forEach(i=>{i.tags.forEach(r=>e.add(r))}),Array.from(e).sort()}getCount(t=!1){return this.getAll(t).length}getStats(){const t=y.getVisitors(),e=t.filter(r=>r.status==="active"&&!r.deletedAt),i=t.filter(r=>r.deletedAt);return{total:t.length,active:e.length,deleted:i.length,categories:this.getCategories().length,tags:this.getTags().length}}}const b=new vt;class yt{constructor(){this.searchHistory=[],this.maxHistorySize=10}searchDebounced(t,e,i=300){return et(e,i)(t)}paginate(t,e=1,i=50){const r=t.length,s=Math.ceil(r/i),n=(e-1)*i,o=n+i;return{page:e,pageSize:i,total:r,totalPages:s,items:t.slice(n,o),hasNext:e<s,hasPrev:e>1}}sort(t,e,i="asc"){return[...t].sort((r,s)=>{let n=this.getNestedValue(r,e),o=this.getNestedValue(s,e);return n==null&&o==null?0:n==null?i==="asc"?1:-1:o==null||(typeof n=="string"&&(n=n.toLowerCase()),typeof o=="string"&&(o=o.toLowerCase()),n<o)?i==="asc"?-1:1:n>o?i==="asc"?1:-1:0})}getNestedValue(t,e){return e.split(".").reduce((i,r)=>{var n;const s=r.match(/(\w+)\[(\d+)\]/);if(s){const[,o,c]=s;return(n=i==null?void 0:i[o])==null?void 0:n[parseInt(c)]}return i==null?void 0:i[r]},t)}filter(t,e){return t.filter(i=>Object.entries(e).every(([r,s])=>{if(s==null||s==="")return!0;const n=this.getNestedValue(i,r);return Array.isArray(n)?n.includes(s):n===s}))}addToHistory(t){!t||!t.trim()||(this.searchHistory=this.searchHistory.filter(e=>e!==t),this.searchHistory.unshift(t),this.searchHistory.length>this.maxHistorySize&&(this.searchHistory=this.searchHistory.slice(0,this.maxHistorySize)))}getHistory(){return[...this.searchHistory]}clearHistory(){this.searchHistory=[]}highlight(t,e){if(!t||!e)return t;const i=new RegExp(`(${this.escapeRegex(e)})`,"gi");return t.replace(i,"<mark>$1</mark>")}escapeRegex(t){return t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}}const H=new yt;class gt{constructor(){this.container=null,this.currentPage=1,this.pageSize=50,this.searchQuery="",this.filterCategory=null,this.searchQuery="",this.filterCategory=null,this.filterCity=null,this.sortField="updatedAt",this.sortOrder="desc"}render(){const t=document.createElement("div");return t.className="visitor-list-container",t.innerHTML=`
+      <div class="visitor-list-header" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2>Visitors</h2>
+          <button id="add-visitor-btn" class="btn btn-primary">
+            ➕ Add Visitor
+          </button>
+        </div>
+
+        <div class="filter-toolbar">
+          <div class="filter-group-search">
+            <input 
+              type="search" 
+              id="visitor-search" 
+              class="form-input" 
+              placeholder="Search visitors..."
+              value="${this.escapeHtml(this.searchQuery)}"
+            />
+          </div>
+          
+          <div class="filter-group-select">
+            <select id="visitor-category-filter" class="form-select">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+
+          <div class="filter-group-select">
+            <select id="visitor-city-filter" class="form-select">
+              <option value="">All Cities</option>
+            </select>
+          </div>
+
+          <div class="filter-group-select">
+            <select id="visitor-sort" class="form-select">
+              <option value="updatedAt:desc">Last Updated</option>
+              <option value="createdAt:desc">Recently Added</option>
+              <option value="name:asc">Name (A-Z)</option>
+              <option value="city:asc">City (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="visitor-stats" class="text-secondary" style="font-size: 0.875rem;">
+          Loading...
+        </div>
+      </div>
+
+      <div id="visitor-list-content" class="visitor-grid">
+        \x3C!-- Visitor cards will be rendered here -->
+      </div>
+
+      <div id="visitor-pagination" style="margin-top: 2rem; text-align: center;">
+        \x3C!-- Pagination will be rendered here -->
+      </div>
+    `,this.container=t,this.attachEventListeners(),this.attachEventListeners(),this.loadFilters(),this.loadVisitors(),f.on(v.VISITOR_ADDED,()=>this.loadVisitors()),f.on(v.VISITOR_UPDATED,()=>this.loadVisitors()),f.on(v.VISITOR_DELETED,()=>this.loadVisitors()),t}attachEventListeners(){this.container.querySelector("#add-visitor-btn").addEventListener("click",()=>{p.navigate(m.VISITOR_ADD)});const e=this.container.querySelector("#visitor-search");let i;e.addEventListener("input",s=>{clearTimeout(i),i=setTimeout(()=>{this.searchQuery=s.target.value,this.currentPage=1,this.loadVisitors()},300)}),this.container.querySelector("#visitor-category-filter").addEventListener("change",s=>{this.filterCategory=s.target.value||null,this.currentPage=1,this.loadVisitors()}),this.container.querySelector("#visitor-city-filter").addEventListener("change",s=>{this.filterCity=s.target.value||null,this.currentPage=1,this.loadVisitors()}),this.container.querySelector("#visitor-sort").addEventListener("change",s=>{const[n,o]=s.target.value.split(":");this.sortField=n,this.sortOrder=o,this.loadVisitors()})}loadFilters(){const t=b.getCategories(),e=this.container.querySelector("#visitor-category-filter");e.innerHTML='<option value="">All Categories</option>',t.forEach(n=>{const o=document.createElement("option");o.value=n,o.textContent=n,e.appendChild(o)});const i=b.getAll(),r=[...new Set(i.map(n=>n.city).filter(n=>n))].sort(),s=this.container.querySelector("#visitor-city-filter");s.innerHTML='<option value="">All Cities</option>',r.forEach(n=>{const o=document.createElement("option");o.value=n,o.textContent=n,s.appendChild(o)})}loadVisitors(){let t=b.search(this.searchQuery,{category:this.filterCategory,city:this.filterCity});this.sortField==="name"?t=H.sort(t,"contacts[0].name",this.sortOrder):t=H.sort(t,this.sortField,this.sortOrder);const e=H.paginate(t,this.currentPage,this.pageSize);this.updateStats(e.total),this.renderVisitors(e.items),this.renderPagination(e)}updateStats(t){const e=b.getStats(),i=this.container.querySelector("#visitor-stats");let r=`Showing ${t} visitor${t!==1?"s":""}`;(this.searchQuery||this.filterCategory)&&(r+=` (filtered from ${e.active} total)`),i.textContent=r}renderVisitors(t){const e=this.container.querySelector("#visitor-list-content");if(t.length===0){e.innerHTML=`
+        <div class="card text-center" style="padding: 3rem;">
+          <p class="text-secondary">No visitors found.</p>
+          <button class="btn btn-primary" onclick="window.location.hash='${m.VISITOR_ADD}'">
+            Add Your First Visitor
+          </button>
+        </div>
+      `;return}e.innerHTML=t.map(i=>this.renderVisitorCard(i)).join(""),e.querySelectorAll(".visitor-card").forEach(i=>{i.addEventListener("click",()=>{const r=i.dataset.visitorId;p.navigate(`${m.VISITOR_VIEW}?id=${r}`)})})}renderVisitorCard(t){var r;const e=t.contacts.find(s=>s.relationType==="SELF"),i=t.contacts.length-1;return`
+      <div class="visitor-card tile-card" data-visitor-id="${t.id}">
+        <div class="tile-header">
+           <h3 class="tile-title" title="${this.escapeHtml(e==null?void 0:e.name)}">${this.escapeHtml((e==null?void 0:e.name)||"Unknown")}</h3>
+           <span class="badge ${t.category==="Donor"?"badge-success":"badge-primary"}">${t.category||"General"}</span>
+        </div>
+        
+        <div class="tile-body">
+           ${t.city?`<div class="tile-info">📍 ${this.escapeHtml(t.city)}</div>`:""}
+           ${(r=e==null?void 0:e.phones)!=null&&r[0]?`<div class="tile-info">📞 ${this.escapeHtml(e.phones[0])}</div>`:""}
+           
+           <div class="tile-meta">
+              <span>👨‍👩‍👧‍👦 ${i} Family</span>
+              <span>📅 ${W(t.updatedAt)}</span>
+           </div>
+        </div>
+      </div>
+    `}renderPagination(t){const e=this.container.querySelector("#visitor-pagination");if(t.totalPages<=1){e.innerHTML="";return}const i=[];t.hasPrev&&i.push(`<button class="btn btn-secondary" data-page="${t.page-1}">← Previous</button>`);const r=Math.max(1,t.page-2),s=Math.min(t.totalPages,t.page+2);r>1&&(i.push('<button class="btn btn-secondary" data-page="1">1</button>'),r>2&&i.push('<span style="padding: 0 0.5rem;">...</span>'));for(let n=r;n<=s;n++){const o=n===t.page;i.push(`<button class="btn ${o?"btn-primary":"btn-secondary"}" data-page="${n}" ${o?"disabled":""}>${n}</button>`)}s<t.totalPages&&(s<t.totalPages-1&&i.push('<span style="padding: 0 0.5rem;">...</span>'),i.push(`<button class="btn btn-secondary" data-page="${t.totalPages}">${t.totalPages}</button>`)),t.hasNext&&i.push(`<button class="btn btn-secondary" data-page="${t.page+1}">Next →</button>`),e.innerHTML=`
+      <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+        ${i.join("")}
+      </div>
+    `,e.querySelectorAll("button[data-page]").forEach(n=>{n.addEventListener("click",()=>{this.currentPage=parseInt(n.dataset.page),this.loadVisitors(),window.scrollTo(0,0)})})}escapeHtml(t){const e=document.createElement("div");return e.textContent=t,e.innerHTML}destroy(){this.container&&this.container.parentNode&&this.container.parentNode.removeChild(this.container),this.container=null}}class J{constructor(t=null){this.visitorId=t,this.isEditMode=!!t,this.currentStep=1,this.totalSteps=3,this.container=null,this.formData={contacts:[],category:"",tags:[],tags:[],notes:"",address:"",city:"",communicationPreference:"whatsapp"},this.isEditMode?this.loadVisitor():this.formData.contacts.push(this.createEmptyContact("SELF"))}loadVisitor(){const t=b.getById(this.visitorId);t&&(this.formData={contacts:t.contacts,category:t.category||"",tags:t.tags||[],notes:t.notes||"",address:t.address||"",city:t.city||"",communicationPreference:t.communicationPreference||"whatsapp"})}createEmptyContact(t="SELF"){return{id:C("contact"),relationType:t,name:"",phones:[""],emails:[""],dob:"",dobMonthOnly:!1,marriageDate:"",marriageMonthOnly:!1,deathDate:"",deathMonthOnly:!1,notes:""}}render(){const t=document.createElement("div");return t.className="visitor-form-container",t.innerHTML=`
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">${this.isEditMode?"Edit":"Add"} Visitor</h2>
+          <div class="progress-steps" style="margin-top: 1rem;">
+            ${this.renderProgressSteps()}
+          </div>
+        </div>
+        
+        <div class="card-body" id="form-step-content">
+          \x3C!-- Step content will be rendered here -->
+        </div>
+        
+        <div class="card-footer">
+          <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+          <div style="flex: 1;"></div>
+          <button type="button" id="prev-btn" class="btn btn-secondary" ${this.currentStep===1?"disabled":""}>
+            ← Previous
+          </button>
+          <button type="button" id="next-btn" class="btn btn-primary">
+            ${this.currentStep===this.totalSteps?"Save":"Next →"}
+          </button>
+        </div>
+      </div>
+    `,this.container=t,this.renderCurrentStep(),this.attachEventListeners(),t}renderCurrentStep(){const t=this.container.querySelector("#form-step-content");switch(this.currentStep){case 1:t.innerHTML=this.renderStep1();break;case 2:t.innerHTML=this.renderStep2();break;case 3:t.innerHTML=this.renderStep3();break}this.attachStepListeners()}renderDateGroup(t,e,i,r){let s="",n="",o="";if(i){const l=new Date(i);isNaN(l.getTime())||(s=l.getDate(),n=l.getMonth(),o=l.getFullYear())}r&&o===2e3&&(o="");const c=["January","February","March","April","May","June","July","August","September","October","November","December"];return`
+      <div class="form-group" style="margin-bottom: 0;">
+         <label class="form-label">${e}</label>
+         <div class="date-group-row" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            \x3C!-- Day -->
+            <select id="${t}-day" class="form-select date-day" style="flex: 1; min-width: 70px;">
+                <option value="">Day</option>
+                ${Array.from({length:31},(l,d)=>d+1).map(l=>`<option value="${l}" ${s===l?"selected":""}>${l}</option>`).join("")}
+            </select>
+
+            \x3C!-- Month -->
+            <select id="${t}-month" class="form-select date-month" style="flex: 2; min-width: 110px;">
+                <option value="">Month</option>
+                ${c.map((l,d)=>`<option value="${d}" ${n!==""&&n===d?"selected":""}>${l}</option>`).join("")}
+            </select>
+
+            \x3C!-- Year -->
+            <input type="number" id="${t}-year" class="form-input date-year" 
+                   value="${o}" placeholder="Year (Opt)" style="flex: 1.5; min-width: 80px;" min="1900" max="2100" />
+         </div>
+      </div>
+    `}parseDateGroup(t){const e=this.container,i=e.querySelector(`#${t}-day`),r=e.querySelector(`#${t}-month`),s=e.querySelector(`#${t}-year`);if(!i||!r)return{date:"",monthOnly:!1};const n=parseInt(i.value),o=parseInt(r.value);let c=parseInt(s.value),l=!1;return!n||isNaN(o)?{date:"",monthOnly:!1}:((!c||isNaN(c))&&(c=2e3,l=!0),{date:new Date(c,o,n,12,0,0).toISOString().split("T")[0],monthOnly:l})}renderStep1(){const t=this.formData.contacts.find(e=>e.relationType==="SELF")||this.createEmptyContact("SELF");return`
+      <h3 style="color:var(--color-primary); margin-bottom:0.5rem;">Primary Contact</h3>
+      <p class="text-secondary" style="margin-bottom:1.5rem;">Main visitor information</p>
+      
+      <div class="form-row">
+          <div class="form-group form-col-2">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="self-name" class="form-input" value="${this.escapeHtml(t.name)}" required placeholder="e.g. Amit Patil" />
+          </div>
+          <div class="form-group form-col-1">
+             <label class="form-label">Preference</label>
+             <select id="self-comm-pref" class="form-select">
+                <option value="whatsapp" ${this.formData.communicationPreference==="whatsapp"?"selected":""}>WhatsApp</option>
+                <option value="call" ${this.formData.communicationPreference==="call"?"selected":""}>Phone Call</option>
+                <option value="sms" ${this.formData.communicationPreference==="sms"?"selected":""}>SMS</option>
+             </select>
+          </div>
+      </div>
+      
+      \x3C!-- Split Address Row -->
+      <div class="form-row">
+          <div class="form-group form-col-1">
+             <label class="form-label">City / Village</label>
+             <input type="text" id="self-city" class="form-input" value="${this.escapeHtml(this.formData.city)}" placeholder="e.g. Pune" />
+          </div>
+          <div class="form-group form-col-2">
+             <label class="form-label">Address</label>
+             <input type="text" id="self-address" class="form-input" value="${this.escapeHtml(this.formData.address)}" placeholder="Flat No, Building, Area..." />
+          </div>
+      </div>
+
+      \x3C!-- Phones and Emails -->
+      <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Phone Numbers</label>
+            <div id="self-phones">
+              ${t.phones.map((e,i)=>`
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <input type="tel" class="form-input phone-input" data-index="${i}" value="${this.escapeHtml(e)}" placeholder="Mobile Number" />
+                  ${i>0?`<button type="button" class="btn btn-secondary btn-sm remove-phone" data-index="${i}">✕</button>`:""}
+                </div>
+              `).join("")}
+            </div>
+            <button type="button" id="add-phone" class="btn btn-secondary btn-sm" style="width:100%">+ Add Phone</button>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Email Addresses</label>
+            <div id="self-emails">
+              ${t.emails.map((e,i)=>`
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <input type="email" class="form-input email-input" data-index="${i}" value="${this.escapeHtml(e)}" placeholder="Email Address" />
+                  ${i>0?`<button type="button" class="btn btn-secondary btn-sm remove-email" data-index="${i}">✕</button>`:""}
+                </div>
+              `).join("")}
+            </div>
+            <button type="button" id="add-email" class="btn btn-secondary btn-sm" style="width:100%">+ Add Email</button>
+        </div>
+      </div>
+      
+      \x3C!-- Smart Dates -->
+      <div class="form-row">
+        <div class="form-group">
+            ${this.renderDateGroup("self-dob","Date of Birth",t.dob,t.dobMonthOnly)}
+        </div>
+        
+        <div class="form-group">
+            ${this.renderDateGroup("self-marriage","Anniversary",t.marriageDate,t.marriageMonthOnly)}
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="self-notes" class="form-textarea" rows="2" placeholder="Any additional details...">${this.escapeHtml(t.notes||"")}</textarea>
+      </div>
+    `}renderStep2(){const t=this.formData.contacts.filter(e=>e.relationType!=="SELF");return`
+      <h3>Family Members</h3>
+      <p class="text-secondary">Add spouse, children, or parents. Important for relationship management.</p>
+      
+      <div id="family-contacts">
+        ${t.map((e,i)=>this.renderFamilyContact(e,i)).join("")}
+      </div>
+      
+      ${t.length===0?'<div style="padding: 2rem; text-align: center; background: #f8fafc; border-radius: 0.5rem; border: 1px dashed #cbd5e1; margin-bottom: 1rem;"><p class="text-secondary">No family members added.</p></div>':""}
+      
+      <button type="button" id="add-family-member" class="btn btn-primary" style="width: 100%;">+ Add Family Member</button>
+    `}renderFamilyContact(t,e){return`
+      <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem; border-left: 4px solid var(--color-primary);" data-contact-index="${e}">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+          <h4 style="margin: 0; color: var(--color-primary);">${t.name||"New Member"}</h4>
+          <button type="button" class="btn btn-error btn-sm remove-family" data-index="${e}">✕ Remove</button>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Relationship *</label>
+              <select class="form-select family-relation" data-index="${e}">
+                ${Object.entries(Z).filter(([i])=>i!=="SELF").map(([i,r])=>`
+                  <option value="${i}" ${t.relationType===i?"selected":""}>${r}</option>
+                `).join("")}
+              </select>
+            </div>
+            
+            <div class="form-group form-col-2">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-input family-name" data-index="${e}" value="${this.escapeHtml(t.name)}" placeholder="Member Name" />
+            </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Phone (Optional)</label>
+          <input type="tel" class="form-input family-phone" data-index="${e}" value="${this.escapeHtml(t.phones[0]||"")}" placeholder="Mobile Number" />
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                ${this.renderDateGroup(`family-${e}-dob`,"Date of Birth",t.dob,t.dobMonthOnly)}
+            </div>
+
+            <div class="form-group">
+                ${this.renderDateGroup(`family-${e}-marriage`,"Anniversary",t.marriageDate,t.marriageMonthOnly)}
+            </div>
+            
+            <div class="form-group">
+                 ${this.renderDateGroup(`family-${e}-death`,"Death Date",t.deathDate,t.deathMonthOnly)}
+            </div>
+        </div>
+      </div>
+    `}renderStep3(){return`
+      <h3>Additional Details</h3>
+      <p class="text-secondary">Categorize logic for better filtering.</p>
+      
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="text" id="visitor-category" class="form-input" value="${this.escapeHtml(this.formData.category)}" 
+               placeholder="e.g. Regular, Donor, VIP" list="category-suggestions" />
+        <datalist id="category-suggestions">
+          ${b.getCategories().map(t=>`<option value="${this.escapeHtml(t)}">`).join("")}
+        </datalist>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <input type="text" id="visitor-tags" class="form-input" value="${this.formData.tags.join(", ")}" 
+               placeholder="Comma separated tags..." />
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">General Notes</label>
+        <textarea id="visitor-notes" class="form-textarea" rows="4" placeholder="History, context, or special instructions...">${this.escapeHtml(this.formData.notes)}</textarea>
+      </div>
+    `}attachEventListeners(){this.container.querySelector("#cancel-btn").addEventListener("click",()=>{confirm("Discard changes?")&&p.navigate(m.VISITORS)}),this.container.querySelector("#prev-btn").addEventListener("click",()=>{this.saveCurrentStep(),this.currentStep--,this.updateView()}),this.container.querySelector("#next-btn").addEventListener("click",()=>{this.validateCurrentStep()&&(this.saveCurrentStep(),this.currentStep===this.totalSteps?this.saveVisitor():(this.currentStep++,this.updateView()))})}attachStepListeners(){if(this.currentStep===1){const t=this.container.querySelector("#add-phone");t&&t.addEventListener("click",()=>{this.saveCurrentStep(),this.formData.contacts.find(r=>r.relationType==="SELF").phones.push(""),this.renderCurrentStep()}),this.container.querySelectorAll(".remove-phone").forEach(i=>{i.addEventListener("click",r=>{this.saveCurrentStep();const s=parseInt(r.target.dataset.index);this.formData.contacts.find(o=>o.relationType==="SELF").phones.splice(s,1),this.renderCurrentStep()})});const e=this.container.querySelector("#add-email");e&&e.addEventListener("click",()=>{this.saveCurrentStep(),this.formData.contacts.find(i=>i.relationType==="SELF").emails.push(""),this.renderCurrentStep()}),this.container.querySelectorAll(".remove-email").forEach(i=>{i.addEventListener("click",r=>{this.saveCurrentStep();const s=parseInt(r.target.dataset.index);this.formData.contacts.find(n=>n.relationType==="SELF").emails.splice(s,1),this.renderCurrentStep()})})}if(this.currentStep===2){const t=this.container.querySelector("#add-family-member");t&&t.addEventListener("click",()=>{this.saveCurrentStep(),this.formData.contacts.push(this.createEmptyContact("SPOUSE")),this.renderCurrentStep()}),this.container.querySelectorAll(".remove-family").forEach(e=>{e.addEventListener("click",i=>{this.saveCurrentStep();const r=parseInt(i.target.dataset.index),s=this.formData.contacts.filter(o=>o.relationType!=="SELF"),n=this.formData.contacts.indexOf(s[r]);this.formData.contacts.splice(n,1),this.renderCurrentStep()})})}}validateCurrentStep(){if(this.currentStep===1&&!this.container.querySelector("#self-name").value.trim())return alert("Visitor Name is required"),!1;if(this.currentStep===2){const t=this.container.querySelectorAll(".family-name");for(let e of t)if(!e.value.trim())return alert("Family Member Name required"),!1}return!0}saveCurrentStep(){if(this.currentStep===1){const t=this.formData.contacts.find(r=>r.relationType==="SELF");t.name=this.container.querySelector("#self-name").value.trim(),t.phones=Array.from(this.container.querySelectorAll(".phone-input")).map(r=>r.value.trim()).filter(r=>r),t.phones.length||(t.phones=[""]),t.emails=Array.from(this.container.querySelectorAll(".email-input")).map(r=>r.value.trim()).filter(r=>r);const e=this.parseDateGroup("self-dob");t.dob=e.date,t.dobMonthOnly=e.monthOnly;const i=this.parseDateGroup("self-marriage");t.marriageDate=i.date,t.marriageMonthOnly=i.monthOnly,t.notes=this.container.querySelector("#self-notes").value.trim(),this.formData.communicationPreference=this.container.querySelector("#self-comm-pref").value,this.formData.city=this.container.querySelector("#self-city").value.trim(),this.formData.address=this.container.querySelector("#self-address").value.trim()}this.currentStep===2&&this.formData.contacts.filter(e=>e.relationType!=="SELF").forEach((e,i)=>{const r=this.container.querySelector(`.family-relation[data-index="${i}"]`),s=this.container.querySelector(`.family-name[data-index="${i}"]`),n=this.container.querySelector(`.family-phone[data-index="${i}"]`);r&&(e.relationType=r.value),s&&(e.name=s.value.trim()),n&&(e.phones=[n.value.trim()].filter(d=>d));const o=this.parseDateGroup(`family-${i}-dob`);e.dob=o.date,e.dobMonthOnly=o.monthOnly;const c=this.parseDateGroup(`family-${i}-marriage`);e.marriageDate=c.date,e.marriageMonthOnly=c.monthOnly;const l=this.parseDateGroup(`family-${i}-death`);e.deathDate=l.date,e.deathMonthOnly=l.monthOnly}),this.currentStep===3&&(this.formData.category=this.container.querySelector("#visitor-category").value.trim(),this.formData.tags=this.container.querySelector("#visitor-tags").value.split(",").map(t=>t.trim()).filter(t=>t),this.formData.notes=this.container.querySelector("#visitor-notes").value.trim())}saveVisitor(){try{this.isEditMode?(b.update(this.visitorId,this.formData),alert("Visitor updated!")):(b.create(this.formData),alert("Visitor added!")),p.navigate(m.VISITORS)}catch(t){alert("Error: "+t.message)}}updateView(){this.container.querySelector(".progress-steps").innerHTML=this.renderProgressSteps();const t=this.container.querySelector("#prev-btn"),e=this.container.querySelector("#next-btn");t.disabled=this.currentStep===1,e.textContent=this.currentStep===this.totalSteps?"Save":"Next →",this.renderCurrentStep()}renderProgressSteps(){return["Primary","Family","Details"].map((e,i)=>{const r=i+1,s=r===this.currentStep,n=r<this.currentStep;return`<div class="progress-step ${s?"active":""} ${n?"completed":""}" style="margin-right:1rem; display:inline-flex; align-items:center;">
+         <span style="width:24px; height:24px; background:${s?"var(--color-primary)":n?"var(--color-success)":"#cbd5e1"}; color:white; border-radius:50%; text-align:center; line-height:24px; display:inline-block; margin-right:0.5rem; font-size:0.8rem;">${n?"✓":r}</span>
+         <span style="color:${s?"var(--color-primary)":"#64748b"}">${e}</span>
+       </div>`}).join("")}escapeHtml(t){if(!t)return"";const e=document.createElement("div");return e.textContent=t,e.innerHTML}destroy(){var t;(t=this.container)!=null&&t.parentNode&&this.container.parentNode.removeChild(this.container),this.container=null}}class q{constructor(t={}){this.id=t.id||C("interaction"),this.visitorId=t.visitorId||null,this.contactId=t.contactId||null,this.interactionType=t.interactionType||$.CALL,this.notes=t.notes||"",this.interactionDate=t.interactionDate||g(),this.createdAt=t.createdAt||g(),this.createdBy=t.createdBy||null}toJSON(){return{id:this.id,visitorId:this.visitorId,contactId:this.contactId,interactionType:this.interactionType,notes:this.notes,interactionDate:this.interactionDate,createdAt:this.createdAt,createdBy:this.createdBy}}static fromJSON(t){return new q(t)}}class bt{log(t,e,i,r=null,s=null){const n=D.getMachineInfo(),o=new q({visitorId:t,contactId:r,interactionType:e,notes:i,interactionDate:s||g(),createdBy:n.machineId});if(!y.addInteraction(o.toJSON()))throw new Error("Failed to log interaction");return o}getForVisitor(t){return y.getInteractions().filter(i=>i.visitorId===t).sort((i,r)=>new Date(r.interactionDate)-new Date(i.interactionDate))}getRecent(t=10){return y.getInteractions().sort((i,r)=>new Date(r.interactionDate)-new Date(i.interactionDate)).slice(0,t)}getStats(){const t=y.getInteractions(),e={};return t.forEach(i=>{e[i.interactionType]=(e[i.interactionType]||0)+1}),{total:t.length,byType:e}}}const K=new bt;class St{constructor(t){this.visitorId=t,this.visitor=null,this.interactions=[],this.container=null,this.loadData()}loadData(){this.visitor=b.getById(this.visitorId),this.visitor&&(this.interactions=K.getForVisitor(this.visitorId))}render(){if(!this.visitor){const r=document.createElement("div");return r.innerHTML=`
+        <div class="card text-center" style="padding: 3rem;">
+          <h3>Visitor Not Found</h3>
+          <p class="text-secondary">The visitor you are looking for does not exist or has been deleted.</p>
+          <button class="btn btn-primary" onclick="window.location.hash='${m.VISITORS}'">Back to List</button>
+        </div>
+      `,r}const t=document.createElement("div");t.className="visitor-view-container";const e=this.visitor.contacts.find(r=>r.relationType==="SELF"),i=this.visitor.contacts.filter(r=>r.relationType!=="SELF");return t.innerHTML=`
+      <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+          <button id="back-btn" class="btn btn-secondary btn-sm" style="margin-bottom: 0.5rem;">← Back</button>
+          <h2 style="margin: 0;">${this.escapeHtml((e==null?void 0:e.name)||"Unknown Visitor")}</h2>
+          <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
+            Visitor ID: <code>${this.visitor.id}</code> | Category: ${this.escapeHtml(this.visitor.category||"None")}
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="log-interaction-btn" class="btn btn-success">Log Interaction</button>
+          <button id="edit-visitor-btn" class="btn btn-primary">Edit</button>
+          <button id="delete-visitor-btn" class="btn btn-error">Delete</button>
+        </div>
+      </div>
+
+      <div class="view-layout" style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+        <div class="view-main-column">
+          \x3C!-- Contact Cards -->
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+              <h3 class="card-title">Primary Contact</h3>
+            </div>
+            <div class="card-body">
+              ${this.renderContactDetails(e)}
+            </div>
+          </div>
+
+          ${i.length>0?`
+            <div class="card" style="margin-bottom: 2rem;">
+              <div class="card-header">
+                <h3 class="card-title">Family members</h3>
+              </div>
+              <div class="card-body" style="padding: 0;">
+                <div class="family-list">
+                  ${i.map(r=>`
+                    <div style="padding: 1.5rem; border-bottom: 1px solid var(--color-border);">
+                      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <h4 style="margin: 0;">${this.escapeHtml(r.name)}</h4>
+                        <span class="badge" style="background: var(--color-bg); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem;">
+                          ${Z[r.relationType]}
+                        </span>
+                      </div>
+                      ${this.renderContactDetails(r)}
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          `:""}
+
+          \x3C!-- General Notes -->
+          ${this.visitor.notes?`
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">General Notes</h3>
+              </div>
+              <div class="card-body">
+                <p style="white-space: pre-wrap;">${this.escapeHtml(this.visitor.notes)}</p>
+              </div>
+            </div>
+          `:""}
+        </div>
+
+        <div class="view-side-column">
+          \x3C!-- Timeline / Interactions -->
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="card-title">Timeline</h3>
+              <span class="badge badge-primary">${this.interactions.length}</span>
+            </div>
+            <div class="card-body" style="padding: 1rem;">
+              <div class="timeline" id="interaction-timeline">
+                ${this.renderTimeline()}
+              </div>
+            </div>
+          </div>
+
+          \x3C!-- Tags -->
+          <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+              <h3 class="card-title">Tags</h3>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                ${this.visitor.tags.length>0?this.visitor.tags.map(r=>`<span class="tag">${this.escapeHtml(r)}</span>`).join(""):'<p class="text-secondary" style="font-size: 0.875rem;">No tags</p>'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,this.container=t,this.attachEventListeners(),t}renderContactDetails(t){return t?`
+      <div class="details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+        <div>
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Phones</label>
+          ${t.phones.length>0?t.phones.map(e=>`<div>📞 ${this.escapeHtml(e)}</div>`).join(""):'<div class="text-secondary">---</div>'}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Emails</label>
+          ${t.emails.length>0?t.emails.map(e=>`<div>📧 ${this.escapeHtml(e)}</div>`).join(""):'<div class="text-secondary">---</div>'}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Dates</label>
+          ${t.dob?`<div>🎂 ${O(t.dob,t.dobMonthOnly)} (DOB)</div>`:""}
+          ${t.marriageDate?`<div>💍 ${O(t.marriageDate,t.marriageMonthOnly)} (Anniversary)</div>`:""}
+          ${t.deathDate?`<div>🕯️ ${O(t.deathDate,t.deathMonthOnly)} (Death)</div>`:""}
+          ${!t.dob&&!t.marriageDate&&!t.deathDate?'<div class="text-secondary">None logged</div>':""}
+        </div>
+        ${t.notes?`
+          <div style="grid-column: 1 / -1;">
+            <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Specific Notes</label>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">${this.escapeHtml(t.notes)}</p>
+          </div>
+        `:""}
+      </div>
+    `:""}renderTimeline(){return this.interactions.length===0?`
+        <div class="text-center text-secondary" style="padding: 2rem 0;">
+          <p style="font-size: 0.875rem;">No interactions logged yet.</p>
+        </div>
+      `:[...this.interactions].sort((e,i)=>new Date(i.interactionDate)-new Date(e.interactionDate)).map(e=>`
+      <div class="timeline-item" style="position: relative; padding-left: 1.5rem; margin-bottom: 2rem; border-left: 2px solid var(--color-border);">
+        <div style="position: absolute; left: -9px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--color-primary); border: 3px solid white;"></div>
+        <div style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-bottom: 0.25rem;">
+          ${O(e.interactionDate)} (${W(e.interactionDate)})
+        </div>
+        <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem;">
+          ${typeof e.interactionType=="object"?e.interactionType.interactionType:Q[e.interactionType]||e.interactionType}
+        </div>
+        ${e.notes?`
+          <div style="font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.4;">
+            ${this.escapeHtml(e.notes)}
+          </div>
+        `:""}
+      </div>
+    `).join("")}attachEventListeners(){this.container.querySelector("#back-btn").addEventListener("click",()=>{p.navigate(m.VISITORS)}),this.container.querySelector("#edit-visitor-btn").addEventListener("click",()=>{p.navigate(`${m.VISITOR_EDIT}?id=${this.visitorId}`)}),this.container.querySelector("#delete-visitor-btn").addEventListener("click",()=>{var e;const t=((e=this.visitor.contacts.find(i=>i.relationType==="SELF"))==null?void 0:e.name)||"this visitor";confirm(`Are you sure you want to delete ${t}? This action can be undone by an administrator.`)&&(b.delete(this.visitorId),alert("Visitor deleted successfully"),p.navigate(m.VISITORS))}),this.container.querySelector("#log-interaction-btn").addEventListener("click",()=>{const t=prompt("Enter interaction notes:");t!==null&&(K.log(this.visitorId,{interactionType:"CALL",notes:t}),this.loadData(),this.renderTimelineContainer())})}renderTimelineContainer(){const t=this.container.querySelector("#interaction-timeline");t&&(t.innerHTML=this.renderTimeline())}escapeHtml(t){if(!t)return"";const e=document.createElement("div");return e.textContent=t,e.innerHTML}destroy(){this.container=null}}class Y{constructor(t,e,i,r,s=!1){this.visitorId=t.id,this.contactId=e.id,this.contactName=e.name,this.relationType=e.relationType,this.eventType=i,this.rawDate=r,this.monthOnly=s,this.eventDate=ft(r,s),this.daysUntil=M(this.eventDate),this.id=this.generateId()}generateId(){const t=`${this.visitorId}_${this.contactId}_${this.eventType}_${this.rawDate}`;return`reminder_${_(t)}`}isOverdue(){return this.daysUntil<0}isToday(){return this.daysUntil===0}isUpcoming(t=7){return this.daysUntil>0&&this.daysUntil<=t}getUrgency(){return this.daysUntil<0?"overdue":this.daysUntil===0?"today":this.daysUntil<=7?"urgent":this.daysUntil<=30?"upcoming":"later"}toJSON(){return{id:this.id,visitorId:this.visitorId,contactId:this.contactId,contactName:this.contactName,relationType:this.relationType,eventType:this.eventType,eventDate:this.eventDate,rawDate:this.rawDate,monthOnly:this.monthOnly,daysUntil:this.daysUntil,urgency:this.getUrgency()}}}class Et{generateReminders(t=null){const e=y.getSettings(),i=t??e.reminderLookahead??7,r=b.getAll(),s=y.getReminderActions(),n=[];return r.forEach(o=>{o.contacts.forEach(c=>{this.extractEvents(c).forEach(d=>{const u=new Y(o,c,d.type,d.date,d.monthOnly);u.daysUntil>=0&&u.daysUntil<=i&&(this.isSnoozed(u.id,s)||n.push(u))})})}),n}extractEvents(t){const e=[];return t.dob&&e.push({type:"Birthday",date:t.dob,monthOnly:t.dobMonthOnly||!1}),t.marriageDate&&e.push({type:"Anniversary",date:t.marriageDate,monthOnly:t.marriageMonthOnly||!1}),t.deathDate&&e.push({type:"Death",date:t.deathDate,monthOnly:t.deathMonthOnly||!1}),t.customEvents&&Array.isArray(t.customEvents)&&t.customEvents.forEach(i=>{i.reminderEnabled!==!1&&e.push({type:i.eventType||"Custom",date:i.eventDate,monthOnly:i.monthOnly||!1})}),e}isSnoozed(t,e){const i=new Date;return i.setHours(0,0,0,0),e.some(r=>r.reminderId===t&&r.action===B.SNOOZED&&r.snoozeUntil&&new Date(r.snoozeUntil)>i)}getRemindersForMonth(t){const e=b.getAll(),i=[];return e.forEach(r=>{r.contacts.forEach(s=>{this.extractEvents(s).forEach(o=>{const c=new Date(o.date);!isNaN(c.getTime())&&c.getMonth()===parseInt(t)&&i.push(new Y(r,s,o.type,o.date,o.monthOnly))})})}),i.sort((r,s)=>{const n=new Date(r.rawDate).getDate(),o=new Date(s.rawDate).getDate();return n-o})}getGroupedReminders(t=null){const e=this.generateReminders(t),i={overdue:[],today:[],urgent:[],upcoming:[],later:[]};return e.forEach(r=>{const s=r.getUrgency();i[s]?i[s].push(r):i.later.push(r)}),i}recordAction(t,e,i="",r=null){if(!Object.values(B).includes(e))throw new Error(`Invalid reminder action: ${e}`);const s={id:C("action"),reminderId:t,action:e,note:i,actionAt:g(),snoozeUntil:r?new Date(Date.now()+r*24*60*60*1e3).toISOString():null};if(!y.addReminderAction(s))throw new Error("Failed to record reminder action");return f.emit(v.REMINDERS_UPDATED),s}getHistoryForVisitor(t){const e=y.getReminderActions(),r=this.generateReminders(365).filter(n=>n.visitorId===t),s=new Set(r.map(n=>n.id));return e.filter(n=>s.has(n.reminderId))}getStats(){const t=this.generateReminders(),e=this.getGroupedReminders();return{total:t.length,overdue:e.overdue.length,today:e.today.length,urgent:e.urgent.length,soon:e.soon.length}}}const N=new Et;class At{constructor(){this.container=null,this.lookaheadDays=30,this.reminders=[],this.filteredReminders={urgent:[],upcoming:[]},this.filters={search:"",city:"",type:"all",view:"dashboard"},this.stats={urgent:0,upcoming:0,total:0},this.page=1,this.pageSize=50,this.selectedMonth="",this.loadData()}loadData(){try{if(this.selectedMonth!=="")this.rawReminders=N.getRemindersForMonth(this.selectedMonth);else{const t=N.getGroupedReminders(this.lookaheadDays);this.rawReminders=[...t.overdue,...t.today,...t.urgent,...t.upcoming]}this.applyFilters()}catch(t){console.error("Error loading reminder data:",t),this.rawReminders=[],this.filteredReminders={list:[],urgent:[],upcoming:[]}}}applyFilters(){let t=[...this.rawReminders||[]];if(this.filters.search){const e=this.filters.search.toLowerCase().trim();t=t.filter(i=>{try{const r=b.getById(i.visitorId),s=r==null?void 0:r.contacts.find(o=>o.id===i.contactId);return((s==null?void 0:s.name)||"").toLowerCase().includes(e)}catch{return!1}})}this.filters.city&&(t=t.filter(e=>{const i=b.getById(e.visitorId);return(i==null?void 0:i.city)===this.filters.city})),this.filters.type!=="all"&&(t=t.filter(e=>e.eventType===this.filters.type)),this.selectedMonth!==""?this.filteredReminders={list:t}:this.filteredReminders={urgent:t.filter(i=>M(i.eventDate)<=7),upcoming:t.filter(i=>M(i.eventDate)>7)},this.updateStats()}updateStats(){this.selectedMonth!==""?this.stats.total=this.filteredReminders.list.length:(this.stats.urgent=this.filteredReminders.urgent.length,this.stats.upcoming=this.filteredReminders.upcoming.length,this.stats.total=this.stats.urgent+this.stats.upcoming)}render(){try{const t=document.createElement("div");t.className="reminder-dashboard";const e=this.selectedMonth!=="",i=["January","February","March","April","May","June","July","August","September","October","November","December"],r=this.filters.search||this.filters.city||this.filters.type!=="all";return t.innerHTML=`
+          <div class="dashboard-controls" style="background: var(--color-surface); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #94a3b8; margin-bottom: 2rem;">
+            \x3C!-- Header & Stats -->
+            <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; margin-bottom: 1.5rem;">
+              <div>
+                 <h2 style="margin: 0; color: var(--color-primary);">Reminder Dashboard</h2>
+                 <p class="text-secondary" style="margin-top: 0.25rem;">
+                    ${this.stats.total} Activities found • ${e?i[parseInt(this.selectedMonth)]:"Next 30 Days"}
+                 </p>
+              </div>
+              
+              \x3C!-- Quick filters (Clickable pills) -->
+              <div style="display: flex; gap: 1rem;">
+                 ${r?'<button class="btn btn-secondary" id="clear-filters" style="color: #ef4444; border-color: #ef4444;">✖ Clear Filters</button>':""}
+                 <button class="btn ${this.selectedMonth===""?"btn-primary":"btn-secondary"}" id="view-dashboard">Live View</button>
+                 <select id="month-filter" class="form-select" style="min-width: 150px;">
+                    <option value="">📅 Month View...</option>
+                    ${i.map((s,n)=>`<option value="${n}" ${this.selectedMonth===String(n)?"selected":""}>${s}</option>`).join("")}
+                 </select>
+              </div>
+            </div>
+
+            \x3C!-- Standard Filter Toolbar -->
+            <div class="filter-toolbar">
+               <div class="filter-group-search">
+                  <input type="text" id="search-filter" class="form-input" placeholder="🔍 Search Name..." value="${this.escapeHtml(this.filters.search)}">
+               </div>
+               
+               <div class="filter-group-select">
+                  <select id="city-filter" class="form-select">
+                     <option value="">All Cities</option>
+                     \x3C!-- Cities populated in post-render -->
+                  </select>
+               </div>
+
+               <div class="filter-group-select">
+                  <select id="type-filter" class="form-select">
+                     <option value="all" ${this.filters.type==="all"?"selected":""}>All Event Types</option>
+                     <option value="Birthday" ${this.filters.type==="Birthday"?"selected":""}>🎂 Birthday</option>
+                     <option value="Anniversary" ${this.filters.type==="Anniversary"?"selected":""}>💍 Anniversary</option>
+                     <option value="Death" ${this.filters.type==="Death"?"selected":""}>🕯️ Death</option>
+                  </select>
+               </div>
+            </div>
+          </div>
+
+          \x3C!-- Main Layout -->
+          <div id="reminder-content">
+            ${e?this.renderList(this.filteredReminders.list,"Events"):this.renderDashboardViews()}
+          </div>
+        `,this.container=t,this.populateCityFilter(),this.attachEventListeners(),t}catch(t){console.error("Render Error:",t);const e=document.createElement("div");return e.innerHTML=`<div class="alert alert-danger">Error rendering dashboard: ${t.message}. Please refresh.</div>`,e}}populateCityFilter(){const t=this.container.querySelector("#city-filter");if(!t)return;const e=b.getAll(),i=[...new Set(e.map(s=>s.city).filter(s=>s))].sort();let r='<option value="">All Cities</option>';i.forEach(s=>{r+=`<option value="${this.escapeHtml(s)}" ${this.filters.city===s?"selected":""}>${this.escapeHtml(s)}</option>`}),t.innerHTML=r}renderDashboardViews(){return`
+      <div class="urgent-section" style="margin-bottom: 2rem;">
+         <h3 style="color: #991b1b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            🔴 Urgent <span class="badge" style="background:#fee2e2; color:#991b1b;">${this.stats.urgent}</span>
+         </h3>
+         ${this.renderList(this.filteredReminders.urgent,"urgent")}
+      </div>
+
+      <div class="upcoming-section">
+         <h3 style="color: #92400e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            🟡 Upcoming <span class="badge" style="background:#fef3c7; color:#92400e;">${this.stats.upcoming}</span>
+         </h3>
+         ${this.renderPaginatedList(this.filteredReminders.upcoming)}
+      </div>
+    `}renderList(t,e){return!t||t.length===0?`<div class="text-secondary" style="font-style:italic; padding: 1rem; border: 1px dashed #cbd5e1; border-radius: 0.5rem;">No ${e} found matching your filters.</div>`:`
+      <div class="visitor-grid">
+         ${t.map(i=>this.renderTile(i,e==="urgent")).join("")}
+      </div>
+    `}renderPaginatedList(t){if(!t||t.length===0)return this.renderList([],"upcoming");const e=(this.page-1)*this.pageSize,i=e+this.pageSize,r=t.slice(e,i);return`
+       ${this.renderList(r,"upcoming")}
+       ${this.renderPagination(t.length)}
+    `}renderTile(t,e){var u,S;const i=b.getById(t.visitorId),r=i==null?void 0:i.contacts.find(h=>h.id===t.contactId),s=i==null?void 0:i.contacts.find(h=>h.relationType==="SELF"||h.relationType==="Self"||h.relationType==="Primary");let n=(u=r==null?void 0:r.phones)==null?void 0:u[0];!n&&s&&((S=s.phones)==null?void 0:S.length)>0&&(n=s.phones[0]);const o=(i==null?void 0:i.city)||"N/A";let c="";const l=M(t.eventDate);this.selectedMonth!==""?c=ut(t.eventDate):l===0?c="Today":l===1?c="Tomorrow":c=`In ${l} days`;const d={Birthday:"🎂",Anniversary:"💍",Death:"🕯️"}[t.eventType]||"📅";return`
+      <div class="tile-card ${e?"urgent":""}" style="${e?"border-left: 5px solid #ef4444;":"border-left: 5px solid #f59e0b;"}">
+         <div class="tile-header" style="margin-bottom: 0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="font-size:1.2rem;">${d}</span>
+                <span style="font-weight:700; color:${e?"#ef4444":"#f59e0b"}">${c}</span>
+            </div>
+            <span class="badge" style="font-size: 0.7rem; background: #f1f5f9; color: #64748b;">${t.eventType}</span>
+         </div>
+
+         <div class="tile-body">
+            <h4 style="margin:0 0 0.5rem 0; font-size:1.1rem; color:var(--color-primary);">${this.escapeHtml((r==null?void 0:r.name)||"Unknown")}</h4>
+            ${t.relationType!=="SELF"&&s?`<div style="font-size:0.8rem; margin-bottom:0.5rem; color:#64748b;">Family: ${this.escapeHtml(s.name)}</div>`:""}
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
+                <div class="tile-info">📍 ${this.escapeHtml(o)}</div>
+                <div class="tile-info">📞 ${n?`<a href="tel:${n}" style="text-decoration:none; color:inherit;">${n}</a>`:"-"}</div>
+            </div>
+         </div>
+
+         <div class="tile-footer" style="margin-top:1rem; pt-0.5rem; border-top:1px solid #e2e8f0;">
+            <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+               <select class="form-select action-select" data-id="${t.id}" style="padding:0.3rem; font-size:0.85rem; flex:1;">
+                  <option value="">⚡ Action...</option>
+                  <option value="call_whatsapp">📞 WhatsApp</option>
+                  <option value="visit">🏠 Visit</option>
+                  <option value="wish">✨ Wish</option>
+                  <option value="snooze">zzz Snooze</option>
+               </select>
+               <button class="btn btn-primary btn-sm view-btn" data-vid="${i==null?void 0:i.id}">View</button>
+            </div>
+         </div>
+      </div>
+    `}renderPagination(t){const e=Math.ceil(t/this.pageSize);return e<=1?"":`
+      <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+         <button class="btn btn-secondary btn-sm" id="prev-page" ${this.page===1?"disabled":""}>Previous</button>
+         <span>Page ${this.page} of ${e}</span>
+         <button class="btn btn-secondary btn-sm" id="next-page" ${this.page===e?"disabled":""}>Next</button>
+      </div>
+    `}attachEventListeners(){const t=this.container.querySelector("#search-filter");t&&t.addEventListener("input",d=>{this.filters.search=d.target.value,this.page=1,this.refresh()});const e=this.container.querySelector("#city-filter");e&&e.addEventListener("change",d=>{this.filters.city=d.target.value,this.page=1,this.refresh()});const i=this.container.querySelector("#type-filter");i&&i.addEventListener("change",d=>{this.filters.type=d.target.value,this.page=1,this.refresh()});const r=this.container.querySelector("#month-filter");r&&r.addEventListener("change",d=>{this.selectedMonth=d.target.value,this.page=1,this.refresh()});const s=this.container.querySelector("#view-dashboard");s&&s.addEventListener("click",()=>{this.selectedMonth="",this.page=1,r&&(r.value=""),this.refresh()});const n=this.container.querySelector("#clear-filters");n&&n.addEventListener("click",()=>{this.filters.search="",this.filters.city="",this.filters.type="all",this.page=1,this.refresh()});const o=this.container.querySelector("#clear-filters");o&&o.addEventListener("click",()=>{this.filters.search="",this.filters.city="",this.filters.type="all",this.page=1,this.refresh()}),this.container.querySelectorAll(".action-select").forEach(d=>{d.addEventListener("change",u=>{const S=u.target.value;if(!S)return;const h=u.target.dataset.id;if(S==="snooze")N.recordAction(h,"SNOOZED","Quick snooze 7 days",7),this.refresh();else{const L=prompt("Add a quick note (optional):","Action taken via Dashboard");L!==null?(N.recordAction(h,"CONTACTED",`${S}: ${L}`),alert("Action recorded!"),this.refresh()):u.target.value=""}})}),this.container.querySelectorAll(".view-btn").forEach(d=>{d.addEventListener("click",u=>p.navigate(`${m.VISITOR_VIEW}?id=${u.target.dataset.vid}`))});const c=this.container.querySelector("#prev-page");c&&c.addEventListener("click",()=>{this.page--,this.refresh()});const l=this.container.querySelector("#next-page");l&&l.addEventListener("click",()=>{this.page++,this.refresh()})}refresh(){this.loadData();const t=this.container,e=t==null?void 0:t.parentNode;if(e&&t)try{const i=this.render();if(e.replaceChild(i,t),this.filters.search){const r=i.querySelector("#search-filter");r&&(r.focus(),r.setSelectionRange(r.value.length,r.value.length))}}catch(i){console.error("Refresh failed",i)}}escapeHtml(t){if(!t)return"";const e=document.createElement("div");return e.textContent=t,e.innerHTML}destroy(){this.container=null}}class Dt{merge(t){if(!t||!t.visitors)throw new Error("Invalid sync package: No visitor data found");const e=y.getState(),i=t.visitors,r=t.interactions||[],s=t.reminderActions||[],n=new Map;e.visitors.forEach(h=>n.set(h.id,h));let o=0,c=0;i.forEach(h=>{if(n.has(h.id)){const L=n.get(h.id);new Date(h.updatedAt)>new Date(L.updatedAt)&&(n.set(h.id,h),o++)}else n.set(h.id,h),c++});const l=new Set(e.interactions.map(h=>h.id)),d=[...e.interactions];r.forEach(h=>{l.has(h.id)||d.push(h)});const u=new Set(e.reminderActions.map(h=>h.id)),S=[...e.reminderActions];return s.forEach(h=>{u.has(h.id)||S.push(h)}),y.setState({visitors:Array.from(n.values()),interactions:d,reminderActions:S}),f.emit(v.DATA_CHANGED),{visitorsAdded:c,visitorsUpdated:o,interactionsAdded:d.length-e.interactions.length,actionsAdded:S.length-e.reminderActions.length}}prepareExport(){const t=y.getState(),e=y.getSettings().machine||{};return{metadata:{exportedAt:new Date().toISOString(),machineId:e.machineId,machineName:e.machineName,machineRole:e.machineRole},data:{visitors:t.visitors,interactions:t.interactions,reminderActions:t.reminderActions}}}}const It=new Dt;class Tt{constructor(){this.container=null,this.machineInfo=D.getMachineInfo()}render(){var e;const t=document.createElement("div");return t.className="sync-manager",t.innerHTML=`
+      <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <h2>Data Management & Sync</h2>
+        <p class="text-secondary">Sync data between Root and Satellite machines</p>
+      </div>
+
+      <div class="sync-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+        
+        \x3C!-- Export Section -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📤 Export Data</h3>
+          </div>
+          <div class="card-body">
+            <p>Export all visitors, interactions, and reminders from this machine for syncing or backup.</p>
+            
+            <div style="background: var(--color-bg); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+              <strong>Machine Metadata Attached:</strong>
+              <ul style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: var(--color-text-secondary);">
+                <li>Name: ${this.machineInfo.machineName}</li>
+                <li>Role: ${this.machineInfo.machineRole.toUpperCase()}</li>
+                <li>ID: <code>${this.machineInfo.machineId}</code></li>
+              </ul>
+            </div>
+
+            <div class="form-group">
+              <label class="form-checkbox">
+                <input type="checkbox" id="export-history" checked />
+                <span>Include Interaction History</span>
+              </label>
+            </div>
+
+            <button id="export-json-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+              Generate Export (.json)
+            </button>
+          </div>
+        </div>
+
+        \x3C!-- Import Section -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📥 Import / Sync Data</h3>
+          </div>
+          <div class="card-body">
+            <p>Sync data from a Satellite machine into this Root machine, or restore from a backup.</p>
+            
+            ${this.machineInfo.machineRole!=="root"?`
+              <div class="alert alert-warning" style="margin-bottom: 1.5rem; background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 1rem; border-radius: 0.5rem;">
+                <strong>⚠️ Warning:</strong> This is a Satellite machine. Importing data from others may create conflicts. Sycing should usually happen on the Root machine.
+              </div>
+            `:""}
+
+            <div class="import-dropzone" id="import-dropzone" style="border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: 3rem; text-align: center; cursor: pointer; transition: all 0.2s;">
+              <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">📁</p>
+              <p>Click to select or drag & drop JSON file</p>
+              <input type="file" id="import-file-input" style="display: none;" accept=".json" />
+            </div>
+
+            <div id="import-preview" class="hidden" style="margin-top: 2rem;">
+              <h4 style="margin-bottom: 1rem;">File Preview</h4>
+              <div id="preview-stats" style="font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 1.5rem;"></div>
+              
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="confirm-import-btn" class="btn btn-success" style="flex: 1;">Proceed with Import</button>
+                <button id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        \x3C!-- System Stats -->
+        <div class="card" style="grid-column: 1 / -1;">
+          <div class="card-header">
+            <h3 class="card-title">📊 Local Storage Stats</h3>
+          </div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; text-align: center;">
+              <div>
+                <div style="font-size: 1.5rem; font-weight: 700;">${b.getAll().length}</div>
+                <div class="text-secondary">Visitors</div>
+              </div>
+              <div>
+                <div style="font-size: 1.5rem; font-weight: 700;">${((e=y.getState().interactions)==null?void 0:e.length)||0}</div>
+                <div class="text-secondary">Interactions</div>
+              </div>
+              <div>
+                <div style="font-size: 1.5rem; font-weight: 700;">${this.calculateStorageSize()} KB</div>
+                <div class="text-secondary">Used Space</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,this.container=t,this.attachEventListeners(),t}attachEventListeners(){var i,r;this.container.querySelector("#export-json-btn").addEventListener("click",()=>{const s=y.getState(),n={metadata:{app:"NGO_Visitor_Manager",version:"2.0",exportedAt:g(),machineId:this.machineInfo.machineId,machineName:this.machineInfo.machineName,machineRole:this.machineInfo.machineRole},data:{visitors:s.visitors,interactions:s.interactions,reminderActions:s.reminderActions,settings:s.settings}},o=`NGO_Sync_${this.machineInfo.machineName.replace(/\s+/g,"_")}_${new Date().toISOString().split("T")[0]}.json`;it(JSON.stringify(n,null,2),o),alert("Export package generated and downloaded! Transfer this file to the Root machine for syncing.")});const t=this.container.querySelector("#import-dropzone"),e=this.container.querySelector("#import-file-input");t.addEventListener("click",()=>e.click()),e.addEventListener("change",s=>{const n=s.target.files[0];n&&this.handleFileSelection(n)}),(i=this.container.querySelector("#confirm-import-btn"))==null||i.addEventListener("click",()=>{this.performImport()}),(r=this.container.querySelector("#cancel-import-btn"))==null||r.addEventListener("click",()=>{this.resetImport()})}handleFileSelection(t){const e=new FileReader;e.onload=i=>{try{this.pendingImport=JSON.parse(i.target.result),this.showPreview(this.pendingImport)}catch{alert("Invalid JSON file format.")}},e.readAsText(t)}showPreview(t){var r,s;if(!t.metadata||!t.data){alert("This file does not appear to be a valid NGO Sync package.");return}const e=this.container.querySelector("#import-preview"),i=this.container.querySelector("#preview-stats");e.classList.remove("hidden"),i.innerHTML=`
+      <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+        <p><strong>Source:</strong> ${this.escapeHtml(t.metadata.machineName)} (${t.metadata.machineRole})</p>
+        <p><strong>Exported On:</strong> ${new Date(t.metadata.exportedAt).toLocaleString()}</p>
+        <hr style="margin: 0.5rem 0; opacity: 0.1;"/>
+        <p><strong>Visitors:</strong> ${((r=t.data.visitors)==null?void 0:r.length)||0}</p>
+        <p><strong>Interactions:</strong> ${((s=t.data.interactions)==null?void 0:s.length)||0}</p>
+      </div>
+    `}performImport(){if(this.pendingImport&&confirm("Are you sure you want to merge this data? This will update existing records and add new ones."))try{const t=It.merge(this.pendingImport.data);alert(`Sync successful!
+- ${t.visitorsAdded} new visitors added
+- ${t.visitorsUpdated} existing visitors updated
+- ${t.interactionsAdded} interactions synced`),this.resetImport(),window.location.reload()}catch(t){alert("Sync failed: "+t.message)}}resetImport(){this.pendingImport=null,this.container.querySelector("#import-preview").classList.add("hidden"),this.container.querySelector("#import-file-input").value=""}calculateStorageSize(){return(JSON.stringify(localStorage).length/1024).toFixed(2)}escapeHtml(t){if(!t)return"";const e=document.createElement("div");return e.textContent=t,e.innerHTML}destroy(){this.container=null}}class wt{static show(t,e="info",i=3e3){let r=document.getElementById("toast-container");r||(r=document.createElement("div"),r.id="toast-container",r.style.cssText=`
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      `,document.body.appendChild(r));const s=document.createElement("div");s.className=`toast toast-${e}`;const n={success:{bg:"#dcfce7",text:"#166534",border:"#bbf7d0"},error:{bg:"#fee2e2",text:"#991b1b",border:"#fecaca"},warning:{bg:"#fef3c7",text:"#92400e",border:"#fde68a"},info:{bg:"#e0f2fe",text:"#075985",border:"#bae6fd"}}[e]||n.info;s.style.cssText=`
+      background: ${n.bg};
+      color: ${n.text};
+      border: 1px solid ${n.border};
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      min-width: 250px;
+      animation: slideIn 0.3s ease-out;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `,s.innerHTML=`
+      <span>${t}</span>
+      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: inherit; margin-left: 1rem; opacity: 0.5;">✕</button>
+    `,r.appendChild(s);const o=setTimeout(()=>{this.remove(s)},i);s.querySelector("button").addEventListener("click",()=>{clearTimeout(o),this.remove(s)})}static remove(t){t.style.opacity="0",t.style.transform="translateY(10px)",t.style.transition="all 0.3s ease-in",setTimeout(()=>{t.parentNode&&t.parentNode.removeChild(t)},300)}}if(!document.getElementById("toast-styles")){const a=document.createElement("style");a.id="toast-styles",a.textContent=`
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  `,document.head.appendChild(a)}class $t{constructor(){this.appContainer=null,this.currentView=null}async init(){console.log(`${z} v2.0 - Initializing...`),await y.init(),this.appContainer=document.getElementById("app"),D.isActivated()?this.initializeMainApp():this.showActivationScreen()}showActivationScreen(){console.log("App not activated - showing activation screen");const t=new mt,e=t.render();this.appContainer.innerHTML="",this.appContainer.appendChild(e),this.currentView=t}initializeMainApp(){console.log("App activated - initializing main application"),this.renderLayout(),this.registerRoutes(),p.handleRouteChange()}renderLayout(){const t=D.getMachineInfo();this.appContainer.innerHTML=`
+      <header class="app-header">
+        <div class="container">
+          <div class="header-content">
+            <div class="header-logo">
+              <img src="/sewa-sankalp-logo.png" alt="Logo" style="height: 48px;">
+              <div>
+                <h1 class="header-title">Dnyani Mitra</h1>
+                <p class="header-subtitle">Verified Visitor & Reminder System</p>
+              </div>
+            </div>
+            <div class="machine-info text-secondary" style="font-size: 0.875rem;">
+              <div><strong>${t.machineName}</strong></div>
+              <div>${t.machineRole==="root"?"📊 Root Machine":"📱 Satellite Machine"}</div>
+            </div>
+          </div>
+          
+          <nav class="app-nav">
+            <a href="#${m.VISITORS}" class="nav-link">Visitors</a>
+            <a href="#${m.REMINDERS}" class="nav-link">Reminders</a>
+            <a href="#${m.SYNC}" class="nav-link">Data / Sync</a>
+            \x3C!-- Removed Interactions and Backup (merged) -->
+            <a href="#${m.ABOUT}" class="nav-link">About</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="container" id="main-content">
+          \x3C!-- Dynamic content will be rendered here -->
+        </div>
+      </main>
+
+      <footer class="app-footer">
+        <div class="container">
+          <div class="footer-content">
+            <p>&copy; 2026 ${I}. All rights reserved.</p>
+            <p>Developed for NGOs worldwide by ${I}</p>
+            <p><a href="${x}" target="_blank">${x}</a></p>
+          </div>
+        </div>
+      </footer>
+    `,this.updateActiveNavLink()}registerRoutes(){p.register(m.ACTIVATION,()=>{this.showActivationScreen()}),p.register(m.VISITORS,()=>{const t=new gt;this.renderComponent(t.render())}),p.register(m.VISITOR_VIEW,t=>{if(!t.id){p.navigate(m.VISITORS);return}const e=new St(t.id);this.renderComponent(e.render())}),p.register(m.VISITOR_ADD,()=>{const t=new J;this.renderComponent(t.render())}),p.register(m.VISITOR_EDIT,t=>{const e=new J(t.id);this.renderComponent(e.render())}),p.register(m.REMINDERS,()=>{const t=new At;this.renderComponent(t.render())}),p.register(m.INTERACTIONS,()=>{p.navigate(m.VISITORS),wt.show("Search for a visitor to see their interaction history","info")}),p.register(m.SYNC,()=>{const t=new Tt;this.renderComponent(t.render())}),p.register(m.BACKUP,()=>{p.navigate(m.SYNC)}),p.register(m.ABOUT,()=>{const t=D.getMachineInfo();this.renderView(`
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">About</h2>
+          </div>
+          <div class="card-body">
+            <h3>${z}</h3>
+            <p>Version 2.0.0</p>
+            
+            <h4 style="margin-top: 2rem;">Developed by</h4>
+            <p><strong>${I}</strong></p>
+            <p><a href="${x}" target="_blank">${x}</a></p>
+            
+            <h4 style="margin-top: 2rem;">Mission</h4>
+            <p>This application was developed by ${I} to help NGOs worldwide manage visitor relationships and reminders effectively. It is designed to work completely offline and supports multi-machine deployments for field operations.</p>
+            
+            <h4 style="margin-top: 2rem;">Machine Information</h4>
+            <table style="width: 100%; margin-top: 1rem;">
+              <tr>
+                <td><strong>Machine Name:</strong></td>
+                <td>${t.machineName}</td>
+              </tr>
+              <tr>
+                <td><strong>Machine Role:</strong></td>
+                <td>${t.machineRole==="root"?"Root (Data Aggregator)":"Satellite (Field Collection)"}</td>
+              </tr>
+              <tr>
+                <td><strong>Machine ID:</strong></td>
+                <td><code>${t.machineId}</code></td>
+              </tr>
+              <tr>
+                <td><strong>Activated:</strong></td>
+                <td>${new Date(t.activatedAt).toLocaleString()}</td>
+              </tr>
+            </table>
+            
+            <h4 style="margin-top: 2rem;">License</h4>
+            <p>&copy; 2026 ${I}. All rights reserved.</p>
+          </div>
+        </div>
+      `)}),p.setDefaultRoute(m.VISITORS)}renderView(t){const e=document.getElementById("main-content");e&&(e.innerHTML=t,this.updateActiveNavLink())}renderComponent(t){const e=document.getElementById("main-content");e&&(e.innerHTML="",e.appendChild(t),this.updateActiveNavLink())}updateActiveNavLink(){const t=p.getCurrentRoute();document.querySelectorAll(".nav-link").forEach(i=>{i.getAttribute("href")===`#${t}`?i.classList.add("active"):i.classList.remove("active")})}}document.addEventListener("DOMContentLoaded",()=>{new $t().init()});</script>
+  <style rel="stylesheet" crossorigin>:root{--color-primary: #2563eb;--color-primary-dark: #1d4ed8;--color-primary-light: #3b82f6;--color-saffron: #f59e0b;--color-saffron-dark: #d97706;--color-saffron-light: #fbbf24;--color-success: #10b981;--color-success-dark: #059669;--color-success-light: #34d399;--color-warning: #f59e0b;--color-warning-dark: #d97706;--color-warning-light: #fbbf24;--color-error: #ef4444;--color-error-dark: #dc2626;--color-error-light: #f87171;--color-info: #3b82f6;--color-info-dark: #2563eb;--color-info-light: #60a5fa;--color-bg: #f9fafb;--color-surface: #ffffff;--color-surface-hover: #f3f4f6;--color-border: #e5e7eb;--color-text-primary: #111827;--color-text-secondary: #6b7280;--color-text-tertiary: #9ca3af;--space-xs: .25rem;--space-sm: .5rem;--space-md: 1rem;--space-lg: 1.5rem;--space-xl: 2rem;--space-2xl: 3rem;--font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;--font-size-xs: .75rem;--font-size-sm: .875rem;--font-size-base: 1rem;--font-size-lg: 1.125rem;--font-size-xl: 1.25rem;--font-size-2xl: 1.5rem;--font-size-3xl: 2rem;--font-weight-normal: 400;--font-weight-medium: 500;--font-weight-semibold: 600;--font-weight-bold: 700;--line-height-tight: 1.25;--line-height-normal: 1.5;--line-height-relaxed: 1.75;--radius-sm: .25rem;--radius-md: .375rem;--radius-lg: .5rem;--radius-xl: .75rem;--radius-full: 9999px;--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, .05);--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -1px rgba(0, 0, 0, .06);--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -2px rgba(0, 0, 0, .05);--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, .1), 0 10px 10px -5px rgba(0, 0, 0, .04);--transition-fast: .15s ease-in-out;--transition-base: .2s ease-in-out;--transition-slow: .3s ease-in-out;--z-dropdown: 1000;--z-modal: 2000;--z-toast: 3000;--z-tooltip: 4000}@media (prefers-color-scheme: dark){:root{--color-bg: #111827;--color-surface: #1f2937;--color-surface-hover: #374151;--color-border: #374151;--color-text-primary: #f9fafb;--color-text-secondary: #d1d5db;--color-text-tertiary: #9ca3af}}.dark{--color-bg: #111827;--color-surface: #1f2937;--color-surface-hover: #374151;--color-border: #374151;--color-text-primary: #f9fafb;--color-text-secondary: #d1d5db;--color-text-tertiary: #9ca3af}*,*:before,*:after{box-sizing:border-box;margin:0;padding:0}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}body{font-family:var(--font-family);font-size:var(--font-size-base);line-height:var(--line-height-normal);color:var(--color-text-primary);background-color:var(--color-bg);min-height:100vh}h1,h2,h3,h4,h5,h6{font-weight:var(--font-weight-semibold);line-height:var(--line-height-tight);margin-bottom:var(--space-md)}h1{font-size:var(--font-size-3xl)}h2{font-size:var(--font-size-2xl)}h3{font-size:var(--font-size-xl)}h4{font-size:var(--font-size-lg)}p{margin-bottom:var(--space-md)}a{color:var(--color-primary);text-decoration:none;transition:color var(--transition-fast)}a:hover{color:var(--color-primary-dark);text-decoration:underline}#app{min-height:100vh;display:flex;flex-direction:column}.container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-lg)}@media (max-width: 640px){.container{padding:0 .75rem}h1{font-size:1.5rem;margin-bottom:.5rem}h2{font-size:1.25rem;margin-bottom:.5rem}h3{font-size:1.1rem;margin-bottom:.5rem}.app-header{padding:.5rem 0}.header-content{flex-direction:column;align-items:center;gap:.5rem}.header-logo img{height:36px}.app-nav{width:100%;margin-top:.5rem;justify-content:center;gap:.25rem;flex-wrap:wrap;overflow-x:auto;padding-bottom:.5rem;white-space:nowrap;-webkit-overflow-scrolling:touch}.nav-link{padding:.4rem .6rem;font-size:.85rem;border-radius:var(--radius-sm)}}.container-narrow{max-width:800px}.app-header{background-color:var(--color-surface);border-bottom:1px solid var(--color-border);padding:var(--space-md) 0;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100}.header-content{display:flex;align-items:center;justify-content:space-between}.header-logo{display:flex;align-items:center;gap:var(--space-md)}.header-logo img{height:40px;width:auto}@media (min-width: 641px){.header-logo img{height:48px}}.header-title{margin:0;font-size:var(--font-size-xl);color:var(--color-text-primary)}.header-subtitle{font-size:var(--font-size-sm);color:var(--color-saffron);font-weight:var(--font-weight-medium);margin:0}.app-nav{display:flex;gap:var(--space-sm);margin-top:var(--space-md)}.nav-link{padding:.75rem 1rem;border-radius:var(--radius-md);background-color:transparent;color:var(--color-text-secondary);border:none;cursor:pointer;font-size:var(--font-size-base);font-weight:var(--font-weight-medium);transition:all var(--transition-fast);text-decoration:none;display:inline-block}.nav-link:hover{background-color:#e2e8f0;color:#0f172a;text-decoration:none;font-weight:700}.nav-link.active{background-color:var(--color-primary);color:#fff}.app-main{flex:1;padding:var(--space-lg) 0}.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-sm);padding:.75rem 1.5rem;font-size:var(--font-size-base);font-weight:var(--font-weight-medium);border-radius:var(--radius-md);border:none;cursor:pointer;transition:all var(--transition-fast);text-decoration:none;white-space:nowrap;min-height:48px}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-primary{background-color:var(--color-primary);color:#fff}.btn-primary:hover:not(:disabled){background-color:var(--color-primary-dark)}.btn-secondary{background-color:var(--color-surface);color:var(--color-text-primary);border:1px solid var(--color-border)}.btn-secondary:hover:not(:disabled){background-color:var(--color-surface-hover)}.btn-success{background-color:var(--color-success);color:#fff}.btn-success:hover:not(:disabled){background-color:var(--color-success-dark)}.btn-warning{background-color:var(--color-warning);color:#fff}.btn-warning:hover:not(:disabled){background-color:var(--color-warning-dark)}.btn-error{background-color:var(--color-error);color:#fff}.btn-error:hover:not(:disabled){background-color:var(--color-error-dark)}.btn-sm{padding:.4rem 1rem;font-size:var(--font-size-sm);min-height:36px}.btn-lg{padding:1rem 2rem;font-size:var(--font-size-lg)}.filter-toolbar{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;background-color:var(--color-surface);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--color-border)}.filter-group-search{flex:2;min-width:250px}.filter-group-select{flex:1;min-width:150px}@media (max-width: 640px){.filter-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:.75rem}.filter-group-search{grid-column:1 / -1;width:100%;min-width:0}.filter-group-select{width:100%;min-width:0}.filter-toolbar .form-input,.filter-toolbar .form-select{width:100%;margin:0}}.form-group{margin-bottom:var(--space-lg)}.form-row{display:flex;gap:1.5rem;margin-bottom:var(--space-lg);flex-wrap:wrap}.form-row .form-group{margin-bottom:0;flex:1;min-width:250px}.form-col-1{flex:1}.form-col-2{flex:2}.form-col-3{flex:3}@media (max-width: 640px){.form-row{flex-direction:column;gap:1rem;margin-bottom:1rem}.form-row .form-group{min-width:100%}}.form-label{display:block;margin-bottom:var(--space-sm);font-weight:600;color:#1e293b;font-size:.95rem}.form-input,.form-select,.form-textarea{width:100%;padding:.8rem 1rem;font-size:1rem;color:#0f172a;background-color:#f8fafc;border:1px solid #475569;border-radius:var(--radius-md);transition:all var(--transition-fast);min-height:48px}.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px #2563eb1a;background-color:#fff}.form-textarea{resize:vertical;min-height:120px}.form-checkbox{display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;padding:.5rem 0}.form-checkbox input[type=checkbox]{width:20px;height:20px;cursor:pointer}.form-error{color:var(--color-error);font-size:var(--font-size-sm);margin-top:var(--space-xs)}.form-help{color:var(--color-text-secondary);font-size:var(--font-size-sm);margin-top:var(--space-xs)}.card{background-color:var(--color-surface);border:1px solid #cbd5e1;border-radius:var(--radius-lg);padding:var(--space-lg);box-shadow:var(--shadow-sm)}@media (max-width: 640px){.card{padding:1rem}}.card-header{margin-bottom:var(--space-md);padding-bottom:var(--space-md);border-bottom:1px solid var(--color-border)}.card-title{margin:0;font-size:var(--font-size-xl)}.card-body{margin-bottom:var(--space-md)}.card-footer{margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--color-border);display:flex;gap:var(--space-md);justify-content:flex-end;flex-wrap:wrap}@media (max-width: 640px){.card-footer{flex-direction:column-reverse}.card-footer .btn{width:100%}}.alert{padding:1rem;border-radius:var(--radius-md);margin-bottom:var(--space-lg)}.alert-warning{background-color:#fffbeb;border:1px solid #fef3c7;color:#92400e}.reminder-row{padding:1rem;gap:1rem}.reminder-row:hover{box-shadow:0 4px 6px -1px #0000001a;transform:translateY(-1px)}.reminder-row.urgent{border-left:5px solid #ef4444}.reminder-row.upcoming{border-left:5px solid #f59e0b}.data-pair{display:flex;flex-direction:column}.data-label{font-size:.7rem;color:#64748b;text-transform:uppercase;font-weight:700}.data-value{font-weight:500;color:#1e293b}.visitor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}.tile-card{background:#fff;border:1px solid #94a3b8;border-radius:var(--radius-md);padding:1rem;transition:all .2s;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;height:100%}.tile-card:hover{transform:translateY(-2px);box-shadow:0 4px 6px -1px #0000001a;border-color:var(--color-primary)}.tile-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}.tile-title{margin:0;font-size:1.1rem;font-weight:700;color:var(--color-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%}.tile-body{font-size:.9rem;color:#475569}.tile-info{margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem}.tile-meta{margin-top:1rem;padding-top:.5rem;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:.75rem;color:#64748b}</style>
+</head>
+
+<body>
+  <div id="app"></div>
+</body>
+
+</html>

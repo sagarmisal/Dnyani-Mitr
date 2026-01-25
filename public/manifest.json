@@ -1,0 +1,17 @@
+{
+    "name": "NGO Visitor & Reminder Manager",
+    "short_name": "NGO Mitr",
+    "description": "Offline Visitor Manager for NGOs",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "assets/sewa-sankalp-logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
