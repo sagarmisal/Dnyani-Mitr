@@ -40,12 +40,15 @@ jobs:
 
       - name: Build APK (Debug)
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +X gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
 
 
