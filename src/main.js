@@ -11,6 +11,7 @@ import { ReminderDashboard } from './components/Reminders/ReminderDashboard.js';
 import { SyncManager } from './components/Sync/SyncManager.js';
 import { Toast } from './components/UI/Toast.js';
 import { APP_NAME, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
+import logoSrc from './assets/sewa-sankalp-logo.png';
 
 class App {
   constructor() {
@@ -73,14 +74,12 @@ class App {
    */
   renderLayout() {
     const machineInfo = ActivationManager.getMachineInfo();
-    const logoExists = true; // Assuming logo always exists for now, based on original code always showing it.
-
     this.appContainer.innerHTML = `
       <header class="app-header">
         <div class="container">
           <div class="header-content">
             <div class="header-logo">
-              ${logoExists ? '<img src="/sewa-sankalp-logo.png" alt="Logo" style="height: 48px;">' : ''}
+              <img src="${logoSrc}" alt="Logo" style="height: 48px;">
               <div>
                 <h1 class="header-title">Dnyani Mitra</h1>
                 <p class="header-subtitle">Verified Visitor & Reminder System</p>
