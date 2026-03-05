@@ -296,7 +296,7 @@ export class ReminderDashboard {
             </div>
          </div>
 
-         <div class="tile-footer" style="margin-top:1rem; pt-0.5rem; border-top:1px solid #e2e8f0;">
+         <div class="tile-footer" style="margin-top:1rem; padding-top:0.5rem; border-top:1px solid #e2e8f0;">
             <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
                <select class="form-select action-select" data-id="${reminder.id}" style="padding:0.3rem; font-size:0.85rem; flex:1;">
                   <option value="">⚡ Action...</option>
@@ -388,21 +388,7 @@ export class ReminderDashboard {
       });
     }
 
-    // 6. Clear Filters Button
-    const clearFiltersBtn = this.container.querySelector('#clear-filters');
-    if (clearFiltersBtn) {
-      clearFiltersBtn.addEventListener('click', () => {
-        this.filters.search = '';
-        this.filters.city = '';
-        this.filters.type = 'all';
-        this.page = 1;
-        this.refresh();
-      });
-    }
-
-    // 7. Action Selects (Event Delegation)
-    // Using delegation on container to avoid rebinding issues if we used row re-rendering
-    // But since we re-render the whole container in refresh(), direct binding is fine.
+    // 6. Action Selects
     this.container.querySelectorAll('.action-select').forEach(select => {
       select.addEventListener('change', (e) => {
         const val = e.target.value;
@@ -411,12 +397,12 @@ export class ReminderDashboard {
         const id = e.target.dataset.id;
 
         if (val === 'snooze') {
-          ReminderService.recordAction(id, 'SNOOZED', 'Quick snooze 7 days', 7);
+          ReminderService.recordAction(id, 'snoozed', 'Quick snooze 7 days', 7);
           this.refresh();
         } else {
           const note = prompt('Add a quick note (optional):', 'Action taken via Dashboard');
           if (note !== null) {
-            ReminderService.recordAction(id, 'CONTACTED', `${val}: ${note}`);
+            ReminderService.recordAction(id, 'contacted', `${val}: ${note}`);
             alert('Action recorded!');
             this.refresh();
           } else {
@@ -426,12 +412,12 @@ export class ReminderDashboard {
       });
     });
 
-    // 8. View Visitor Buttons
+    // 7. View Visitor Buttons
     this.container.querySelectorAll('.view-btn').forEach(btn => {
       btn.addEventListener('click', (e) => Router.navigate(`${ROUTES.VISITOR_VIEW}?id=${e.target.dataset.vid}`));
     });
 
-    // 9. Pagination
+    // 8. Pagination
     const prev = this.container.querySelector('#prev-page');
     if (prev) prev.addEventListener('click', () => { this.page--; this.refresh(); });
 

@@ -70,11 +70,21 @@ export class SyncManager {
               </div>
             ` : ''}
 
-            <div class="import-dropzone" id="import-dropzone" style="border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: 3rem; text-align: center; cursor: pointer; transition: all 0.2s;">
+            <div class="import-dropzone" id="import-dropzone" style="border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s;">
               <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">📁</p>
-              <p>Click to select or drag & drop JSON file</p>
-              <input type="file" id="import-file-input" style="display: none;" accept=".json" />
+              <p>Tap to select a JSON sync file</p>
+              <p style="font-size: 0.8rem; color: var(--color-text-tertiary);">Or drag & drop on desktop</p>
+              <input type="file" id="import-file-input" style="display: none;" accept=".json,application/json,text/plain,*/*" />
             </div>
+
+            <!-- Paste fallback for Android devices where file picker fails -->
+            <details style="margin-top: 1rem;">
+              <summary style="cursor: pointer; color: var(--color-primary); font-size: 0.875rem;">File picker not working? Paste JSON data manually</summary>
+              <div style="margin-top: 0.75rem;">
+                <textarea id="manual-json-input" class="form-textarea" rows="6" placeholder="Paste the contents of the exported JSON file here..."></textarea>
+                <button id="manual-import-btn" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 0.5rem;">Load Pasted Data</button>
+              </div>
+            </details>
 
             <div id="import-preview" class="hidden" style="margin-top: 2rem;">
               <h4 style="margin-bottom: 1rem;">File Preview</h4>
@@ -153,9 +163,45 @@ export class SyncManager {
 
         dropzone.addEventListener('click', () => fileInput.click());
 
+        // Drag and drop (desktop)
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--color-primary)';
+            dropzone.style.background = '#f0f7ff';
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.borderColor = 'var(--color-border)';
+            dropzone.style.background = '';
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--color-border)';
+            dropzone.style.background = '';
+            const file = e.dataTransfer?.files?.[0];
+            if (file) this.handleFileSelection(file);
+        });
+
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) this.handleFileSelection(file);
+        });
+
+        // Manual JSON paste import (Android fallback)
+        this.container.querySelector('#manual-import-btn')?.addEventListener('click', () => {
+            const textarea = this.container.querySelector('#manual-json-input');
+            const text = textarea?.value?.trim();
+            if (!text) {
+                alert('Please paste JSON data first.');
+                return;
+            }
+            try {
+                this.pendingImport = JSON.parse(text);
+                this.showPreview(this.pendingImport);
+            } catch (err) {
+                alert('Invalid JSON data. Please check the pasted content.');
+            }
         });
 
         this.container.querySelector('#confirm-import-btn')?.addEventListener('click', () => {
@@ -171,16 +217,38 @@ export class SyncManager {
      * Handle file selection for import
      */
     handleFileSelection(file) {
+        if (!file) {
+            alert('No file selected.');
+            return;
+        }
+
+        // Validate file size (max 50MB -- reasonable for sync data)
+        if (file.size > 50 * 1024 * 1024) {
+            alert('File is too large. Maximum size is 50MB.');
+            return;
+        }
+
         const reader = new FileReader();
+
         reader.onload = (e) => {
             try {
-                this.pendingImport = JSON.parse(e.target.result);
+                const text = e.target.result;
+                if (!text || text.trim().length === 0) {
+                    alert('File is empty.');
+                    return;
+                }
+                this.pendingImport = JSON.parse(text);
                 this.showPreview(this.pendingImport);
             } catch (err) {
-                alert('Invalid JSON file format.');
+                alert('Could not read this file as JSON. Make sure it is a valid sync export file.\n\nIf the file picker is not working on your phone, try the "Paste JSON data manually" option below.');
             }
         };
-        reader.readAsText(file);
+
+        reader.onerror = () => {
+            alert('Failed to read the file. This can happen on some Android devices.\n\nTry the "Paste JSON data manually" option below as an alternative.');
+        };
+
+        reader.readAsText(file, 'UTF-8');
     }
 
     /**
@@ -237,6 +305,8 @@ export class SyncManager {
         this.pendingImport = null;
         this.container.querySelector('#import-preview').classList.add('hidden');
         this.container.querySelector('#import-file-input').value = '';
+        const manualInput = this.container.querySelector('#manual-json-input');
+        if (manualInput) manualInput.value = '';
     }
 
     /**

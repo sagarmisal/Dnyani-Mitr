@@ -79,18 +79,41 @@ export function safeJSONParse(str, fallback = null) {
 }
 
 /**
- * Download a file
+ * Download a file (with Android/Capacitor fallback)
  */
 export function downloadFile(content, filename, mimeType = 'application/json') {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+        const blob = new Blob([content], { type: mimeType });
+
+        // Check if running inside Capacitor/Android WebView
+        // where URL.createObjectURL may not trigger a download
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            // IE/Edge legacy
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+            return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+
+        // Use setTimeout to ensure the click registers on all WebViews
+        setTimeout(() => {
+            link.click();
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 250);
+        }, 0);
+    } catch (err) {
+        // Final fallback: open data URI in new tab
+        console.error('Download failed, trying data URI fallback:', err);
+        const dataUri = 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(content);
+        window.open(dataUri, '_blank');
+    }
 }
 
 /**

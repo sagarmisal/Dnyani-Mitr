@@ -74,7 +74,6 @@ class VisitorService {
                 if (v.category && v.category.toLowerCase().includes(q)) return true;
                 if (v.city && v.city.toLowerCase().includes(q)) return true; // Search by City
                 if (v.notes && v.notes.toLowerCase().includes(q)) return true;
-                if (v.notes && v.notes.toLowerCase().includes(q)) return true;
                 if (v.tags.some(tag => tag.toLowerCase().includes(q))) return true;
 
                 // Search in contacts

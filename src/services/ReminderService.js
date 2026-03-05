@@ -222,7 +222,7 @@ class ReminderService {
             overdue: grouped.overdue.length,
             today: grouped.today.length,
             urgent: grouped.urgent.length,
-            soon: grouped.soon.length
+            upcoming: grouped.upcoming.length
         };
     }
 }

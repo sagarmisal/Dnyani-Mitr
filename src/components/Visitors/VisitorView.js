@@ -241,13 +241,9 @@ export class VisitorView {
     });
 
     this.container.querySelector('#log-interaction-btn').addEventListener('click', () => {
-      // For now, prompt for a simple interaction
       const note = prompt('Enter interaction notes:');
       if (note !== null) {
-        InteractionService.log(this.visitorId, {
-          interactionType: 'CALL',
-          notes: note
-        });
+        InteractionService.log(this.visitorId, 'call', note);
         this.loadData();
         this.renderTimelineContainer();
       }

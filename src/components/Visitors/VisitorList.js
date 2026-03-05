@@ -14,9 +14,7 @@ export class VisitorList {
     this.pageSize = 50;
     this.searchQuery = '';
     this.filterCategory = null;
-    this.searchQuery = '';
-    this.filterCategory = null;
-    this.filterCity = null; // New City Filter
+    this.filterCity = null;
     this.sortField = 'updatedAt';
     this.sortOrder = 'desc';
   }
@@ -85,7 +83,6 @@ export class VisitorList {
     `;
 
     this.container = container;
-    this.attachEventListeners();
     this.attachEventListeners();
     this.loadFilters(); // Load categories and cities
     this.loadVisitors();

@@ -19,7 +19,6 @@ export class VisitorForm {
       contacts: [],
       category: '',
       tags: [],
-      tags: [],
       notes: '',
       address: '',
       city: '',
