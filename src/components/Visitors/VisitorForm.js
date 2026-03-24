@@ -440,8 +440,7 @@ export class VisitorForm {
       if (addPhoneBtn) addPhoneBtn.addEventListener('click', () => {
         this.saveCurrentStep();
         const self = this.formData.contacts.find(c => c.relationType === 'SELF');
-        self.phones.push('');
-        this.renderCurrentStep();
+        if (self) { self.phones.push(''); this.renderCurrentStep(); }
       });
 
       this.container.querySelectorAll('.remove-phone').forEach(btn => {
@@ -449,24 +448,23 @@ export class VisitorForm {
           this.saveCurrentStep();
           const idx = parseInt(e.target.dataset.index);
           const self = this.formData.contacts.find(c => c.relationType === 'SELF');
-          self.phones.splice(idx, 1);
-          this.renderCurrentStep();
+          if (self) { self.phones.splice(idx, 1); this.renderCurrentStep(); }
         });
       });
       // ... same for emails
       const addEmailBtn = this.container.querySelector('#add-email');
       if (addEmailBtn) addEmailBtn.addEventListener('click', () => {
         this.saveCurrentStep();
-        this.formData.contacts.find(c => c.relationType === 'SELF').emails.push('');
-        this.renderCurrentStep();
+        const self = this.formData.contacts.find(c => c.relationType === 'SELF');
+        if (self) { self.emails.push(''); this.renderCurrentStep(); }
       });
 
       this.container.querySelectorAll('.remove-email').forEach(btn => {
         btn.addEventListener('click', (e) => {
           this.saveCurrentStep();
           const idx = parseInt(e.target.dataset.index);
-          this.formData.contacts.find(c => c.relationType === 'SELF').emails.splice(idx, 1);
-          this.renderCurrentStep();
+          const self = this.formData.contacts.find(c => c.relationType === 'SELF');
+          if (self) { self.emails.splice(idx, 1); this.renderCurrentStep(); }
         });
       });
     }

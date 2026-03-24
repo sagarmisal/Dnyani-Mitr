@@ -13,6 +13,11 @@ class SyncService {
             throw new Error('Invalid sync package: No visitor data found');
         }
 
+        // Validate that visitors is an array
+        if (!Array.isArray(packageData.visitors)) {
+            throw new Error('Invalid sync package: visitors must be an array');
+        }
+
         const currentState = StateManager.getState();
         const incomingVisitors = packageData.visitors;
         const incomingInteractions = packageData.interactions || [];
@@ -24,10 +29,25 @@ class SyncService {
 
         let updatedCount = 0;
         let addedCount = 0;
+        let skippedCount = 0;
 
         incomingVisitors.forEach(incoming => {
+            // Basic validation: must have id and contacts array
+            if (!incoming || !incoming.id || !Array.isArray(incoming.contacts)) {
+                skippedCount++;
+                return;
+            }
+
             if (visitorMap.has(incoming.id)) {
                 const existing = visitorMap.get(incoming.id);
+
+                // Respect soft deletes: if local is deleted and incoming is older, keep deleted
+                if (existing.status === 'deleted' && incoming.status !== 'deleted') {
+                    if (new Date(existing.deletedAt) > new Date(incoming.updatedAt)) {
+                        return; // Local delete is newer, skip incoming
+                    }
+                }
+
                 // Keep the one with the latest updatedAt
                 if (new Date(incoming.updatedAt) > new Date(existing.updatedAt)) {
                     visitorMap.set(incoming.id, incoming);
@@ -44,7 +64,7 @@ class SyncService {
         const mergedInteractions = [...currentState.interactions];
 
         incomingInteractions.forEach(i => {
-            if (!interactionIds.has(i.id)) {
+            if (i && i.id && i.visitorId && i.interactionType && !interactionIds.has(i.id)) {
                 mergedInteractions.push(i);
             }
         });
@@ -54,7 +74,7 @@ class SyncService {
         const mergedActions = [...currentState.reminderActions];
 
         incomingActions.forEach(a => {
-            if (!actionIds.has(a.id)) {
+            if (a && a.id && !actionIds.has(a.id)) {
                 mergedActions.push(a);
             }
         });
@@ -66,11 +86,12 @@ class SyncService {
             reminderActions: mergedActions
         });
 
-        EventBus.emit(EVENTS.DATA_CHANGED);
+        EventBus.emit(EVENTS.IMPORT_COMPLETED);
 
         return {
             visitorsAdded: addedCount,
             visitorsUpdated: updatedCount,
+            visitorsSkipped: skippedCount,
             interactionsAdded: mergedInteractions.length - currentState.interactions.length,
             actionsAdded: mergedActions.length - currentState.reminderActions.length
         };

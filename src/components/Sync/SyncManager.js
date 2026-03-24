@@ -191,10 +191,14 @@ export class SyncManager {
         // Manual JSON paste import (Android fallback)
         this.container.querySelector('#manual-import-btn')?.addEventListener('click', () => {
             const textarea = this.container.querySelector('#manual-json-input');
-            const text = textarea?.value?.trim();
+            let text = textarea?.value?.trim();
             if (!text) {
                 alert('Please paste JSON data first.');
                 return;
+            }
+            // Remove BOM if present
+            if (text.charCodeAt(0) === 0xFEFF) {
+                text = text.slice(1);
             }
             try {
                 this.pendingImport = JSON.parse(text);
@@ -232,10 +236,14 @@ export class SyncManager {
 
         reader.onload = (e) => {
             try {
-                const text = e.target.result;
+                let text = e.target.result;
                 if (!text || text.trim().length === 0) {
                     alert('File is empty.');
                     return;
+                }
+                // Remove BOM (Byte Order Mark) if present — common on Android-exported files
+                if (text.charCodeAt(0) === 0xFEFF) {
+                    text = text.slice(1);
                 }
                 this.pendingImport = JSON.parse(text);
                 this.showPreview(this.pendingImport);
@@ -285,13 +293,20 @@ export class SyncManager {
             try {
                 const results = SyncService.merge(this.pendingImport.data);
 
+                const skippedMsg = results.visitorsSkipped > 0
+                    ? `\n- ${results.visitorsSkipped} invalid visitors skipped`
+                    : '';
+
                 alert(`Sync successful!
 - ${results.visitorsAdded} new visitors added
 - ${results.visitorsUpdated} existing visitors updated
-- ${results.interactionsAdded} interactions synced`);
+- ${results.interactionsAdded} interactions synced${skippedMsg}`);
 
                 this.resetImport();
-                window.location.reload();
+                // Delay reload to ensure localStorage write completes on slow devices
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             } catch (err) {
                 alert('Sync failed: ' + err.message);
             }

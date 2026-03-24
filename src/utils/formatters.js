@@ -38,6 +38,8 @@ export function formatRelativeTime(isoDate) {
     if (!isoDate) return 'Never';
 
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return 'N/A';
+
     const now = new Date();
     const diffMs = now - date;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -54,9 +56,11 @@ export function formatRelativeTime(isoDate) {
  * Get days until a date
  */
 export function getDaysUntil(isoDate) {
-    if (!isoDate) return null;
+    if (!isoDate) return NaN;
 
     const target = new Date(isoDate);
+    if (isNaN(target.getTime())) return NaN;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     target.setHours(0, 0, 0, 0);
@@ -79,7 +83,9 @@ function toLocalISOString(date) {
  * Normalize event date to current or next year
  */
 export function normalizeEventDate(rawDate, monthOnly = false) {
+    if (!rawDate) return null;
     const eventDate = new Date(rawDate);
+    if (isNaN(eventDate.getTime())) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
