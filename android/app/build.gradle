@@ -16,31 +16,10 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // Release signing — reads from keystore.properties if present.
-    // To set up: create android/keystore.properties with storeFile, storePassword, keyAlias, keyPassword.
-    // For debug/CI builds without a keystore, debug signing is used automatically.
-    def keystorePropsFile = rootProject.file("keystore.properties")
-    if (keystorePropsFile.exists()) {
-        def keystoreProps = new Properties()
-        keystoreProps.load(new FileInputStream(keystorePropsFile))
-        signingConfigs {
-            release {
-                storeFile file(keystoreProps['storeFile'])
-                storePassword keystoreProps['storePassword']
-                keyAlias keystoreProps['keyAlias']
-                keyPassword keystoreProps['keyPassword']
-            }
-        }
-    }
-
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (keystorePropsFile.exists()) {
-                signingConfig signingConfigs.release
-            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
