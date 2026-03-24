@@ -1,39 +1,21 @@
-# ProGuard / R8 rules for NGO Mitr (Capacitor WebView app)
+# Add project specific ProGuard rules here.
+# You can control the set of applied configuration files using the
+# proguardFiles setting in build.gradle.
 #
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# ---- Capacitor Framework ----
-# Keep all Capacitor classes — bridge, plugins, and annotations
--keep class com.getcapacitor.** { *; }
--keep class org.apache.cordova.** { *; }
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
 
-# Keep plugin classes loaded by reflection
--keepclassmembers class * extends com.getcapacitor.Plugin {
-    public *;
-}
+# Uncomment this to preserve the line number information for
+# debugging stack traces.
+#-keepattributes SourceFile,LineNumberTable
 
-# ---- WebView ----
-# Keep WebView and JavaScript interface classes
--keep class android.webkit.** { *; }
--keepclassmembers class * {
-    @android.webkit.JavascriptInterface <methods>;
-}
-
-# ---- AndroidX ----
-# Keep AndroidX components used by Capacitor
--keep class androidx.core.content.FileProvider { *; }
--keep class androidx.appcompat.** { *; }
-
-# ---- General ----
-# Keep generic signatures and annotations for reflection
--keepattributes Signature, Exceptions, InnerClasses, EnclosingMethod, Deprecated
--keepattributes *Annotation*
-
-# Keep source file names for crash reporting
--keepattributes SourceFile,LineNumberTable
--renamesourcefileattribute SourceFile
-
-# Don't warn about missing classes in optional dependencies
--dontwarn org.apache.cordova.**
--dontwarn com.google.android.gms.**
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
+#-renamesourcefileattribute SourceFile
