@@ -142,6 +142,40 @@ export function formatPhone(phone) {
 }
 
 /**
+ * Normalize phone number for dedup matching.
+ * Strips non-digits, takes last 10 digits.
+ * Returns null if result is less than 10 digits.
+ */
+export function normalizePhone(phone) {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10) return null;
+    return digits.slice(-10);
+}
+
+/**
+ * Check if two names likely refer to the same person.
+ * Rules: exact match, one contains the other, first word matches.
+ */
+export function namesSimilar(name1, name2) {
+    if (!name1 || !name2) return false;
+    const n1 = name1.trim().toLowerCase();
+    const n2 = name2.trim().toLowerCase();
+    if (!n1 || !n2) return false;
+
+    // Exact match
+    if (n1 === n2) return true;
+    // One contains the other (e.g., "Suresh" vs "Suresh Patil")
+    if (n1.includes(n2) || n2.includes(n1)) return true;
+    // First word matches (e.g., "Suresh R." vs "Suresh Kumar")
+    const first1 = n1.split(/\s+/)[0];
+    const first2 = n2.split(/\s+/)[0];
+    if (first1.length >= 2 && first1 === first2) return true;
+
+    return false;
+}
+
+/**
  * Format email for display
  */
 export function formatEmail(email) {

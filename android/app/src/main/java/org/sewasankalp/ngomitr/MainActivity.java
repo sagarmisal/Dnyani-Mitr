@@ -29,6 +29,20 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    /**
+     * Handle hardware back button — MIUI/ColorOS override default Capacitor behavior.
+     * If WebView can go back in history, navigate back. Otherwise, let system handle it.
+     */
+    @Override
+    public void onBackPressed() {
+        WebView webView = getBridge().getWebView();
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void configureWebView() {
         WebView webView = getBridge().getWebView();
         if (webView == null) return;

@@ -64,7 +64,8 @@ export const MACHINE_ROLES = {
 // Storage Keys
 export const STORAGE_KEYS = {
     APP_STATE: 'NGOApp_v2_State',
-    ACTIVATION: 'NGOApp_v2_Activation'
+    ACTIVATION: 'NGOApp_v2_Activation',
+    PRE_SYNC_BACKUP: 'NGOApp_v2_PreSyncBackup'
 };
 
 // Settings Defaults

@@ -39,7 +39,7 @@
 
 **Version:** 2.0.0
 **Tech Stack:** Vanilla JS (ES6 modules), vanilla CSS, Vite, Capacitor (Android)
-**Last Updated:** 2026-03-20
+**Last Updated:** 2026-03-24
 
 ### What Works Today
 - Activation with master key (root/satellite machine setup)
@@ -59,9 +59,12 @@
 | Import backup.json fails | FIXED | Wrong event name (DATA_CHANGED→IMPORT_COMPLETED), no BOM handling, reload race condition |
 | VisitorForm crash on corrupted data | FIXED | Unguarded SELF contact .find() in phone/email add/remove |
 | Invalid dates show "NaN days ago" | FIXED | Added isNaN checks in formatters.js |
-| Sync uses ID-only matching (no phone dedup) | PENDING | See Section 4 |
-| "Include Interaction History" checkbox not wired | PENDING | See Section 4 |
-| Satellite import warning is misleading | PENDING | See Section 4 |
+| Sync uses ID-only matching (no phone dedup) | FIXED | Two-tier merge: ID + phone-based dedup with name similarity check |
+| "Include Interaction History" checkbox not wired | FIXED | Export now uses SyncService.prepareExport() with checkbox value |
+| Satellite import warning is misleading | FIXED | Replaced with role-aware guidance text for Root and Satellite |
+| "Sycing" typo in sync UI | FIXED | Removed along with misleading warning text |
+| No pre-sync backup | FIXED | Auto-backup before every import + restore UI |
+| SyncManager bypasses SyncService.prepareExport | FIXED | Export now uses SyncService.prepareExport() |
 
 ---
 
@@ -89,11 +92,45 @@
 
 ---
 
-### Iteration 2 — Data Sync Redesign (PLANNED)
-**Status:** REQUIREMENTS COMPLETE — ready to implement
-**Scope:** Phone-based deduplication, two-tier merge, pre-sync backup, UI fixes
+### Iteration 2 — Data Sync Redesign + Production Hardening (2026-03-24)
+**Status:** COMPLETE — committed and pushed
+**Scope:** Phone-based deduplication, two-tier merge, pre-sync backup, UI fixes, Android production readiness
 
 **Detailed requirements:** See Section 4
+**Detailed implementation plan:** See ITERATION_2_PLAN.md
+
+**Part A — Sync Redesign Files:**
+| File | Change |
+|------|--------|
+| `src/utils/formatters.js` | Added `normalizePhone()` (strip non-digits, last 10) and `namesSimilar()` (exact/contains/first-word match) |
+| `src/utils/constants.js` | Added `PRE_SYNC_BACKUP` to STORAGE_KEYS |
+| `src/services/SyncService.js` | Rewrote `merge()` with two-tier algorithm (ID + phone), `visitorIdRemap` for interaction orphan prevention, `createBackup()`/`restoreBackup()`/`getBackupInfo()` with QuotaExceeded handling, `prepareExport()` with `includeInteractions` option |
+| `src/components/Sync/SyncManager.js` | Wired export checkbox via SyncService.prepareExport(), replaced satellite warning with role-aware text, `minmax(min(400px,100%),1fr)` for mobile, enhanced import results with phone-match/duplicate/backup status, added restore-from-backup section |
+
+**Part B — Android Production Hardening Files:**
+| File | Change |
+|------|--------|
+| `android/app/src/main/AndroidManifest.xml` | Added `fullBackupContent`, `dataExtractionRules`, `extractNativeLibs` for Play Store compliance and Oppo/Realme install compat |
+| `android/app/src/main/java/.../MainActivity.java` | Added `onBackPressed()` for MIUI/ColorOS hardware back button |
+| `android/app/build.gradle` | Version from variables.gradle, signing config from keystore.properties, `minifyEnabled true`, `shrinkResources true` |
+| `android/variables.gradle` | Added `appVersionCode=1`, `appVersionName='2.0.0'` |
+| `android/app/proguard-rules.pro` | Added Cordova, `@JavascriptInterface`, FileProvider, annotation keep rules, `-dontwarn` |
+| `android/app/src/main/res/xml/data_extraction_rules.xml` | NEW — Android 12+ backup/transfer rules (targetSdk 31+ requirement) |
+| `android/app/src/main/res/xml/backup_rules.xml` | NEW — Android 6-11 Auto Backup rules |
+| `android/.gitignore` | Enabled keystore/jks/keystore.properties exclusion |
+
+**Part C — Documentation:**
+| File | Change |
+|------|--------|
+| `PROJECT_PLAN.md` | Updated iteration status, roadmap checkboxes, current state table |
+| `CLAUDE.md` | Fixed Java version 17→21, added assembleRelease command |
+| `ITERATION_2_PLAN.md` | NEW — Full implementation plan with business/technical/architectural review |
+
+**Review findings applied during implementation:**
+- Fixed interaction orphaning on phone-merge (visitorIdRemap)
+- Fixed grid layout overflow on phones < 400px (min() CSS function)
+- Fixed createBackup() QuotaExceededError crash
+- Added backup failure warning in import results
 
 ---
 
@@ -284,15 +321,15 @@ MERGE(incomingPackage):
 
 ### 4.8 Existing Sync Bugs to Fix
 
-| # | Bug | Location | Fix |
-|---|-----|----------|-----|
-| 1 | "Include Interaction History" checkbox not connected | SyncManager.js:48, 136-158 | Check checkbox value in export handler |
-| 2 | "Sycing" typo | SyncManager.js:69 | Fix to "Syncing" |
-| 3 | Satellite warning discourages valid import | SyncManager.js:67-71 | Replace with role-aware guidance |
-| 4 | SyncService.prepareExport() never used | SyncService.js:103-120 | Remove dead code or consolidate |
-| 5 | No pre-sync backup | SyncService.js | Add auto-backup to merge() |
-| 6 | Import preview lacks detail | SyncManager.js:265-284 | Show add/update/skip/duplicate breakdown |
-| 7 | SyncManager builds own export instead of using SyncService | SyncManager.js:138-153 | Consolidate export logic into SyncService |
+| # | Bug | Location | Status |
+|---|-----|----------|--------|
+| 1 | "Include Interaction History" checkbox not connected | SyncManager.js | FIXED — export uses SyncService.prepareExport({ includeInteractions }) |
+| 2 | "Sycing" typo | SyncManager.js | FIXED — removed with old warning text |
+| 3 | Satellite warning discourages valid import | SyncManager.js | FIXED — replaced with role-aware guidance |
+| 4 | SyncService.prepareExport() never used | SyncService.js | FIXED — SyncManager now uses it |
+| 5 | No pre-sync backup | SyncService.js | FIXED — auto-backup in merge(), restore UI added |
+| 6 | Import preview lacks detail | SyncManager.js | FIXED — shows phone-match, duplicate flags, backup info |
+| 7 | SyncManager builds own export instead of using SyncService | SyncManager.js | FIXED — consolidated into SyncService.prepareExport() |
 
 ---
 
@@ -331,15 +368,15 @@ MERGE(incomingPackage):
 
 ## 6. Enhancement Roadmap
 
-### Phase 1 — Sync Redesign (Iteration 2, NEXT)
-- [ ] Phone normalization utility
-- [ ] Two-tier merge algorithm (ID + phone)
-- [ ] Name similarity check
-- [ ] Pre-sync auto-backup + restore
-- [ ] Wire "Include Interaction History" checkbox
-- [ ] Fix satellite warning text
-- [ ] Enhanced import preview with breakdown
-- [ ] Duplicate flagging in import summary
+### Phase 1 — Sync Redesign (Iteration 2, DONE)
+- [x] Phone normalization utility
+- [x] Two-tier merge algorithm (ID + phone)
+- [x] Name similarity check
+- [x] Pre-sync auto-backup + restore
+- [x] Wire "Include Interaction History" checkbox
+- [x] Fix satellite warning text
+- [x] Enhanced import preview with breakdown
+- [x] Duplicate flagging in import summary
 
 ### Phase 2 — Foundation & UX (Iterations 3-5)
 - [ ] Settings UI (reminder lookahead, preferences)
