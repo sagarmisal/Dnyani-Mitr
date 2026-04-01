@@ -1,12 +1,14 @@
 {
   "name": "ngo-visitor-manager",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "NGO Visitor & Reminder Manager - Developed by Sewa Sankalp Pratishthan",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "ngo",
@@ -18,7 +20,8 @@
   "license": "MIT",
   "devDependencies": {
     "vite": "^5.0.0",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",

@@ -5,6 +5,7 @@ import SyncService from '../../services/SyncService.js';
 import { downloadFile } from '../../utils/helpers.js';
 import { ConfirmDialog } from '../UI/ConfirmDialog.js';
 import { Toast } from '../UI/Toast.js';
+import { APP_VERSION } from '../../utils/constants.js';
 
 export class SyncManager {
     constructor() {
@@ -305,14 +306,60 @@ export class SyncManager {
         const preview = this.container.querySelector('#import-preview');
         const stats = this.container.querySelector('#preview-stats');
 
+        // Version comparison
+        const incomingVersion = pkg.metadata.dataVersion || pkg.metadata.version || 'unknown';
+        const localVersion = APP_VERSION;
+        let versionWarning = '';
+
+        if (incomingVersion !== localVersion) {
+            const incomingMajor = parseInt(incomingVersion);
+            const localMajor = parseInt(localVersion);
+
+            if (incomingMajor < localMajor) {
+                // Importing older data into newer app
+                versionWarning = `
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.75rem;">
+                    <strong>⚠️ Older Version Data (v${this.escapeHtml(incomingVersion)})</strong>
+                    <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">
+                        This file was exported from an older app version. New fields (outcomes, follow-ups, consent) will be empty for imported records.
+                        The import will work correctly — no data will be lost.
+                    </p>
+                </div>`;
+            } else if (incomingMajor > localMajor) {
+                // Importing newer data into older app
+                versionWarning = `
+                <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.75rem;">
+                    <strong>⚠️ Newer Version Data (v${this.escapeHtml(incomingVersion)})</strong>
+                    <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">
+                        This file was exported from a newer app version (v${this.escapeHtml(incomingVersion)}). Your app is v${this.escapeHtml(localVersion)}.
+                        Some newer fields may be lost after import. Please update your app to avoid data loss.
+                    </p>
+                    <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0; font-weight: 600;">
+                        Ask your coordinator for the latest app version before importing.
+                    </p>
+                </div>`;
+            } else {
+                // Same major, different minor
+                versionWarning = `
+                <div style="background: #f0f9ff; border: 1px solid #93c5fd; border-radius: var(--radius-sm); padding: 0.75rem; margin-top: 0.75rem;">
+                    <strong>ℹ️ Different Version (v${this.escapeHtml(incomingVersion)})</strong>
+                    <p style="font-size: 0.8rem; margin: 0.25rem 0 0 0;">
+                        This file was exported from app version ${this.escapeHtml(incomingVersion)} (yours is ${this.escapeHtml(localVersion)}). Import should work normally.
+                    </p>
+                </div>`;
+            }
+        }
+
         preview.classList.remove('hidden');
         stats.innerHTML = `
       <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
         <p><strong>Source:</strong> ${this.escapeHtml(pkg.metadata.machineName)} (${this.escapeHtml(pkg.metadata.machineRole)})</p>
         <p><strong>Exported On:</strong> ${new Date(pkg.metadata.exportedAt).toLocaleString()}</p>
+        <p><strong>App Version:</strong> v${this.escapeHtml(incomingVersion)}</p>
         <hr style="margin: 0.5rem 0; opacity: 0.1;"/>
         <p><strong>Visitors in file:</strong> ${pkg.data.visitors?.length || 0}</p>
         <p><strong>Interactions in file:</strong> ${pkg.data.interactions?.length || 0}</p>
+        ${versionWarning}
         <p style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--color-text-tertiary);">Your current data will be backed up automatically before syncing.</p>
       </div>
     `;

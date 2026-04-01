@@ -244,6 +244,7 @@ class SyncService {
             metadata: {
                 app: 'NGO_Visitor_Manager',
                 version: APP_VERSION,
+                dataVersion: APP_VERSION,
                 exportedAt: new Date().toISOString(),
                 machineId: machineInfo?.machineId,
                 machineName: machineInfo?.machineName,

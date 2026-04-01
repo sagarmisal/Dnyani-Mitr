@@ -7,10 +7,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    // No manualChunks needed as singleFile inlines everything
   },
   server: {
     port: 3000,
     open: true
+  },
+  test: {
+    environment: 'node',
+    globals: true
   }
 })
