@@ -1,12 +1,20 @@
 // Toast Notification Utility
 
 export class Toast {
+    static _escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     static show(message, type = 'info', duration = 3000) {
         let container = document.getElementById('toast-container');
 
         if (!container) {
             container = document.createElement('div');
             container.id = 'toast-container';
+            container.setAttribute('aria-live', 'polite');
+            container.setAttribute('role', 'status');
             container.style.cssText = `
         position: fixed;
         bottom: 2rem;
@@ -15,6 +23,7 @@ export class Toast {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        max-width: calc(100vw - 2rem);
       `;
             document.body.appendChild(container);
         }
@@ -28,7 +37,7 @@ export class Toast {
             error: { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' },
             warning: { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
             info: { bg: '#e0f2fe', text: '#075985', border: '#bae6fd' }
-        }[type] || colors.info;
+        }[type] || { bg: '#e0f2fe', text: '#075985', border: '#bae6fd' };
 
         toast.style.cssText = `
       background: ${colors.bg};
@@ -44,10 +53,17 @@ export class Toast {
       align-items: center;
     `;
 
-        toast.innerHTML = `
-      <span>${message}</span>
-      <button style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: inherit; margin-left: 1rem; opacity: 0.5;">✕</button>
-    `;
+        // Use textContent for the message to prevent XSS, then build structure
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '\u2715';
+        closeBtn.setAttribute('aria-label', 'Dismiss');
+        closeBtn.style.cssText = 'background: none; border: none; font-size: 1.25rem; cursor: pointer; color: inherit; margin-left: 1rem; opacity: 0.5; padding: 0.25rem;';
+
+        toast.appendChild(messageSpan);
+        toast.appendChild(closeBtn);
 
         container.appendChild(toast);
 
@@ -57,7 +73,7 @@ export class Toast {
         }, duration);
 
         // Manual remove
-        toast.querySelector('button').addEventListener('click', () => {
+        closeBtn.addEventListener('click', () => {
             clearTimeout(timer);
             this.remove(toast);
         });

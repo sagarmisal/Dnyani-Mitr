@@ -2,13 +2,16 @@
 
 import ReminderService from '../../services/ReminderService.js';
 import VisitorService from '../../services/VisitorService.js';
+import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
 import { formatDateShort, getDaysUntil } from '../../utils/formatters.js';
+import { Toast } from '../UI/Toast.js';
 
 export class ReminderDashboard {
   constructor() {
     this.container = null;
-    this.lookaheadDays = 30;
+    const settings = StateManager.getSettings();
+    this.lookaheadDays = settings.reminderLookahead || 30;
     this.reminders = [];
     this.filteredReminders = { urgent: [], upcoming: [] };
 
@@ -231,7 +234,12 @@ export class ReminderDashboard {
 
   renderList(items, type) {
     if (!items || items.length === 0) {
-      return `<div class="text-secondary" style="font-style:italic; padding: 1rem; border: 1px dashed #cbd5e1; border-radius: 0.5rem;">No ${type} found matching your filters.</div>`;
+      return `
+        <div class="empty-state" style="padding: 2rem 1rem;">
+          <div class="empty-state-icon">📭</div>
+          <p class="empty-state-text">No ${type} reminders found</p>
+          <p class="empty-state-hint">Try adjusting your search or filter criteria.</p>
+        </div>`;
     }
     return `
       <div class="visitor-grid">
@@ -403,7 +411,7 @@ export class ReminderDashboard {
           const note = prompt('Add a quick note (optional):', 'Action taken via Dashboard');
           if (note !== null) {
             ReminderService.recordAction(id, 'contacted', `${val}: ${note}`);
-            alert('Action recorded!');
+            Toast.show('Action recorded!', 'success');
             this.refresh();
           } else {
             e.target.value = ''; // Reset if cancelled

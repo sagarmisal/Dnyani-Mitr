@@ -5,6 +5,8 @@ import Router, { ROUTES } from '../../core/router.js';
 import { Contact } from '../../models/Contact.js';
 import { RELATIONSHIP_TYPES, RELATIONSHIP_LABELS } from '../../utils/constants.js';
 import { generateId } from '../../utils/helpers.js';
+import { ConfirmDialog } from '../UI/ConfirmDialog.js';
+import { Toast } from '../UI/Toast.js';
 
 export class VisitorForm {
   constructor(visitorId = null) {
@@ -140,50 +142,31 @@ export class VisitorForm {
    * Helper: Render Smart Date Group (Day / Month / Year)
    */
   renderDateGroup(fieldId, label, dateStr, isMonthOnly) {
-    let day = '', month = '', year = '';
+    let dateValue = '';
+    let yearUnknown = false;
 
     if (dateStr) {
       const d = new Date(dateStr);
       if (!isNaN(d.getTime())) {
-        day = d.getDate();
-        month = d.getMonth(); // 0-11
-        year = d.getFullYear();
+        // Format as YYYY-MM-DD for input[type=date]
+        const yyyy = String(d.getFullYear()).padStart(4, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dateValue = `${yyyy}-${mm}-${dd}`;
+        if (isMonthOnly && d.getFullYear() === 2000) {
+          yearUnknown = true;
+        }
       }
     }
 
-    // If monthOnly is true, we might want to hide the year or show it as empty if it matches the dummy year
-    // Let's assume 2000 is our dummy year for storage
-    if (isMonthOnly && year === 2000) year = '';
-
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
     return `
-      <div class="form-group" style="margin-bottom: 0;">
-         <label class="form-label">${label}</label>
-         <div class="date-group-row" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <!-- Day -->
-            <select id="${fieldId}-day" class="form-select date-day" style="flex: 1; min-width: 70px;">
-                <option value="">Day</option>
-                ${Array.from({ length: 31 }, (_, i) => i + 1).map(d =>
-      `<option value="${d}" ${day === d ? 'selected' : ''}>${d}</option>`
-    ).join('')}
-            </select>
-
-            <!-- Month -->
-            <select id="${fieldId}-month" class="form-select date-month" style="flex: 2; min-width: 110px;">
-                <option value="">Month</option>
-                ${months.map((m, i) =>
-      `<option value="${i}" ${month !== '' && month === i ? 'selected' : ''}>${m}</option>`
-    ).join('')}
-            </select>
-
-            <!-- Year -->
-            <input type="number" id="${fieldId}-year" class="form-input date-year" 
-                   value="${year}" placeholder="Year (Opt)" style="flex: 1.5; min-width: 80px;" min="1900" max="2100" />
-         </div>
+      <div class="form-group date-field-group" style="margin-bottom: 0;">
+        <label class="form-label">${label}</label>
+        <input type="date" id="${fieldId}" class="form-input" value="${dateValue}" />
+        <label class="year-unknown-label">
+          <input type="checkbox" id="${fieldId}-year-unknown" ${yearUnknown ? 'checked' : ''} />
+          Year unknown
+        </label>
       </div>
     `;
   }
@@ -193,35 +176,21 @@ export class VisitorForm {
    * Returns { date: 'YYYY-MM-DD', monthOnly: boolean }
    */
   parseDateGroup(fieldId) {
-    const container = this.container; // Scope
-    // Handle array inputs (family members) where IDs are not unique globally but scoped? 
-    // Actually renderDateGroup uses ID prefixes. For family members we construct dynamic IDs.
+    const dateInput = this.container.querySelector(`#${fieldId}`);
+    const yearUnknownCheckbox = this.container.querySelector(`#${fieldId}-year-unknown`);
 
-    const dayEl = container.querySelector(`#${fieldId}-day`);
-    const monthEl = container.querySelector(`#${fieldId}-month`);
-    const yearEl = container.querySelector(`#${fieldId}-year`);
+    if (!dateInput || !dateInput.value) return { date: '', monthOnly: false };
 
-    if (!dayEl || !monthEl) return { date: '', monthOnly: false };
+    const dateValue = dateInput.value; // 'YYYY-MM-DD'
+    const yearUnknown = yearUnknownCheckbox?.checked || false;
 
-    const day = parseInt(dayEl.value);
-    const month = parseInt(monthEl.value); // 0-11
-    let year = parseInt(yearEl.value);
-    let monthOnly = false;
-
-    if (!day || isNaN(month)) return { date: '', monthOnly: false };
-
-    if (!year || isNaN(year)) {
-      year = 2000; // Leap year safe default
-      monthOnly = true;
+    if (yearUnknown) {
+      // Replace year with 2000 (leap-year-safe dummy)
+      const parts = dateValue.split('-');
+      return { date: `2000-${parts[1]}-${parts[2]}`, monthOnly: true };
     }
 
-    // Construct Date string YYYY-MM-DD
-    // Note: Month is 0-index in JS Date, but we need 1-index for string padding if manual.
-    // Easier to use Date object to format
-    const dateObj = new Date(year, month, day, 12, 0, 0); // Noon to avoid timezone shifts
-    const iso = dateObj.toISOString().split('T')[0];
-
-    return { date: iso, monthOnly };
+    return { date: dateValue, monthOnly: false };
   }
 
 
@@ -397,7 +366,7 @@ export class VisitorForm {
       
       <div class="form-group">
         <label class="form-label">Tags</label>
-        <input type="text" id="visitor-tags" class="form-input" value="${this.formData.tags.join(', ')}" 
+        <input type="text" id="visitor-tags" class="form-input" value="${this.escapeHtml(this.formData.tags.join(', '))}"
                placeholder="Comma separated tags..." />
       </div>
       
@@ -410,8 +379,15 @@ export class VisitorForm {
 
   // attachEventListeners same...
   attachEventListeners() {
-    this.container.querySelector('#cancel-btn').addEventListener('click', () => {
-      if (confirm('Discard changes?')) Router.navigate(ROUTES.VISITORS);
+    this.container.querySelector('#cancel-btn').addEventListener('click', async () => {
+      const confirmed = await ConfirmDialog.show({
+        title: 'Discard Changes',
+        message: 'Are you sure you want to discard your changes?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        type: 'warning'
+      });
+      if (confirmed) Router.navigate(ROUTES.VISITORS);
     });
 
     this.container.querySelector('#prev-btn').addEventListener('click', () => {
@@ -493,11 +469,11 @@ export class VisitorForm {
   validateCurrentStep() {
     if (this.currentStep === 1) {
       const name = this.container.querySelector('#self-name').value.trim();
-      if (!name) { alert('Visitor Name is required'); return false; }
+      if (!name) { Toast.show('Visitor Name is required', 'error'); return false; }
     }
     if (this.currentStep === 2) {
       const names = this.container.querySelectorAll('.family-name');
-      for (let n of names) { if (!n.value.trim()) { alert('Family Member Name required'); return false; } }
+      for (let n of names) { if (!n.value.trim()) { Toast.show('Family Member Name is required', 'error'); return false; } }
     }
     return true;
   }
@@ -565,13 +541,13 @@ export class VisitorForm {
     try {
       if (this.isEditMode) {
         VisitorService.update(this.visitorId, this.formData);
-        alert('Visitor updated!');
+        Toast.show('Visitor updated successfully', 'success');
       } else {
         VisitorService.create(this.formData);
-        alert('Visitor added!');
+        Toast.show('Visitor added successfully', 'success');
       }
       Router.navigate(ROUTES.VISITORS);
-    } catch (e) { alert('Error: ' + e.message); }
+    } catch (e) { Toast.show('Error: ' + e.message, 'error'); }
   }
 
   updateView() {

@@ -9,6 +9,7 @@ import { VisitorForm } from './components/Visitors/VisitorForm.js';
 import { VisitorView } from './components/Visitors/VisitorView.js';
 import { ReminderDashboard } from './components/Reminders/ReminderDashboard.js';
 import { SyncManager } from './components/Sync/SyncManager.js';
+import { SettingsPage } from './components/Settings/SettingsPage.js';
 import { Toast } from './components/UI/Toast.js';
 import { APP_NAME, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
 import logoSrc from './assets/sewa-sankalp-logo.png';
@@ -95,7 +96,7 @@ class App {
             <a href="#${ROUTES.VISITORS}" class="nav-link">Visitors</a>
             <a href="#${ROUTES.REMINDERS}" class="nav-link">Reminders</a>
             <a href="#${ROUTES.SYNC}" class="nav-link">Data / Sync</a>
-            <!-- Removed Interactions and Backup (merged) -->
+            <a href="#${ROUTES.SETTINGS}" class="nav-link">Settings</a>
             <a href="#${ROUTES.ABOUT}" class="nav-link">About</a>
           </nav>
         </div>
@@ -180,6 +181,12 @@ class App {
     // Backup route (Alias for Sync)
     Router.register(ROUTES.BACKUP, () => {
       Router.navigate(ROUTES.SYNC);
+    });
+
+    // Settings route
+    Router.register(ROUTES.SETTINGS, () => {
+      const settings = new SettingsPage();
+      this.renderComponent(settings.render());
     });
 
     // About route

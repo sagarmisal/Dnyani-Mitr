@@ -3,6 +3,8 @@ import StateManager from '../../core/state.js';
 import VisitorService from '../../services/VisitorService.js';
 import SyncService from '../../services/SyncService.js';
 import { downloadFile } from '../../utils/helpers.js';
+import { ConfirmDialog } from '../UI/ConfirmDialog.js';
+import { Toast } from '../UI/Toast.js';
 
 export class SyncManager {
     constructor() {
@@ -160,7 +162,7 @@ export class SyncManager {
 
             const filename = `NGO_Sync_${this.machineInfo.machineName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
             downloadFile(JSON.stringify(exportPackage, null, 2), filename);
-            alert('Export package generated and downloaded! Transfer this file to the other machine for syncing.');
+            Toast.show('Export package generated! Transfer the file to the other machine.', 'success', 5000);
         });
 
         // Import handlers
@@ -199,7 +201,7 @@ export class SyncManager {
             const textarea = this.container.querySelector('#manual-json-input');
             let text = textarea?.value?.trim();
             if (!text) {
-                alert('Please paste JSON data first.');
+                Toast.show('Please paste JSON data first.', 'warning');
                 return;
             }
             // Remove BOM if present
@@ -210,12 +212,12 @@ export class SyncManager {
                 this.pendingImport = JSON.parse(text);
                 this.showPreview(this.pendingImport);
             } catch (err) {
-                alert('Invalid JSON data. Please check the pasted content.');
+                Toast.show('Invalid JSON data. Please check the pasted content.', 'error');
             }
         });
 
-        this.container.querySelector('#confirm-import-btn')?.addEventListener('click', () => {
-            this.performImport();
+        this.container.querySelector('#confirm-import-btn')?.addEventListener('click', async () => {
+            await this.performImport();
         });
 
         this.container.querySelector('#cancel-import-btn')?.addEventListener('click', () => {
@@ -223,20 +225,27 @@ export class SyncManager {
         });
 
         // Restore from backup handler
-        this.container.querySelector('#restore-backup-btn')?.addEventListener('click', () => {
-            if (confirm('Are you sure you want to restore from the last backup? This will replace all current data with the backup.')) {
+        this.container.querySelector('#restore-backup-btn')?.addEventListener('click', async () => {
+            const confirmed = await ConfirmDialog.show({
+                title: 'Restore from Backup',
+                message: 'Are you sure you want to restore from the last backup? This will replace all current data with the backup.',
+                confirmText: 'Restore',
+                cancelText: 'Cancel',
+                type: 'danger'
+            });
+            if (confirmed) {
                 try {
                     const restoredAt = SyncService.restoreBackup();
                     if (restoredAt) {
-                        alert(`Data restored successfully to the state from ${new Date(restoredAt).toLocaleString()}.`);
+                        Toast.show(`Data restored to state from ${new Date(restoredAt).toLocaleString()}`, 'success', 5000);
                         setTimeout(() => {
                             window.location.reload();
                         }, 500);
                     } else {
-                        alert('No backup found to restore.');
+                        Toast.show('No backup found to restore.', 'warning');
                     }
                 } catch (err) {
-                    alert('Restore failed: ' + err.message);
+                    Toast.show('Restore failed: ' + err.message, 'error', 5000);
                 }
             }
         });
@@ -247,13 +256,13 @@ export class SyncManager {
      */
     handleFileSelection(file) {
         if (!file) {
-            alert('No file selected.');
+            Toast.show('No file selected.', 'warning');
             return;
         }
 
         // Validate file size (max 50MB -- reasonable for sync data)
         if (file.size > 50 * 1024 * 1024) {
-            alert('File is too large. Maximum size is 50MB.');
+            Toast.show('File is too large. Maximum size is 50MB.', 'error');
             return;
         }
 
@@ -263,7 +272,7 @@ export class SyncManager {
             try {
                 let text = e.target.result;
                 if (!text || text.trim().length === 0) {
-                    alert('File is empty.');
+                    Toast.show('File is empty.', 'warning');
                     return;
                 }
                 // Remove BOM (Byte Order Mark) if present — common on Android-exported files
@@ -273,12 +282,12 @@ export class SyncManager {
                 this.pendingImport = JSON.parse(text);
                 this.showPreview(this.pendingImport);
             } catch (err) {
-                alert('Could not read this file as JSON. Make sure it is a valid sync export file.\n\nIf the file picker is not working on your phone, try the "Paste JSON data manually" option below.');
+                Toast.show('Could not read this file as JSON. Try the paste option below.', 'error', 5000);
             }
         };
 
         reader.onerror = () => {
-            alert('Failed to read the file. This can happen on some Android devices.\n\nTry the "Paste JSON data manually" option below as an alternative.');
+            Toast.show('Failed to read file. Try the paste option below.', 'error', 5000);
         };
 
         reader.readAsText(file, 'UTF-8');
@@ -289,7 +298,7 @@ export class SyncManager {
      */
     showPreview(pkg) {
         if (!pkg.metadata || !pkg.data) {
-            alert('This file does not appear to be a valid NGO Sync package.');
+            Toast.show('This file is not a valid NGO Sync package.', 'error');
             return;
         }
 
@@ -312,26 +321,33 @@ export class SyncManager {
     /**
      * Perform the actual import with enhanced results display
      */
-    performImport() {
+    async performImport() {
         if (!this.pendingImport) return;
 
-        if (confirm('Are you sure you want to merge this data? Your current data will be backed up automatically.')) {
+        const confirmed = await ConfirmDialog.show({
+            title: 'Confirm Import',
+            message: 'Are you sure you want to merge this data? Your current data will be backed up automatically.',
+            confirmText: 'Import',
+            cancelText: 'Cancel',
+            type: 'warning'
+        });
+
+        if (confirmed) {
             try {
                 const results = SyncService.merge(this.pendingImport.data);
 
                 // Build detailed result message
-                let message = 'Sync successful!\n';
-                message += `\n- ${results.visitorsAdded} new visitors added`;
-                message += `\n- ${results.visitorsUpdated} existing visitors updated (by ID)`;
+                let message = `${results.visitorsAdded} new visitors added\n`;
+                message += `${results.visitorsUpdated} existing visitors updated (by ID)\n`;
 
                 if (results.visitorsUpdatedByPhone > 0) {
-                    message += `\n- ${results.visitorsUpdatedByPhone} visitors matched by phone number`;
+                    message += `${results.visitorsUpdatedByPhone} visitors matched by phone number\n`;
                 }
 
-                message += `\n- ${results.interactionsAdded} interactions synced`;
+                message += `${results.interactionsAdded} interactions synced`;
 
                 if (results.visitorsSkipped > 0) {
-                    message += `\n- ${results.visitorsSkipped} invalid visitors skipped`;
+                    message += `\n${results.visitorsSkipped} invalid visitors skipped`;
                 }
 
                 // Show duplicate flags warning
@@ -346,10 +362,17 @@ export class SyncManager {
                 if (results.backupCreated) {
                     message += '\n\nYour previous data was backed up automatically.';
                 } else {
-                    message += '\n\n⚠️ Backup could not be created (storage nearly full). Consider exporting your data regularly.';
+                    message += '\n\n⚠️ Backup could not be created (storage nearly full). Consider exporting regularly.';
                 }
 
-                alert(message);
+                // Use info dialog for multi-line results (not a toast)
+                await ConfirmDialog.show({
+                    title: 'Sync Successful',
+                    message: message,
+                    confirmText: 'OK',
+                    cancelText: null,
+                    type: 'info'
+                });
 
                 this.resetImport();
                 // Delay reload to ensure localStorage write completes on slow devices
@@ -357,7 +380,7 @@ export class SyncManager {
                     window.location.reload();
                 }, 500);
             } catch (err) {
-                alert('Sync failed: ' + err.message);
+                Toast.show('Sync failed: ' + err.message, 'error', 5000);
             }
         }
     }

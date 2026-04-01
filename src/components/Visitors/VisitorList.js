@@ -225,12 +225,13 @@ export class VisitorList {
     const listContent = this.container.querySelector('#visitor-list-content');
 
     if (visitors.length === 0) {
+      const hasFilters = this.searchQuery || this.filterCategory || this.filterCity;
       listContent.innerHTML = `
-        <div class="card text-center" style="padding: 3rem;">
-          <p class="text-secondary">No visitors found.</p>
-          <button class="btn btn-primary" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">
-            Add Your First Visitor
-          </button>
+        <div class="empty-state">
+          <div class="empty-state-icon">${hasFilters ? '🔍' : '👋'}</div>
+          <p class="empty-state-text">${hasFilters ? 'No visitors match your search' : 'No visitors yet!'}</p>
+          <p class="empty-state-hint">${hasFilters ? 'Try broadening your search or clearing filters.' : 'Start by adding your first visitor to build your community network.'}</p>
+          ${!hasFilters ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">Add Your First Visitor</button>` : ''}
         </div>
       `;
       return;

@@ -6,6 +6,8 @@ import Router, { ROUTES } from '../../core/router.js';
 import EventBus, { EVENTS } from '../../core/events.js';
 import { formatDate, formatRelativeTime } from '../../utils/formatters.js';
 import { RELATIONSHIP_LABELS, INTERACTION_TYPE_LABELS } from '../../utils/constants.js';
+import { ConfirmDialog } from '../UI/ConfirmDialog.js';
+import { Toast } from '../UI/Toast.js';
 
 export class VisitorView {
   constructor(visitorId) {
@@ -192,8 +194,10 @@ export class VisitorView {
   renderTimeline() {
     if (this.interactions.length === 0) {
       return `
-        <div class="text-center text-secondary" style="padding: 2rem 0;">
-          <p style="font-size: 0.875rem;">No interactions logged yet.</p>
+        <div class="empty-state" style="padding: 2rem 1rem;">
+          <div class="empty-state-icon">💬</div>
+          <p class="empty-state-text">No interactions yet</p>
+          <p class="empty-state-hint">Use "Log Interaction" to record your first contact.</p>
         </div>
       `;
     }
@@ -231,11 +235,18 @@ export class VisitorView {
       Router.navigate(`${ROUTES.VISITOR_EDIT}?id=${this.visitorId}`);
     });
 
-    this.container.querySelector('#delete-visitor-btn').addEventListener('click', () => {
+    this.container.querySelector('#delete-visitor-btn').addEventListener('click', async () => {
       const name = this.visitor.contacts.find(c => c.relationType === 'SELF')?.name || 'this visitor';
-      if (confirm(`Are you sure you want to delete ${name}? This action can be undone by an administrator.`)) {
+      const confirmed = await ConfirmDialog.show({
+        title: 'Delete Visitor',
+        message: `Are you sure you want to delete ${name}?\nThis action can be undone by an administrator.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger'
+      });
+      if (confirmed) {
         VisitorService.delete(this.visitorId);
-        alert('Visitor deleted successfully');
+        Toast.show('Visitor deleted successfully', 'success');
         Router.navigate(ROUTES.VISITORS);
       }
     });

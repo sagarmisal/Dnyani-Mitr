@@ -924,3 +924,163 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* =============================================
+   Confirm Dialog / Modal
+   ============================================= */
+.confirm-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: confirmFadeIn 0.2s ease-out;
+}
+
+.confirm-dialog-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-width: 420px;
+  width: 100%;
+  padding: 1.5rem;
+  animation: confirmScaleIn 0.2s ease-out;
+}
+
+.confirm-dialog-title {
+  margin: 0 0 0.75rem 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.confirm-dialog-message {
+  color: var(--color-text-secondary);
+  margin: 0 0 1.5rem 0;
+  line-height: var(--line-height-relaxed);
+  white-space: pre-line;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+@keyframes confirmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirmScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .confirm-dialog-actions {
+    flex-direction: column-reverse;
+  }
+  .confirm-dialog-actions .btn {
+    width: 100%;
+  }
+}
+
+/* =============================================
+   Empty States
+   ============================================= */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.empty-state-text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* =============================================
+   Settings Page
+   ============================================= */
+.settings-page .settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+  gap: 2rem;
+}
+
+.settings-page .setting-item {
+  margin-bottom: 1.5rem;
+}
+
+.settings-page .setting-item label {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 0.25rem;
+}
+
+.settings-page .setting-item .setting-help {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.settings-page .machine-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-page .machine-info-table td {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings-page .machine-info-table td:first-child {
+  font-weight: var(--font-weight-semibold);
+  width: 40%;
+}
+
+/* =============================================
+   Date Input with Year Unknown
+   ============================================= */
+.date-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-field-group .year-unknown-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.25rem 0;
+}
+
+.date-field-group .year-unknown-label input[type="checkbox"] {
+  margin: 0;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+}
