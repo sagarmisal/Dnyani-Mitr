@@ -16,7 +16,7 @@ class ReminderService {
         const settings = StateManager.getSettings();
         const days = lookaheadDays ?? settings.reminderLookahead ?? 7;
 
-        const visitors = VisitorService.getAll();
+        const visitors = VisitorService.getAll().filter(v => !v.doNotContact);
         const reminderActions = StateManager.getReminderActions();
         const reminders = [];
 
@@ -112,7 +112,7 @@ class ReminderService {
      * Get reminders for a specific month (0-11)
      */
     getRemindersForMonth(monthIndex) {
-        const visitors = VisitorService.getAll();
+        const visitors = VisitorService.getAll().filter(v => !v.doNotContact);
         const reminders = [];
 
         visitors.forEach(visitor => {

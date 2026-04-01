@@ -4,10 +4,11 @@ import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
 import Router, { ROUTES } from '../../core/router.js';
 import EventBus, { EVENTS } from '../../core/events.js';
-import { formatDate, formatRelativeTime } from '../../utils/formatters.js';
-import { RELATIONSHIP_LABELS, INTERACTION_TYPE_LABELS } from '../../utils/constants.js';
+import { formatDate, formatRelativeTime, normalizePhone } from '../../utils/formatters.js';
+import { RELATIONSHIP_LABELS, INTERACTION_TYPE_LABELS, INTERACTION_OUTCOME_LABELS } from '../../utils/constants.js';
 import { ConfirmDialog } from '../UI/ConfirmDialog.js';
 import { Toast } from '../UI/Toast.js';
+import { InteractionLogger } from '../UI/InteractionLogger.js';
 
 export class VisitorView {
   constructor(visitorId) {
@@ -50,18 +51,33 @@ export class VisitorView {
 
     const self = this.visitor.contacts.find(c => c.relationType === 'SELF');
     const family = this.visitor.contacts.filter(c => c.relationType !== 'SELF');
+    const phone = self?.phones?.[0] || '';
+    const email = self?.emails?.[0] || '';
+    const hasPhone = !!normalizePhone(phone);
+    const isDnc = this.visitor.doNotContact;
 
     container.innerHTML = `
-      <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
           <button id="back-btn" class="btn btn-secondary btn-sm" style="margin-bottom: 0.5rem;">← Back</button>
-          <h2 style="margin: 0;">${this.escapeHtml(self?.name || 'Unknown Visitor')}</h2>
+          <h2 style="margin: 0;">
+            ${this.escapeHtml(self?.name || 'Unknown Visitor')}
+            ${isDnc ? '<span class="badge badge-dnc">Do Not Contact</span>' : ''}
+            ${this.visitor.consentGiven ? '<span class="badge badge-consent" title="Consent recorded">Consent</span>' : ''}
+          </h2>
           <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
             Visitor ID: <code>${this.visitor.id}</code> | Category: ${this.escapeHtml(this.visitor.category || 'None')}
           </p>
         </div>
-        <div style="display: flex; gap: 0.5rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          ${!isDnc ? `
+            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-whatsapp" title="WhatsApp">💬 WhatsApp</button>` : ''}
+            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-call" title="Call">📞 Call</button>` : ''}
+            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-sms" title="SMS">📱 SMS</button>` : ''}
+            ${email ? `<button class="btn btn-sm comm-btn" id="btn-email" title="Email">📧 Email</button>` : ''}
+          ` : ''}
           <button id="log-interaction-btn" class="btn btn-success">Log Interaction</button>
+          <button id="toggle-dnc-btn" class="btn btn-sm ${isDnc ? 'btn-secondary' : 'btn-error'}">${isDnc ? 'Allow Contact' : 'Do Not Contact'}</button>
           <button id="edit-visitor-btn" class="btn btn-primary">Edit</button>
           <button id="delete-visitor-btn" class="btn btn-error">Delete</button>
         </div>
@@ -205,22 +221,35 @@ export class VisitorView {
     // Sort by date newest first
     const sorted = [...this.interactions].sort((a, b) => new Date(b.interactionDate) - new Date(a.interactionDate));
 
-    return sorted.map(interaction => `
+    return sorted.map(interaction => {
+      const typeLabel = typeof interaction.interactionType === 'object'
+        ? interaction.interactionType.interactionType
+        : (INTERACTION_TYPE_LABELS[interaction.interactionType] || interaction.interactionType);
+      const outcomeLabel = interaction.outcome ? (INTERACTION_OUTCOME_LABELS[interaction.outcome] || interaction.outcome) : '';
+
+      return `
       <div class="timeline-item" style="position: relative; padding-left: 1.5rem; margin-bottom: 2rem; border-left: 2px solid var(--color-border);">
         <div style="position: absolute; left: -9px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--color-primary); border: 3px solid white;"></div>
         <div style="font-size: 0.75rem; color: var(--color-text-tertiary); margin-bottom: 0.25rem;">
           ${formatDate(interaction.interactionDate)} (${formatRelativeTime(interaction.interactionDate)})
         </div>
         <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem;">
-          ${typeof interaction.interactionType === 'object' ? interaction.interactionType.interactionType : (INTERACTION_TYPE_LABELS[interaction.interactionType] || interaction.interactionType)}
+          ${typeLabel}${outcomeLabel ? ` — <span style="font-weight:400; color: var(--color-text-secondary);">${outcomeLabel}</span>` : ''}
+          ${interaction.duration ? `<span style="font-weight:400; font-size:0.75rem; color:#64748b;"> (${interaction.duration} min)</span>` : ''}
         </div>
         ${interaction.notes ? `
           <div style="font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.4;">
             ${this.escapeHtml(interaction.notes)}
           </div>
         ` : ''}
+        ${interaction.followUpDate ? `
+          <div style="font-size: 0.75rem; color: #b45309; margin-top: 0.25rem;">
+            Follow-up: ${formatDate(interaction.followUpDate)}${interaction.followUpNotes ? ` — ${this.escapeHtml(interaction.followUpNotes)}` : ''}
+          </div>
+        ` : ''}
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   /**
@@ -252,13 +281,78 @@ export class VisitorView {
     });
 
     this.container.querySelector('#log-interaction-btn').addEventListener('click', () => {
-      const note = prompt('Enter interaction notes:');
-      if (note !== null) {
-        InteractionService.log(this.visitorId, 'call', note);
+      const self = this.visitor.contacts.find(c => c.relationType === 'SELF');
+      InteractionLogger.showFull({
+        visitorId: this.visitorId,
+        visitorName: self?.name || 'Unknown',
+        onDone: () => {
+          this.loadData();
+          this.renderTimelineContainer();
+        }
+      });
+    });
+
+    // Communication buttons
+    const self2 = this.visitor.contacts.find(c => c.relationType === 'SELF');
+    const phone2 = self2?.phones?.[0] || '';
+    const email2 = self2?.emails?.[0] || '';
+
+    const whatsappBtn = this.container.querySelector('#btn-whatsapp');
+    if (whatsappBtn) {
+      whatsappBtn.addEventListener('click', () => {
+        InteractionLogger.openWhatsApp(phone2, self2?.name);
+        Toast.show('WhatsApp opened — use "Log Interaction" to record it', 'info');
+      });
+    }
+
+    const callBtn = this.container.querySelector('#btn-call');
+    if (callBtn) {
+      callBtn.addEventListener('click', () => {
+        InteractionLogger.openCall(phone2);
+      });
+    }
+
+    const smsBtn = this.container.querySelector('#btn-sms');
+    if (smsBtn) {
+      smsBtn.addEventListener('click', () => {
+        InteractionLogger.openSMS(phone2, self2?.name);
+      });
+    }
+
+    const emailBtn = this.container.querySelector('#btn-email');
+    if (emailBtn) {
+      emailBtn.addEventListener('click', () => {
+        InteractionLogger.openEmail(email2, self2?.name);
+      });
+    }
+
+    // Do Not Contact toggle
+    this.container.querySelector('#toggle-dnc-btn').addEventListener('click', async () => {
+      const current = this.visitor.doNotContact;
+      const action = current ? 'allow contact for' : 'mark as Do Not Contact for';
+      const name = self2?.name || 'this visitor';
+      const confirmed = await ConfirmDialog.show({
+        title: current ? 'Allow Contact' : 'Do Not Contact',
+        message: `Are you sure you want to ${action} ${name}?${!current ? '\nThey will be hidden from reminders and communication.' : ''}`,
+        confirmText: current ? 'Allow Contact' : 'Mark DNC',
+        type: current ? 'info' : 'warning'
+      });
+      if (confirmed) {
+        VisitorService.update(this.visitorId, { doNotContact: !current });
+        Toast.show(current ? 'Contact allowed' : 'Marked as Do Not Contact', 'success');
         this.loadData();
-        this.renderTimelineContainer();
+        this.fullRefresh();
       }
     });
+  }
+
+  fullRefresh() {
+    const old = this.container;
+    const parent = old?.parentNode;
+    if (parent && old) {
+      const newEl = this.render();
+      parent.replaceChild(newEl, old);
+    }
   }
 
   /**

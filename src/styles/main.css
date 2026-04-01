@@ -1084,3 +1084,354 @@ html {
   height: 20px;
   min-width: 20px;
 }
+
+/* ========================================
+   Iteration 4: InteractionLogger Modal
+   ======================================== */
+
+.interaction-logger-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.interaction-logger-modal {
+  background: white;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.interaction-logger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.interaction-logger-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.interaction-logger-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.interaction-logger-close:hover {
+  color: #ef4444;
+}
+
+.interaction-logger-body {
+  padding: 1.5rem;
+}
+
+.interaction-logger-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ========================================
+   Iteration 4: Quick-action buttons on tiles
+   ======================================== */
+
+.quick-action-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.quick-action-btn {
+  font-size: 0.78rem !important;
+  padding: 0.3rem 0.5rem !important;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+}
+
+.qa-whatsapp {
+  background: #25d366 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.qa-whatsapp:hover {
+  background: #1da851 !important;
+}
+
+.qa-called {
+  background: #3b82f6 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.qa-called:hover {
+  background: #2563eb !important;
+}
+
+.qa-visited {
+  background: #8b5cf6 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.qa-visited:hover {
+  background: #7c3aed !important;
+}
+
+.snooze-group {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  position: relative;
+}
+
+.snooze-options {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.snooze-btn {
+  font-size: 0.72rem !important;
+  padding: 0.2rem 0.35rem !important;
+}
+
+/* ========================================
+   Iteration 4: Communication buttons
+   ======================================== */
+
+.comm-btn {
+  border: 1px solid #cbd5e1 !important;
+  background: white !important;
+  font-size: 0.8rem !important;
+  padding: 0.35rem 0.6rem !important;
+}
+
+.comm-btn:hover {
+  background: #f1f5f9 !important;
+}
+
+/* ========================================
+   Iteration 4: Badges (DNC, Consent)
+   ======================================== */
+
+.badge-dnc {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.badge-consent {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* ========================================
+   Iteration 4: Mobile responsive tweaks
+   ======================================== */
+
+@media (max-width: 640px) {
+  .interaction-logger-modal {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0.5rem;
+  }
+
+  .quick-action-row {
+    gap: 0.3rem;
+  }
+
+  .quick-action-btn {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+}
+
+/* ========================================
+   Iteration 4: Greeting Queue Modal
+   ======================================== */
+
+.greeting-queue-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 1rem;
+}
+
+.greeting-queue-modal {
+  background: white;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.gq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gq-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.gq-progress {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.gq-progress-bar {
+  height: 4px;
+  background: #e2e8f0;
+  width: 100%;
+}
+
+.gq-progress-fill {
+  height: 100%;
+  background: #25d366;
+  transition: width 0.3s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+.gq-body {
+  padding: 1.5rem;
+}
+
+.gq-contact-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.gq-contact-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.gq-contact-detail {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.gq-event-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gq-message-preview {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.gq-message-text {
+  font-size: 0.9rem;
+  color: #166534;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.gq-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.gq-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.gq-summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.gq-stat-item {
+  text-align: center;
+}
+
+.gq-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gq-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.gq-stat-sent .gq-stat-number { color: #16a34a; }
+.gq-stat-skipped .gq-stat-number { color: #94a3b8; }
+.gq-stat-total .gq-stat-number { color: var(--color-primary); }
+
+@media (max-width: 640px) {
+  .greeting-queue-modal {
+    max-width: 100%;
+    border-radius: 0.5rem;
+  }
+}

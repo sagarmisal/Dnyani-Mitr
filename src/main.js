@@ -11,7 +11,7 @@ import { ReminderDashboard } from './components/Reminders/ReminderDashboard.js';
 import { SyncManager } from './components/Sync/SyncManager.js';
 import { SettingsPage } from './components/Settings/SettingsPage.js';
 import { Toast } from './components/UI/Toast.js';
-import { APP_NAME, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
+import { APP_NAME, APP_VERSION, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
 import logoSrc from './assets/sewa-sankalp-logo.png';
 
 class App {
@@ -24,7 +24,7 @@ class App {
    * Initialize the application
    */
   async init() {
-    console.log(`${APP_NAME} v2.0 - Initializing...`);
+    console.log(`${APP_NAME} v${APP_VERSION} - Initializing...`);
 
     // Initialize state
     await StateManager.init();
@@ -199,7 +199,7 @@ class App {
           </div>
           <div class="card-body">
             <h3>${APP_NAME}</h3>
-            <p>Version 2.0.0</p>
+            <p>Version ${APP_VERSION}</p>
             
             <h4 style="margin-top: 2rem;">Developed by</h4>
             <p><strong>${ORGANIZATION}</strong></p>

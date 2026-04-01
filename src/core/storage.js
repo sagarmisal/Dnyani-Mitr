@@ -1,6 +1,6 @@
 // LocalStorage Management
 
-import { STORAGE_KEYS, APP_VERSION, DEFAULT_SETTINGS } from '../utils/constants.js';
+import { STORAGE_KEYS, APP_VERSION, DEFAULT_SETTINGS, DEFAULT_MESSAGE_TEMPLATES } from '../utils/constants.js';
 import { safeJSONParse } from '../utils/helpers.js';
 
 /**
@@ -68,7 +68,9 @@ class StorageManager {
             visitors: [],
             reminderActions: [],
             interactions: [],
-            settings: { ...DEFAULT_SETTINGS }
+            settings: { ...DEFAULT_SETTINGS },
+            knownMachines: {},
+            syncLog: []
         };
     }
 
@@ -134,6 +136,40 @@ class StorageManager {
             newState.interactions = oldState.interactions || [];
             newState.settings = { ...DEFAULT_SETTINGS, ...oldState.settings };
         }
+
+        // Preserve activation state
+        newState.activated = oldState.activated || false;
+        newState.machineId = oldState.machineId || null;
+        newState.machineRole = oldState.machineRole || null;
+        newState.machineName = oldState.machineName || null;
+
+        // v2→v3 migration: add new fields with safe defaults
+        newState.interactions = newState.interactions.map(i => ({
+            ...i,
+            outcome: i.outcome || null,
+            duration: (i.duration != null) ? i.duration : null,
+            followUpDate: i.followUpDate || null,
+            followUpNotes: i.followUpNotes || ''
+        }));
+
+        newState.visitors = newState.visitors.map(v => ({
+            ...v,
+            consentGiven: v.consentGiven || false,
+            consentDate: v.consentDate || null,
+            doNotContact: v.doNotContact || false,
+            contactFrequencyDays: v.contactFrequencyDays || null,
+            engagementScore: v.engagementScore || 0,
+            engagementUpdatedAt: v.engagementUpdatedAt || null
+        }));
+
+        // Ensure v3 settings fields
+        newState.settings.organizationName = newState.settings.organizationName || 'Sewa Sankalp Pratishthan';
+        newState.settings.lapseThresholdDays = newState.settings.lapseThresholdDays || 60;
+        newState.settings.messageTemplates = newState.settings.messageTemplates || { ...DEFAULT_MESSAGE_TEMPLATES };
+
+        // Ensure v3 state-level fields
+        newState.knownMachines = oldState.knownMachines || {};
+        newState.syncLog = oldState.syncLog || [];
 
         // Save migrated state
         this.saveState(newState);

@@ -24,7 +24,8 @@ export class VisitorForm {
       notes: '',
       address: '',
       city: '',
-      communicationPreference: 'whatsapp'
+      communicationPreference: 'whatsapp',
+      consentGiven: false
     };
 
     // Load existing visitor if editing
@@ -49,7 +50,8 @@ export class VisitorForm {
         notes: visitor.notes || '',
         address: visitor.address || '',
         city: visitor.city || '',
-        communicationPreference: visitor.communicationPreference || 'whatsapp'
+        communicationPreference: visitor.communicationPreference || 'whatsapp',
+        consentGiven: visitor.consentGiven || false
       };
     }
   }
@@ -275,6 +277,15 @@ export class VisitorForm {
         <label class="form-label">Notes</label>
         <textarea id="self-notes" class="form-textarea" rows="2" placeholder="Any additional details...">${this.escapeHtml(selfContact.notes || '')}</textarea>
       </div>
+
+      ${!this.isEditMode ? `
+      <div class="form-group consent-group" style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem;">
+        <label class="consent-label" style="display: flex; align-items: start; gap: 0.75rem; cursor: pointer;">
+          <input type="checkbox" id="consent-checkbox" ${this.formData.consentGiven ? 'checked' : ''} style="margin-top: 0.2rem; min-width: 18px; min-height: 18px;" />
+          <span>I have permission to store this person's contact information</span>
+        </label>
+      </div>
+      ` : ''}
     `;
   }
 
@@ -470,6 +481,10 @@ export class VisitorForm {
     if (this.currentStep === 1) {
       const name = this.container.querySelector('#self-name').value.trim();
       if (!name) { Toast.show('Visitor Name is required', 'error'); return false; }
+      if (!this.isEditMode) {
+        const consent = this.container.querySelector('#consent-checkbox');
+        if (consent && !consent.checked) { Toast.show('Please confirm consent to store contact information', 'error'); return false; }
+      }
     }
     if (this.currentStep === 2) {
       const names = this.container.querySelectorAll('.family-name');
@@ -502,6 +517,11 @@ export class VisitorForm {
       this.formData.communicationPreference = this.container.querySelector('#self-comm-pref').value;
       this.formData.city = this.container.querySelector('#self-city').value.trim();
       this.formData.address = this.container.querySelector('#self-address').value.trim();
+
+      if (!this.isEditMode) {
+        const consent = this.container.querySelector('#consent-checkbox');
+        if (consent) this.formData.consentGiven = consent.checked;
+      }
     }
 
     if (this.currentStep === 2) {
@@ -543,7 +563,12 @@ export class VisitorForm {
         VisitorService.update(this.visitorId, this.formData);
         Toast.show('Visitor updated successfully', 'success');
       } else {
-        VisitorService.create(this.formData);
+        const data = {
+          ...this.formData,
+          consentGiven: this.formData.consentGiven || false,
+          consentDate: this.formData.consentGiven ? new Date().toISOString() : null
+        };
+        VisitorService.create(data);
         Toast.show('Visitor added successfully', 'success');
       }
       Router.navigate(ROUTES.VISITORS);

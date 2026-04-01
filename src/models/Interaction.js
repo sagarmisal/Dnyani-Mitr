@@ -14,6 +14,11 @@ export class Interaction {
         this.interactionDate = data.interactionDate || getCurrentDate();
         this.createdAt = data.createdAt || getCurrentDate();
         this.createdBy = data.createdBy || null; // Machine ID
+        // v3 fields
+        this.outcome = data.outcome || null; // 'successful' | 'no_answer' | 'busy' | 'rescheduled' | 'left_message' | 'other'
+        this.duration = (data.duration != null && data.duration !== '') ? Number(data.duration) : null; // minutes
+        this.followUpDate = data.followUpDate || null; // ISO date
+        this.followUpNotes = data.followUpNotes || '';
     }
 
     /**
@@ -28,7 +33,11 @@ export class Interaction {
             notes: this.notes,
             interactionDate: this.interactionDate,
             createdAt: this.createdAt,
-            createdBy: this.createdBy
+            createdBy: this.createdBy,
+            outcome: this.outcome,
+            duration: this.duration,
+            followUpDate: this.followUpDate,
+            followUpNotes: this.followUpNotes
         };
     }
 

@@ -1,6 +1,6 @@
 // Application Constants
 
-export const APP_VERSION = '2.0.0';
+export const APP_VERSION = '3.0.0';
 export const APP_NAME = 'NGO Visitor & Reminder Manager';
 export const ORGANIZATION = 'Sewa Sankalp Pratishthan';
 export const ORGANIZATION_URL = 'https://sewasankalp.org/';
@@ -44,15 +44,42 @@ export const INTERACTION_TYPES = {
     VISIT: 'visit',
     EMAIL: 'email',
     LETTER: 'letter',
+    WHATSAPP: 'whatsapp',
+    SMS: 'sms',
+    MEETING: 'meeting',
+    DONATION: 'donation',
     OTHER: 'other'
 };
 
 export const INTERACTION_TYPE_LABELS = {
-    [INTERACTION_TYPES.CALL]: '📞 Phone Call',
+    [INTERACTION_TYPES.CALL]: '📞 Call',
     [INTERACTION_TYPES.VISIT]: '🏠 Visit',
     [INTERACTION_TYPES.EMAIL]: '📧 Email',
     [INTERACTION_TYPES.LETTER]: '✉️ Letter',
-    [INTERACTION_TYPES.OTHER]: '📝 Other'
+    [INTERACTION_TYPES.WHATSAPP]: '💬 WhatsApp',
+    [INTERACTION_TYPES.SMS]: '📱 SMS',
+    [INTERACTION_TYPES.MEETING]: '🤝 Meeting',
+    [INTERACTION_TYPES.DONATION]: '🎁 Donation',
+    [INTERACTION_TYPES.OTHER]: '📋 Other'
+};
+
+// Interaction Outcomes
+export const INTERACTION_OUTCOMES = {
+    SUCCESSFUL: 'successful',
+    NO_ANSWER: 'no_answer',
+    BUSY: 'busy',
+    RESCHEDULED: 'rescheduled',
+    LEFT_MESSAGE: 'left_message',
+    OTHER: 'other'
+};
+
+export const INTERACTION_OUTCOME_LABELS = {
+    [INTERACTION_OUTCOMES.SUCCESSFUL]: 'Successful',
+    [INTERACTION_OUTCOMES.NO_ANSWER]: 'No Answer',
+    [INTERACTION_OUTCOMES.BUSY]: 'Busy',
+    [INTERACTION_OUTCOMES.RESCHEDULED]: 'Rescheduled',
+    [INTERACTION_OUTCOMES.LEFT_MESSAGE]: 'Left Message',
+    [INTERACTION_OUTCOMES.OTHER]: 'Other'
 };
 
 // Machine Roles
@@ -68,12 +95,32 @@ export const STORAGE_KEYS = {
     PRE_SYNC_BACKUP: 'NGOApp_v2_PreSyncBackup'
 };
 
+// Default Message Templates
+// Use {name}, {org}, {volunteer} variables — substituted at send time
+export const DEFAULT_MESSAGE_TEMPLATES = {
+    birthday: "Happy Birthday {name}! Warm wishes from {org}. 🎂",
+    anniversary: "Happy Anniversary {name}! Wishing you many more years together. 💍 — {org}",
+    deathAnniversary: "Remembering your loved one today, {name}. Our thoughts are with you. 🙏 — {org}",
+    followUp: "Hi {name}, following up on our last conversation. How can we help? — {volunteer}, {org}",
+    thankYou: "Thank you {name} for your generous support of {org}! 🙏"
+};
+
+// Engagement Score Thresholds
+export const ENGAGEMENT_THRESHOLDS = {
+    HEALTHY: 80,
+    ATTENTION: 50,
+    AT_RISK: 25
+};
+
 // Settings Defaults
 export const DEFAULT_SETTINGS = {
     reminderLookahead: 7, // days
     autoBackupDays: 7,
+    lapseThresholdDays: 60,
+    organizationName: ORGANIZATION, // user-configurable org name for templates
     theme: 'light',
-    language: 'en'
+    language: 'en',
+    messageTemplates: { ...DEFAULT_MESSAGE_TEMPLATES }
 };
 
 // Visitor Categories (Predefined, but users can add custom)

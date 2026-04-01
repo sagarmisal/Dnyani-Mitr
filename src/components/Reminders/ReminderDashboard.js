@@ -4,8 +4,10 @@ import ReminderService from '../../services/ReminderService.js';
 import VisitorService from '../../services/VisitorService.js';
 import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
-import { formatDateShort, getDaysUntil } from '../../utils/formatters.js';
+import { formatDateShort, getDaysUntil, normalizePhone } from '../../utils/formatters.js';
 import { Toast } from '../UI/Toast.js';
+import { InteractionLogger } from '../UI/InteractionLogger.js';
+import { GreetingQueue } from '../UI/GreetingQueue.js';
 
 export class ReminderDashboard {
   constructor() {
@@ -28,10 +30,16 @@ export class ReminderDashboard {
 
     // Pagination
     this.page = 1;
-    this.pageSize = 50; // Increased density allows more items
+    this.pageSize = 50;
     this.selectedMonth = '';
 
+    // Selection for batch greetings
+    this.selectedIds = new Set();
+
     this.loadData();
+
+    // Try to resume interrupted greeting queue
+    GreetingQueue.tryResume(() => this.refresh());
   }
 
   loadData() {
@@ -40,9 +48,7 @@ export class ReminderDashboard {
       if (this.selectedMonth !== '') {
         this.rawReminders = ReminderService.getRemindersForMonth(this.selectedMonth);
       } else {
-        // Fix: Include overdue and today in the main view!
         const grouped = ReminderService.getGroupedReminders(this.lookaheadDays);
-        // Combine all relevant buckets regarding 'Upcoming' context
         this.rawReminders = [
           ...grouped.overdue,
           ...grouped.today,
@@ -178,6 +184,19 @@ export class ReminderDashboard {
                   </select>
                </div>
             </div>
+
+            <!-- Batch Greeting Actions -->
+            <div class="greeting-actions-bar" style="display:flex; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0;">
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.875rem;">
+                <input type="checkbox" id="select-all-reminders" style="width:18px; height:18px;" />
+                Select All
+              </label>
+              <span id="selected-count" class="text-secondary" style="font-size:0.85rem;"></span>
+              <div style="flex:1;"></div>
+              <button class="btn btn-primary btn-sm" id="send-greetings-btn" disabled style="background:#25d366; border-color:#25d366;">
+                💬 Send Greetings
+              </button>
+            </div>
           </div>
 
           <!-- Main Layout -->
@@ -268,6 +287,7 @@ export class ReminderDashboard {
 
     let phone = contact?.phones?.[0];
     if (!phone && primary && primary.phones?.length > 0) phone = primary.phones[0];
+    const hasValidPhone = !!normalizePhone(phone);
 
     const city = visitor?.city || 'N/A';
 
@@ -287,6 +307,7 @@ export class ReminderDashboard {
       <div class="tile-card ${isUrgent ? 'urgent' : ''}" style="${isUrgent ? 'border-left: 5px solid #ef4444;' : 'border-left: 5px solid #f59e0b;'}">
          <div class="tile-header" style="margin-bottom: 0.5rem;">
             <div style="display:flex; align-items:center; gap:0.5rem;">
+                ${hasValidPhone ? `<input type="checkbox" class="tile-select" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" ${this.selectedIds.has(reminder.id) ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;" />` : ''}
                 <span style="font-size:1.2rem;">${icon}</span>
                 <span style="font-weight:700; color:${isUrgent ? '#ef4444' : '#f59e0b'}">${dateText}</span>
             </div>
@@ -305,14 +326,19 @@ export class ReminderDashboard {
          </div>
 
          <div class="tile-footer" style="margin-top:1rem; padding-top:0.5rem; border-top:1px solid #e2e8f0;">
-            <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
-               <select class="form-select action-select" data-id="${reminder.id}" style="padding:0.3rem; font-size:0.85rem; flex:1;">
-                  <option value="">⚡ Action...</option>
-                  <option value="call_whatsapp">📞 WhatsApp</option>
-                  <option value="visit">🏠 Visit</option>
-                  <option value="wish">✨ Wish</option>
-                  <option value="snooze">zzz Snooze</option>
-               </select>
+            <div class="quick-action-row">
+               ${hasValidPhone ? `<button class="btn btn-sm quick-action-btn qa-whatsapp" data-action="whatsapp" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}">💬 WhatsApp</button>` : ''}
+               <button class="btn btn-sm quick-action-btn qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone || '')}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}">📞 Called</button>
+               <button class="btn btn-sm quick-action-btn qa-visited" data-action="visited" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}">🏠 Visited</button>
+               <div class="snooze-group">
+                 <button class="btn btn-sm btn-secondary snooze-toggle" data-rid="${reminder.id}">💤</button>
+                 <div class="snooze-options" style="display:none;">
+                   <button class="btn btn-sm btn-secondary snooze-btn" data-rid="${reminder.id}" data-days="1">1d</button>
+                   <button class="btn btn-sm btn-secondary snooze-btn" data-rid="${reminder.id}" data-days="3">3d</button>
+                   <button class="btn btn-sm btn-secondary snooze-btn" data-rid="${reminder.id}" data-days="7">7d</button>
+                 </div>
+               </div>
+               <button class="btn btn-sm btn-secondary more-action-btn" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}">...</button>
                <button class="btn btn-primary btn-sm view-btn" data-vid="${visitor?.id}">View</button>
             </div>
          </div>
@@ -396,29 +422,112 @@ export class ReminderDashboard {
       });
     }
 
-    // 6. Action Selects
-    this.container.querySelectorAll('.action-select').forEach(select => {
-      select.addEventListener('change', (e) => {
-        const val = e.target.value;
-        if (!val) return;
+    // 6. Quick-action buttons (WhatsApp, Called, Visited)
+    this.container.querySelectorAll('.quick-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const el = e.currentTarget;
+        const action = el.dataset.action;
+        const rid = el.dataset.rid;
+        const vid = el.dataset.vid;
+        const phone = el.dataset.phone;
+        const name = el.dataset.name;
+        const eventType = el.dataset.event;
 
-        const id = e.target.dataset.id;
-
-        if (val === 'snooze') {
-          ReminderService.recordAction(id, 'snoozed', 'Quick snooze 7 days', 7);
-          this.refresh();
-        } else {
-          const note = prompt('Add a quick note (optional):', 'Action taken via Dashboard');
-          if (note !== null) {
-            ReminderService.recordAction(id, 'contacted', `${val}: ${note}`);
-            Toast.show('Action recorded!', 'success');
-            this.refresh();
-          } else {
-            e.target.value = ''; // Reset if cancelled
-          }
-        }
+        InteractionLogger.quickAction(action, {
+          visitorId: vid,
+          reminderId: rid,
+          contactName: name,
+          phone: phone,
+          eventType: eventType,
+          onDone: () => this.refresh()
+        });
       });
     });
+
+    // 6b. Snooze toggle + options
+    this.container.querySelectorAll('.snooze-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const group = e.currentTarget.closest('.snooze-group');
+        const opts = group.querySelector('.snooze-options');
+        opts.style.display = opts.style.display === 'none' ? 'flex' : 'none';
+      });
+    });
+
+    this.container.querySelectorAll('.snooze-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const rid = e.currentTarget.dataset.rid;
+        const days = parseInt(e.currentTarget.dataset.days, 10);
+        InteractionLogger.snooze(rid, days, () => this.refresh());
+      });
+    });
+
+    // 6c. More (...) opens full InteractionLogger
+    this.container.querySelectorAll('.more-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const vid = e.currentTarget.dataset.vid;
+        const name = e.currentTarget.dataset.name;
+        InteractionLogger.showFull({
+          visitorId: vid,
+          visitorName: name,
+          onDone: () => this.refresh()
+        });
+      });
+    });
+
+    // 6d. Tile selection checkboxes
+    this.container.querySelectorAll('.tile-select').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const rid = e.target.dataset.rid;
+        if (e.target.checked) {
+          this.selectedIds.add(rid);
+        } else {
+          this.selectedIds.delete(rid);
+        }
+        this._updateSelectionUI();
+      });
+    });
+
+    // 6e. Select All checkbox
+    const selectAllCb = this.container.querySelector('#select-all-reminders');
+    if (selectAllCb) {
+      selectAllCb.addEventListener('change', (e) => {
+        const allCheckboxes = this.container.querySelectorAll('.tile-select');
+        allCheckboxes.forEach(cb => {
+          cb.checked = e.target.checked;
+          const rid = cb.dataset.rid;
+          if (e.target.checked) this.selectedIds.add(rid);
+          else this.selectedIds.delete(rid);
+        });
+        this._updateSelectionUI();
+      });
+    }
+
+    // 6f. Send Greetings button
+    const sendBtn = this.container.querySelector('#send-greetings-btn');
+    if (sendBtn) {
+      sendBtn.addEventListener('click', () => {
+        const items = [];
+        this.container.querySelectorAll('.tile-select:checked').forEach(cb => {
+          items.push({
+            visitorId: cb.dataset.vid,
+            reminderId: cb.dataset.rid,
+            contactName: cb.dataset.name,
+            phone: cb.dataset.phone,
+            eventType: cb.dataset.event
+          });
+        });
+        if (items.length === 0) {
+          Toast.show('Select reminders first', 'warning');
+          return;
+        }
+        GreetingQueue.start(items, () => {
+          this.selectedIds.clear();
+          this.refresh();
+        });
+      });
+    }
+
+    this._updateSelectionUI();
 
     // 7. View Visitor Buttons
     this.container.querySelectorAll('.view-btn').forEach(btn => {
@@ -452,6 +561,17 @@ export class ReminderDashboard {
       } catch (e) {
         console.error("Refresh failed", e);
       }
+    }
+  }
+
+  _updateSelectionUI() {
+    const count = this.selectedIds.size;
+    const countEl = this.container?.querySelector('#selected-count');
+    const sendBtn = this.container?.querySelector('#send-greetings-btn');
+    if (countEl) countEl.textContent = count > 0 ? `${count} selected` : '';
+    if (sendBtn) {
+      sendBtn.disabled = count === 0;
+      sendBtn.textContent = count > 0 ? `💬 Send Greetings (${count})` : '💬 Send Greetings';
     }
   }
 

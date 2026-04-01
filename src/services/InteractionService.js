@@ -9,17 +9,39 @@ import EventBus, { EVENTS } from '../core/events.js';
 class InteractionService {
     /**
      * Log an interaction
+     * @param {Object} params - Interaction parameters
+     * @param {string} params.visitorId - Required visitor ID
+     * @param {string} params.interactionType - Type of interaction
+     * @param {string} [params.notes] - Optional notes
+     * @param {string} [params.contactId] - Optional contact ID
+     * @param {string} [params.interactionDate] - Optional date (defaults to now)
+     * @param {string} [params.outcome] - Optional outcome
+     * @param {number} [params.duration] - Optional duration in minutes
+     * @param {string} [params.followUpDate] - Optional follow-up date
+     * @param {string} [params.followUpNotes] - Optional follow-up notes
      */
-    log(visitorId, interactionType, notes, contactId = null, interactionDate = null) {
+    log(visitorIdOrParams, interactionType, notes, contactId = null, interactionDate = null) {
         const machineInfo = ActivationManager.getMachineInfo();
 
+        // Support both old positional args and new object-based args
+        let params;
+        if (typeof visitorIdOrParams === 'object' && visitorIdOrParams !== null) {
+            params = visitorIdOrParams;
+        } else {
+            params = { visitorId: visitorIdOrParams, interactionType, notes, contactId, interactionDate };
+        }
+
         const interaction = new Interaction({
-            visitorId,
-            contactId,
-            interactionType,
-            notes,
-            interactionDate: interactionDate || getCurrentDate(),
-            createdBy: machineInfo.machineId
+            visitorId: params.visitorId,
+            contactId: params.contactId || null,
+            interactionType: params.interactionType,
+            notes: params.notes || '',
+            interactionDate: params.interactionDate || getCurrentDate(),
+            createdBy: machineInfo?.machineId || null,
+            outcome: params.outcome || null,
+            duration: (params.duration != null && params.duration !== '') ? Number(params.duration) : null,
+            followUpDate: params.followUpDate || null,
+            followUpNotes: params.followUpNotes || ''
         });
 
         const success = StateManager.addInteraction(interaction.toJSON());

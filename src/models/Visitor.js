@@ -22,6 +22,13 @@ export class Visitor {
         this.deletedAt = data.deletedAt || null;
         this.createdBy = data.createdBy || null; // Machine ID
         this.updatedBy = data.updatedBy || null; // Machine ID
+        // v3 fields
+        this.consentGiven = data.consentGiven || false;
+        this.consentDate = data.consentDate || null;
+        this.doNotContact = data.doNotContact || false;
+        this.contactFrequencyDays = data.contactFrequencyDays || null;
+        this.engagementScore = data.engagementScore || 0;
+        this.engagementUpdatedAt = data.engagementUpdatedAt || null;
     }
 
     /**
@@ -109,7 +116,13 @@ export class Visitor {
             updatedAt: this.updatedAt,
             deletedAt: this.deletedAt,
             createdBy: this.createdBy,
-            updatedBy: this.updatedBy
+            updatedBy: this.updatedBy,
+            consentGiven: this.consentGiven,
+            consentDate: this.consentDate,
+            doNotContact: this.doNotContact,
+            contactFrequencyDays: this.contactFrequencyDays,
+            engagementScore: this.engagementScore,
+            engagementUpdatedAt: this.engagementUpdatedAt
         };
     }
 
