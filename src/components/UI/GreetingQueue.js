@@ -59,14 +59,15 @@ export class GreetingQueue {
     // Check if the current item was being sent (we opened WhatsApp but didn't get confirmation)
     // Mark it as sent (optimistic — user likely sent it since they initiated the action)
     if (state.pendingSend) {
-      const item = state.queue[state.pendingSend.index];
+      const pendingIdx = state.pendingSend.index;
+      const item = state.queue[pendingIdx];
       if (item) {
         GreetingQueue._logInteraction(item);
         GreetingQueue._markReminder(item);
-        state.sent.push(state.pendingSend.index);
+        state.sent.push(pendingIdx);
       }
       state.pendingSend = null;
-      state.currentIndex = Math.max(state.currentIndex, (state.pendingSend?.index || 0) + 1);
+      state.currentIndex = pendingIdx + 1;
       GreetingQueue._saveState(state);
     }
 

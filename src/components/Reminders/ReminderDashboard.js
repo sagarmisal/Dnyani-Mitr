@@ -194,7 +194,7 @@ export class ReminderDashboard {
               <span id="selected-count" class="text-secondary" style="font-size:0.85rem;"></span>
               <div style="flex:1;"></div>
               <button class="btn btn-primary btn-sm" id="send-greetings-btn" disabled style="background:#25d366; border-color:#25d366;">
-                💬 Send Greetings
+                💬 WhatsApp Greetings
               </button>
             </div>
           </div>
@@ -571,7 +571,7 @@ export class ReminderDashboard {
     if (countEl) countEl.textContent = count > 0 ? `${count} selected` : '';
     if (sendBtn) {
       sendBtn.disabled = count === 0;
-      sendBtn.textContent = count > 0 ? `💬 Send Greetings (${count})` : '💬 Send Greetings';
+      sendBtn.textContent = count > 0 ? `💬 WhatsApp Greetings (${count})` : '💬 WhatsApp Greetings';
     }
   }
 
