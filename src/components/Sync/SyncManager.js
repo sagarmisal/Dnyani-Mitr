@@ -122,6 +122,12 @@ export class SyncManager {
           </div>
         </div>
 
+        <!-- Sync Log -->
+        ${this.renderSyncLog()}
+
+        <!-- Known Machines -->
+        ${this.renderKnownMachines()}
+
         <!-- System Stats -->
         <div class="card" style="grid-column: 1 / -1;">
           <div class="card-header">
@@ -441,6 +447,78 @@ export class SyncManager {
         this.container.querySelector('#import-file-input').value = '';
         const manualInput = this.container.querySelector('#manual-json-input');
         if (manualInput) manualInput.value = '';
+    }
+
+    /**
+     * Render sync log section
+     */
+    renderSyncLog() {
+        const syncLog = StateManager.getSyncLog();
+        if (syncLog.length === 0) return '';
+
+        return `
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Sync History</h3>
+                </div>
+                <div class="card-body">
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+                            <thead>
+                                <tr style="border-bottom:2px solid #e2e8f0; text-align:left;">
+                                    <th style="padding:0.5rem;">When</th>
+                                    <th style="padding:0.5rem;">Direction</th>
+                                    <th style="padding:0.5rem;">Machine</th>
+                                    <th style="padding:0.5rem;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${syncLog.slice(0, 20).map(entry => `
+                                    <tr style="border-bottom:1px solid #f1f5f9;">
+                                        <td style="padding:0.5rem;">${new Date(entry.timestamp).toLocaleString()}</td>
+                                        <td style="padding:0.5rem;">${entry.direction === 'import' ? '📥 Import' : '📤 Export'}</td>
+                                        <td style="padding:0.5rem;">${this.escapeHtml(entry.machineName || 'Unknown')}</td>
+                                        <td style="padding:0.5rem;">
+                                            ${entry.direction === 'import'
+                                                ? `+${entry.visitorsAdded || 0} new, ${entry.visitorsUpdated || 0} updated, ${entry.interactionsAdded || 0} interactions`
+                                                : `${entry.visitorsExported || 0} visitors, ${entry.interactionsExported || 0} interactions`}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    /**
+     * Render known machines section
+     */
+    renderKnownMachines() {
+        const knownMachines = StateManager.getKnownMachines();
+        const entries = Object.entries(knownMachines);
+        if (entries.length === 0) return '';
+
+        return `
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h3 class="card-title">🖥️ Known Machines</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary" style="font-size:0.85rem; margin-bottom:1rem;">
+                        Machines discovered through sync imports. This helps identify who logged interactions.
+                    </p>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem;">
+                        ${entries.map(([id, name]) => `
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:0.75rem;">
+                                <div style="font-weight:600;">${this.escapeHtml(name)}</div>
+                                <div style="font-size:0.75rem; color:#94a3b8;"><code>${id.substring(0, 12)}...</code></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>`;
     }
 
     /**

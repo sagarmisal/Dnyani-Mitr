@@ -11,6 +11,8 @@ import { ReminderDashboard } from './components/Reminders/ReminderDashboard.js';
 import { SyncManager } from './components/Sync/SyncManager.js';
 import { SettingsPage } from './components/Settings/SettingsPage.js';
 import { Toast } from './components/UI/Toast.js';
+import { MyDayDashboard } from './components/Dashboard/MyDayDashboard.js';
+import { InteractionHistory } from './components/Interactions/InteractionHistory.js';
 import { APP_NAME, APP_VERSION, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
 import logoSrc from './assets/sewa-sankalp-logo.png';
 
@@ -93,11 +95,12 @@ class App {
           </div>
           
           <nav class="app-nav">
+            <a href="#${ROUTES.DASHBOARD}" class="nav-link">Dashboard</a>
             <a href="#${ROUTES.VISITORS}" class="nav-link">Visitors</a>
             <a href="#${ROUTES.REMINDERS}" class="nav-link">Reminders</a>
-            <a href="#${ROUTES.SYNC}" class="nav-link">Data / Sync</a>
+            <a href="#${ROUTES.INTERACTIONS}" class="nav-link">History</a>
+            <a href="#${ROUTES.SYNC}" class="nav-link">Sync</a>
             <a href="#${ROUTES.SETTINGS}" class="nav-link">Settings</a>
-            <a href="#${ROUTES.ABOUT}" class="nav-link">About</a>
           </nav>
         </div>
       </header>
@@ -132,10 +135,21 @@ class App {
       this.showActivationScreen();
     });
 
-    // Visitors route (default)
+    // Dashboard route (default)
+    Router.register(ROUTES.DASHBOARD, () => {
+      const dashboard = new MyDayDashboard();
+      this.renderComponent(dashboard.render());
+    });
+
+    // Visitors route
     Router.register(ROUTES.VISITORS, () => {
       const visitorList = new VisitorList();
       this.renderComponent(visitorList.render());
+    });
+
+    // Legacy root route redirects to dashboard
+    Router.register('/', () => {
+      Router.navigate(ROUTES.DASHBOARD);
     });
 
     // Visitor view
@@ -168,8 +182,8 @@ class App {
 
     // Interactions route
     Router.register(ROUTES.INTERACTIONS, () => {
-      Router.navigate(ROUTES.VISITORS); // Search from visitors
-      Toast.show('Search for a visitor to see their interaction history', 'info');
+      const history = new InteractionHistory();
+      this.renderComponent(history.render());
     });
 
     // Sync route
@@ -236,7 +250,7 @@ class App {
     });
 
     // Set default route
-    Router.setDefaultRoute(ROUTES.VISITORS);
+    Router.setDefaultRoute(ROUTES.DASHBOARD);
   }
 
   /**

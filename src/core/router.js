@@ -94,7 +94,8 @@ export default new Router();
 // Route paths (for reference)
 export const ROUTES = {
     ACTIVATION: '/activation',
-    VISITORS: '/',
+    DASHBOARD: '/dashboard',
+    VISITORS: '/visitors',
     VISITOR_VIEW: '/visitor/view',
     VISITOR_ADD: '/visitor/add',
     VISITOR_EDIT: '/visitor/edit',

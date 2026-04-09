@@ -39,7 +39,7 @@
 
 **Version:** 2.0.0
 **Tech Stack:** Vanilla JS (ES6 modules), vanilla CSS, Vite, Capacitor (Android)
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-04-09
 
 ### What Works Today
 - Activation with master key (root/satellite machine setup)
@@ -131,6 +131,126 @@
 - Fixed grid layout overflow on phones < 400px (min() CSS function)
 - Fixed createBackup() QuotaExceededError crash
 - Added backup failure warning in import results
+
+### Iteration 3 — UX Quick Wins: Dialogs, Toast, Settings, Dates, Empty States (2026-03-30)
+**Status:** COMPLETE — ready to commit
+**Scope:** 5 UX quick wins from Phase 2 roadmap
+
+**Feature 1: Custom ConfirmDialog component**
+- Replaced all native `confirm()`/`alert()` with styled Promise-based modal dialogs
+- Supports danger/warning/info types, keyboard (Escape/Enter), backdrop click
+- Info-only mode (single OK button) for multi-line sync results display
+
+**Feature 2: Toast adoption**
+- All `alert()` calls replaced with existing (previously unused) `Toast.show()` component
+- Success, error, warning types used appropriately across all components
+
+**Feature 3: Settings page**
+- New `/settings` route with UI for reminder lookahead (1-90 days) and backup interval (1-30 days)
+- Read-only machine info display (name, role, ID, activation date)
+- App version info; saves via `StateManager.updateSettings()`
+
+**Feature 4: Native date inputs**
+- Replaced triple-dropdown (day/month/year selects) with `<input type="date">` + "Year unknown" checkbox
+- Month-only dates preserved (year=2000 dummy convention unchanged)
+- Works on Capacitor/Chrome WebView on Android
+
+**Feature 5: Improved empty states**
+- Context-aware messages (filtered search vs no data) with emoji icons and actionable hints
+- Applied to: VisitorList, ReminderDashboard, VisitorView timeline
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `src/components/UI/ConfirmDialog.js` | NEW — Promise-based modal dialog component |
+| `src/components/Settings/SettingsPage.js` | NEW — Settings page with preferences + machine info |
+| `src/main.js` | Added SettingsPage import, route registration, nav link |
+| `src/components/Visitors/VisitorForm.js` | Native date inputs, Toast/ConfirmDialog adoption |
+| `src/components/Visitors/VisitorView.js` | ConfirmDialog for delete, Toast, improved timeline empty state |
+| `src/components/Visitors/VisitorList.js` | Context-aware empty state with icons |
+| `src/components/Sync/SyncManager.js` | Replaced ~16 alert() + 2 confirm() with Toast/ConfirmDialog |
+| `src/components/Reminders/ReminderDashboard.js` | Toast adoption, improved empty state |
+| `src/styles/main.css` | Modal, empty state, settings page, date field CSS |
+
+**Remaining `prompt()` calls** (out of scope — need input dialog component):
+- VisitorView.js: "Enter interaction notes" prompt
+- ReminderDashboard.js: "Add a quick note" prompt
+
+**Post-review hardening (same iteration):**
+- Fixed XSS: ConfirmDialog and Toast now escape all user-supplied strings (textContent/escapeHtml)
+- Fixed null crash: SettingsPage handles `getMachineInfo()` returning null
+- Fixed race condition: SyncManager `performImport()` now properly awaited
+- Fixed modal: Added ARIA attributes (role=dialog, aria-modal), focus trap (Tab key), scroll lock (body overflow), singleton guard
+- Fixed accessibility: Toast container now has `aria-live="polite"` and `role="status"`
+- Fixed touch targets: Year unknown checkbox enlarged to 44px min-height
+- Fixed settings integration: ReminderDashboard now reads `reminderLookahead` from StateManager.getSettings()
+- Fixed XSS: VisitorForm tags rendering now uses escapeHtml()
+
+### Iteration 4 — Communication, Interaction Logging, Consent, Batch Greetings (2026-04-01)
+**Status:** COMPLETE — committed and pushed
+**Scope:** Full interaction logger, quick-log on reminders, WhatsApp deep links, one-tap communication, consent capture, do-not-contact, message templates, v2-to-v3 migration, batch greeting queue
+
+*(See git commit 5f45b5e for full details)*
+
+### Iteration 5 — "The Know Release": Intelligence & Dashboard (2026-04-09)
+**Status:** COMPLETE — ready to commit
+**Scope:** 7 features delivering engagement intelligence, daily dashboard, interaction history, sync tracking, and data quality
+
+**Feature D1: My Day Dashboard (new default home screen)**
+- New `/dashboard` route as default home screen (replaces `/` visitor list)
+- Sections: Today (birthdays/anniversaries), Overdue reminders, Follow-ups due, Needs Attention (lapsed visitors), Quick Stats (week summary), Data Quality
+- Navigation reordered: Dashboard | Visitors | Reminders | History | Sync | Settings
+- Legacy `/` route redirects to `/dashboard`
+
+**Feature A1: Engagement Health Score**
+- New `EngagementService.js` — calculates 0-100 score per visitor
+- Score components: Recency (40%), Frequency (30%), Variety (15%), Depth (15%)
+- Color-coded badges: Healthy (80+), Attention (50-79), At Risk (25-49), Lapsed (0-24)
+- Displayed on VisitorList cards and VisitorView header
+- Batch recalculation on dashboard load
+
+**Feature A2: Lapsed Visitor Detection**
+- `EngagementService.getLapsedVisitors()` with configurable threshold (default 60 days)
+- Distinguishes "Was Active, Now Lapsed" from "Never Contacted"
+- Excludes doNotContact and soft-deleted visitors
+- Surfaced in Dashboard "Needs Attention" section
+
+**Feature C3: Interaction History View**
+- New `/interactions` route with global chronological list
+- Filters: by type, outcome, volunteer (root only), date range, visitor name search
+- Week stats header, pagination (50/page)
+- Volunteer attribution column for root machines
+
+**Feature F4: Sync Log + Known Machines**
+- `StateManager.addSyncLogEntry()` and `StateManager.registerKnownMachine()`
+- SyncService records import/export events automatically
+- SyncManager UI shows sync history table (last 20 entries) and known machines grid
+- `state.knownMachines` populated from sync metadata on every import
+
+**Feature G3: Volunteer Attribution in UI**
+- `StateManager.getMachineName(machineId)` resolves machine IDs to names
+- VisitorView timeline shows "Logged by [volunteer name]" on each interaction
+- InteractionHistory shows volunteer tag column for root machines
+
+**Feature G4: Data Quality Indicator**
+- `EngagementService.getDataQualityMetrics()` computes: % with phone, % with events, % with outcome
+- Displayed as color-coded progress bars on Dashboard
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `src/services/EngagementService.js` | NEW — Score calculation, lapsed detection, data quality metrics |
+| `src/components/Dashboard/MyDayDashboard.js` | NEW — Default home screen with 6 sections |
+| `src/components/Interactions/InteractionHistory.js` | NEW — Global interaction list with filters |
+| `tests/engagement.test.js` | NEW — 19 tests for EngagementService |
+| `src/core/state.js` | Added knownMachines, syncLog, getMachineName methods |
+| `src/core/router.js` | Added DASHBOARD route, moved VISITORS to '/visitors' |
+| `src/main.js` | Dashboard + InteractionHistory imports, nav reorder, default route change |
+| `src/services/SyncService.js` | Sync log recording on import/export, knownMachines population |
+| `src/components/Sync/SyncManager.js` | Sync history table, known machines display |
+| `src/components/Visitors/VisitorView.js` | Engagement badge, last contact info, volunteer attribution in timeline |
+| `src/components/Visitors/VisitorList.js` | Engagement score badge on visitor cards |
+| `src/styles/main.css` | Dashboard, engagement, interaction history, data quality CSS |
 
 ---
 
@@ -379,12 +499,13 @@ MERGE(incomingPackage):
 - [x] Duplicate flagging in import summary
 
 ### Phase 2 — Foundation & UX (Iterations 3-5)
-- [ ] Settings UI (reminder lookahead, preferences)
-- [ ] GDPR consent mechanism on visitor creation
-- [ ] Empty states, loading states, error boundaries
-- [ ] Native date inputs (replace triple-dropdown)
-- [ ] Confirm dialogs for destructive actions (delete visitor)
-- [ ] Dashboard with growth charts and activity metrics
+- [x] Settings UI (reminder lookahead, preferences) — Iteration 3
+- [x] GDPR consent mechanism on visitor creation — Iteration 4
+- [x] Empty states, loading states, error boundaries — Iteration 3 (empty states done; loading/error boundaries deferred)
+- [x] Native date inputs (replace triple-dropdown) — Iteration 3
+- [x] Confirm dialogs for destructive actions (delete visitor) — Iteration 3
+- [x] Replace native alert() with Toast notifications — Iteration 3
+- [x] Dashboard with engagement scores and activity metrics — Iteration 5
 - [ ] CSV/PDF report export
 - [ ] Onboarding tour for first-time users
 
@@ -468,32 +589,52 @@ MERGE(incomingPackage):
 ## 9. Resumption Guide
 
 > **Read this section when starting a new conversation/iteration.**
+> **We are in v3 development. The v3 plan is the law. Follow it.**
 
 ### Step 1: Understand Context
 ```
 Read these files in order:
-1. CLAUDE.md                    — Architecture & conventions
-2. PROJECT_PLAN.md (this file)  — Full requirements, roadmap, history
-3. git log --oneline -10        — Recent changes
-4. git status                   — Uncommitted work
+1. CLAUDE.md                    — Architecture, conventions, AND v3 development protocol
+2. PROJECT_PLAN.md (this file)  — Iteration history, roadmap, known issues
+3. VERSION_3_VISION.md          — v3 feature plan, iteration breakdown, data model changes
+4. git log --oneline -10        — Recent changes
+5. git status                   — Uncommitted work
 ```
 
-### Step 2: Check Current Iteration
+### Step 2: Identify Current Iteration
 - Look at Section 3 (Iteration History) for what was last completed
-- Look at Section 6 (Enhancement Roadmap) for what's next
+- Look at `VERSION_3_VISION.md` Section 6 (Iteration Plan) for what's next
+- Cross-reference Section 6 (Enhancement Roadmap) here for phase-level tracking
 - Check Section 7 (Known Issues) before starting new work
 
-### Step 3: Before Writing Code
-- Read the relevant requirement section in detail
+### Step 3: Read the Plan for This Iteration
+- In `VERSION_3_VISION.md` Section 6, find the current iteration table
+- Read every feature description referenced in that table (Sections 2-3)
+- Read Section 4 (Data Model Changes) for model updates needed
+- Read Section 5 (Technical Feasibility) for risks to watch for
+- Read the Appendix (Files to Create/Modify) for the file list
+
+### Step 4: Before Writing Code
 - Read the actual source files you'll be modifying
 - Verify the build works: `npx vite build`
+- Confirm no uncommitted work from previous sessions
 
-### Step 4: After Completing Work
-- Update Section 3 with the new iteration entry
-- Update Section 6 checkboxes for completed items
-- Update Section 7 if new issues were discovered
+### Step 5: During Implementation
+- Follow the iteration feature order (dependencies flow top-to-bottom)
+- After each feature: run `npx vite build` to catch errors
+- If the plan needs to change: update `VERSION_3_VISION.md` FIRST, then implement
+
+### Step 6: After Completing an Iteration
+- Update Section 3 here with the new iteration entry (files changed, features completed)
+- Update Section 6 here with roadmap checkboxes
+- Update `VERSION_3_VISION.md` Section 6: mark completed features, note scope changes
+- Update Section 7 here if new issues were discovered
 - Verify build: `npx vite build`
-- Run dev server for testing: `npm run dev`
+- **If anything was deferred or changed from the plan, document WHY in both files**
+
+### Step 7: Handoff
+- The next conversation starts at Step 1. Everything it needs is in these 3 documents.
+- Never rely on memory from a previous conversation. The documents ARE the memory.
 
 ### Step 5: Key Files Reference
 ```
@@ -521,6 +662,8 @@ src/components/Reminders/ReminderDashboard.js — Reminder dashboard
 src/components/Sync/SyncManager.js      — Export/import UI
 src/components/Activation/ActivationScreen.js — First-run gate
 src/components/UI/Toast.js              — Notification toasts
+src/components/UI/ConfirmDialog.js     — Promise-based modal dialogs
+src/components/Settings/SettingsPage.js — Settings page
 
 src/utils/constants.js          — All enums, defaults, patterns
 src/utils/validators.js         — Input validation functions

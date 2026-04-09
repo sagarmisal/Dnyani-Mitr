@@ -2,6 +2,7 @@
 
 import VisitorService from '../../services/VisitorService.js';
 import SearchService from '../../services/SearchService.js';
+import EngagementService from '../../services/EngagementService.js';
 import Router, { ROUTES } from '../../core/router.js';
 import EventBus, { EVENTS } from '../../core/events.js';
 import { formatRelativeTime } from '../../utils/formatters.js';
@@ -255,17 +256,23 @@ export class VisitorList {
     const self = visitor.contacts.find(c => c.relationType === 'SELF');
     const familyCount = visitor.contacts.length - 1;
 
+    const score = visitor.engagementScore || 0;
+    const scoreClass = EngagementService.getColorClass(score);
+
     return `
       <div class="visitor-card tile-card" data-visitor-id="${visitor.id}">
         <div class="tile-header">
            <h3 class="tile-title" title="${this.escapeHtml(self?.name)}">${this.escapeHtml(self?.name || 'Unknown')}</h3>
-           <span class="badge ${visitor.category === 'Donor' ? 'badge-success' : 'badge-primary'}">${visitor.category || 'General'}</span>
+           <div style="display:flex; gap:0.25rem; align-items:center;">
+             <span class="badge ${scoreClass}" style="font-size:0.65rem;" title="Engagement: ${score}">${score}</span>
+             <span class="badge ${visitor.category === 'Donor' ? 'badge-success' : 'badge-primary'}">${visitor.category || 'General'}</span>
+           </div>
         </div>
-        
+
         <div class="tile-body">
            ${visitor.city ? `<div class="tile-info">📍 ${this.escapeHtml(visitor.city)}</div>` : ''}
            ${self?.phones?.[0] ? `<div class="tile-info">📞 ${this.escapeHtml(self.phones[0])}</div>` : ''}
-           
+
            <div class="tile-meta">
               <span>👨‍👩‍👧‍👦 ${familyCount} Family</span>
               <span>📅 ${formatRelativeTime(visitor.updatedAt)}</span>

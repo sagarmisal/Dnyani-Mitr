@@ -256,6 +256,52 @@ class StateManager {
     }
 
     /**
+     * Get known machines map
+     */
+    getKnownMachines() {
+        return { ...(this.state.knownMachines || {}) };
+    }
+
+    /**
+     * Register a known machine (from sync metadata)
+     */
+    registerKnownMachine(machineId, machineName) {
+        if (!machineId) return;
+        if (!this.state.knownMachines) this.state.knownMachines = {};
+        this.state.knownMachines[machineId] = machineName || machineId;
+        StorageManager.saveState(this.state);
+    }
+
+    /**
+     * Get machine name by ID (from knownMachines)
+     */
+    getMachineName(machineId) {
+        if (!machineId) return null;
+        // Check if it's the current machine
+        if (this.state.machineId === machineId) return this.state.machineName;
+        return this.state.knownMachines?.[machineId] || null;
+    }
+
+    /**
+     * Get sync log
+     */
+    getSyncLog() {
+        return [...(this.state.syncLog || [])];
+    }
+
+    /**
+     * Add sync log entry (keep last 50)
+     */
+    addSyncLogEntry(entry) {
+        if (!this.state.syncLog) this.state.syncLog = [];
+        this.state.syncLog.unshift(entry);
+        if (this.state.syncLog.length > 50) {
+            this.state.syncLog = this.state.syncLog.slice(0, 50);
+        }
+        StorageManager.saveState(this.state);
+    }
+
+    /**
      * Update settings
      */
     updateSettings(updates) {

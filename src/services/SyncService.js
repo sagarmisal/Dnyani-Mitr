@@ -210,7 +210,23 @@ class SyncService {
 
         EventBus.emit(EVENTS.IMPORT_COMPLETED);
 
-        // Step 6: Return results
+        // Step 6: Record sync log + known machines
+        const incomingMeta = packageData.metadata || {};
+        if (incomingMeta.machineId) {
+            StateManager.registerKnownMachine(incomingMeta.machineId, incomingMeta.machineName);
+        }
+        StateManager.addSyncLogEntry({
+            timestamp: new Date().toISOString(),
+            direction: 'import',
+            machineId: incomingMeta.machineId || null,
+            machineName: incomingMeta.machineName || 'Unknown',
+            dataVersion: incomingMeta.dataVersion || incomingMeta.version || null,
+            visitorsAdded: addedCount,
+            visitorsUpdated: updatedCount + updatedByPhoneCount,
+            interactionsAdded: mergedInteractions.length - currentState.interactions.length
+        });
+
+        // Step 7: Return results
         return {
             visitorsAdded: addedCount,
             visitorsUpdated: updatedCount,
@@ -239,6 +255,17 @@ class SyncService {
         }
 
         // Never export reminder actions or settings (local preference only)
+
+        // Record export in sync log
+        StateManager.addSyncLogEntry({
+            timestamp: new Date().toISOString(),
+            direction: 'export',
+            machineId: machineInfo?.machineId || null,
+            machineName: machineInfo?.machineName || 'Unknown',
+            dataVersion: APP_VERSION,
+            visitorsExported: exportData.visitors.length,
+            interactionsExported: exportData.interactions?.length || 0
+        });
 
         return {
             metadata: {

@@ -2,6 +2,8 @@
 
 import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
+import EngagementService from '../../services/EngagementService.js';
+import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
 import EventBus, { EVENTS } from '../../core/events.js';
 import { formatDate, formatRelativeTime, normalizePhone } from '../../utils/formatters.js';
@@ -64,9 +66,11 @@ export class VisitorView {
             ${this.escapeHtml(self?.name || 'Unknown Visitor')}
             ${isDnc ? '<span class="badge badge-dnc">Do Not Contact</span>' : ''}
             ${this.visitor.consentGiven ? '<span class="badge badge-consent" title="Consent recorded">Consent</span>' : ''}
+            ${this.renderEngagementBadge()}
           </h2>
           <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
             Visitor ID: <code>${this.visitor.id}</code> | Category: ${this.escapeHtml(this.visitor.category || 'None')}
+            ${this.renderLastContactInfo()}
           </p>
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -247,6 +251,11 @@ export class VisitorView {
             Follow-up: ${formatDate(interaction.followUpDate)}${interaction.followUpNotes ? ` — ${this.escapeHtml(interaction.followUpNotes)}` : ''}
           </div>
         ` : ''}
+        ${interaction.createdBy ? `
+          <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.25rem;">
+            Logged by ${this.escapeHtml(StateManager.getMachineName(interaction.createdBy) || String(interaction.createdBy).substring(0, 12))}
+          </div>
+        ` : ''}
       </div>
     `;
     }).join('');
@@ -363,6 +372,27 @@ export class VisitorView {
     if (timeline) {
       timeline.innerHTML = this.renderTimeline();
     }
+  }
+
+  /**
+   * Render engagement score badge
+   */
+  renderEngagementBadge() {
+    const score = EngagementService.calculateScore(this.visitorId);
+    const label = EngagementService.getLabel(score);
+    const colorClass = EngagementService.getColorClass(score);
+    return `<span class="badge ${colorClass}" title="Engagement: ${score}/100">${label} (${score})</span>`;
+  }
+
+  /**
+   * Render last contact info line
+   */
+  renderLastContactInfo() {
+    const daysSince = EngagementService.getDaysSinceLastInteraction(this.visitorId);
+    if (daysSince === Infinity) return ' | <span style="color:#ef4444;">Never contacted</span>';
+    if (daysSince === 0) return ' | Last contact: <span style="color:#22c55e;">Today</span>';
+    const color = daysSince <= 30 ? '#22c55e' : daysSince <= 60 ? '#f59e0b' : '#ef4444';
+    return ` | Last contact: <span style="color:${color};">${daysSince} days ago</span>`;
   }
 
   /**
