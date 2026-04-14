@@ -301,7 +301,8 @@ export class ReminderDashboard {
       else dateText = `In ${days} days`;
     }
 
-    const icon = { 'Birthday': '🎂', 'Anniversary': '💍', 'Death': '🕯️' }[reminder.eventType] || '📅';
+    const icon = { 'Birthday': '🎂', 'Anniversary': '💍', 'Death': '🕯️', 'ContactDue': '⏰' }[reminder.eventType] || '📅';
+    const prettyEventLabel = reminder.eventType === 'ContactDue' ? 'Contact Due' : reminder.eventType;
 
     return `
       <div class="tile-card ${isUrgent ? 'urgent' : ''}" style="${isUrgent ? 'border-left: 5px solid #ef4444;' : 'border-left: 5px solid #f59e0b;'}">
@@ -311,7 +312,7 @@ export class ReminderDashboard {
                 <span style="font-size:1.2rem;">${icon}</span>
                 <span style="font-weight:700; color:${isUrgent ? '#ef4444' : '#f59e0b'}">${dateText}</span>
             </div>
-            <span class="badge" style="font-size: 0.7rem; background: #f1f5f9; color: #64748b;">${reminder.eventType}</span>
+            <span class="badge" style="font-size: 0.7rem; background: #f1f5f9; color: #64748b;">${prettyEventLabel}</span>
          </div>
 
          <div class="tile-body">

@@ -25,7 +25,8 @@ export class VisitorForm {
       address: '',
       city: '',
       communicationPreference: 'whatsapp',
-      consentGiven: false
+      consentGiven: false,
+      contactFrequencyDays: null
     };
 
     // Load existing visitor if editing
@@ -51,7 +52,8 @@ export class VisitorForm {
         address: visitor.address || '',
         city: visitor.city || '',
         communicationPreference: visitor.communicationPreference || 'whatsapp',
-        consentGiven: visitor.consentGiven || false
+        consentGiven: visitor.consentGiven || false,
+        contactFrequencyDays: visitor.contactFrequencyDays || null
       };
     }
   }
@@ -385,6 +387,21 @@ export class VisitorForm {
         <label class="form-label">General Notes</label>
         <textarea id="visitor-notes" class="form-textarea" rows="4" placeholder="History, context, or special instructions...">${this.escapeHtml(this.formData.notes)}</textarea>
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Contact Frequency Target</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span style="font-size: 0.85rem;">Remind me if not contacted in</span>
+          <input type="number" id="visitor-freq-days" class="form-input" min="1" max="365" step="1"
+                 value="${this.formData.contactFrequencyDays ?? ''}"
+                 placeholder="e.g. 30"
+                 style="width: 90px;" />
+          <span style="font-size: 0.85rem;">days</span>
+        </div>
+        <p style="margin: 0.4rem 0 0 0; font-size: 0.75rem; color: var(--color-text-tertiary);">
+          Leave blank for no target. When the interval is overdue, this visitor appears in reminders.
+        </p>
+      </div>
     `;
   }
 
@@ -554,6 +571,12 @@ export class VisitorForm {
       this.formData.category = this.container.querySelector('#visitor-category').value.trim();
       this.formData.tags = this.container.querySelector('#visitor-tags').value.split(',').map(t => t.trim()).filter(t => t);
       this.formData.notes = this.container.querySelector('#visitor-notes').value.trim();
+      const freqInput = this.container.querySelector('#visitor-freq-days');
+      if (freqInput) {
+        const raw = freqInput.value.trim();
+        const n = parseInt(raw, 10);
+        this.formData.contactFrequencyDays = (raw && !isNaN(n) && n > 0) ? n : null;
+      }
     }
   }
 

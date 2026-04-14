@@ -10,7 +10,10 @@ import EventBus, { EVENTS } from '../core/events.js';
 
 class ReminderService {
     /**
-     * Generate all reminders within lookahead window
+     * Generate all reminders within lookahead window.
+     * Includes:
+     *   - event-based reminders (birthday/anniversary/death)
+     *   - frequency-based "contact due" reminders (A3: when visitor.contactFrequencyDays is overdue)
      */
     generateReminders(lookaheadDays = null) {
         const settings = StateManager.getSettings();
@@ -21,6 +24,7 @@ class ReminderService {
         const reminders = [];
 
         visitors.forEach(visitor => {
+            // Event-based reminders (birthday, anniversary, death)
             visitor.contacts.forEach(contact => {
                 const events = this.extractEvents(contact);
 
@@ -42,9 +46,72 @@ class ReminderService {
                     }
                 });
             });
+
+            // Frequency-based reminder (A3)
+            const freqReminder = this._generateFrequencyReminder(visitor);
+            if (freqReminder && freqReminder.daysUntil <= days) {
+                if (!this.isSnoozed(freqReminder.id, reminderActions)) {
+                    reminders.push(freqReminder);
+                }
+            }
         });
 
         return reminders;
+    }
+
+    /**
+     * Generate a "contact due" reminder for a visitor with contactFrequencyDays set.
+     * Returns null if no target is set or not yet due (target date > today + lookahead).
+     * Due date = (lastInteractionDate OR visitor.createdAt) + contactFrequencyDays.
+     */
+    _generateFrequencyReminder(visitor) {
+        if (!visitor.contactFrequencyDays || visitor.contactFrequencyDays <= 0) return null;
+
+        const interactions = StateManager.getInteractions()
+            .filter(i => i.visitorId === visitor.id);
+
+        let baselineDate;
+        if (interactions.length > 0) {
+            baselineDate = interactions.reduce((latest, i) => {
+                const d = new Date(i.interactionDate);
+                return d > latest ? d : latest;
+            }, new Date(0));
+        } else if (visitor.createdAt) {
+            baselineDate = new Date(visitor.createdAt);
+        } else {
+            return null;
+        }
+
+        if (isNaN(baselineDate.getTime())) return null;
+
+        const dueDate = new Date(baselineDate);
+        dueDate.setDate(dueDate.getDate() + visitor.contactFrequencyDays);
+
+        const selfContact = visitor.contacts?.find(c => c.relationType === 'SELF');
+        if (!selfContact) return null;
+
+        // Use ISO date (YYYY-MM-DD) as rawDate so reminder ID is stable across year boundaries
+        const isoDue = dueDate.toISOString().split('T')[0];
+
+        const reminder = new Reminder(
+            visitor,
+            selfContact,
+            'ContactDue',
+            isoDue,
+            false
+        );
+
+        // The Reminder constructor normalizes dates into the current/next year which is wrong
+        // for "ContactDue" (it's a one-off target, not an annual event). Override daysUntil and
+        // eventDate with the raw values so urgency/display reflect the actual target date.
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetMidnight = new Date(dueDate);
+        targetMidnight.setHours(0, 0, 0, 0);
+        reminder.daysUntil = Math.round((targetMidnight - today) / 86400000);
+        reminder.eventDate = isoDue;
+
+        return reminder;
     }
 
     /**

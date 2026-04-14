@@ -4,12 +4,15 @@ import ReminderService from '../../services/ReminderService.js';
 import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
 import EngagementService from '../../services/EngagementService.js';
+import ReportService from '../../services/ReportService.js';
+import TextSyncService from '../../services/TextSyncService.js';
 import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
 import { formatDateShort, formatRelativeTime, normalizePhone } from '../../utils/formatters.js';
 import { INTERACTION_TYPE_LABELS } from '../../utils/constants.js';
 import { InteractionLogger } from '../UI/InteractionLogger.js';
 import { Toast } from '../UI/Toast.js';
+import { downloadFile } from '../../utils/helpers.js';
 
 export class MyDayDashboard {
     constructor() {
@@ -44,6 +47,8 @@ export class MyDayDashboard {
             ${this._renderNeedsAttentionSection(lapsedData)}
 
             ${this._renderDataQualitySection(dataQuality)}
+
+            ${this._renderReportsSection()}
         `;
 
         this.container = container;
@@ -300,6 +305,25 @@ export class MyDayDashboard {
             </div>`;
     }
 
+    _renderReportsSection() {
+        return `
+            <div class="dashboard-card dashboard-card-reports">
+                <div class="dashboard-card-header">
+                    <h3>📊 Reports &amp; Share</h3>
+                </div>
+                <p class="dashboard-card-subtitle">WhatsApp-friendly summary for your board or group · CSV for spreadsheet analysis</p>
+                <div class="dashboard-reports-actions">
+                    <button id="report-copy-monthly-btn" class="btn btn-primary btn-sm">💬 Copy Monthly Report</button>
+                    <button id="report-share-monthly-btn" class="btn btn-secondary btn-sm">📲 Share Monthly Report</button>
+                    <button id="report-download-csv-btn" class="btn btn-secondary btn-sm">📄 Download Visitor CSV</button>
+                </div>
+                <details class="dashboard-report-preview">
+                    <summary>Preview monthly report</summary>
+                    <pre id="report-preview-text" class="dashboard-report-pre"></pre>
+                </details>
+            </div>`;
+    }
+
     _renderQualityBar(label, percent) {
         const color = percent >= 80 ? '#22c55e' : percent >= 50 ? '#f59e0b' : '#ef4444';
         return `
@@ -355,6 +379,43 @@ export class MyDayDashboard {
                     onDone: () => this._refresh()
                 });
             });
+        });
+
+        // Populate report preview when details opens
+        const previewPre = this.container.querySelector('#report-preview-text');
+        if (previewPre) previewPre.textContent = ReportService.generateMonthlyTextReport();
+
+        // Copy monthly report
+        this.container.querySelector('#report-copy-monthly-btn')?.addEventListener('click', async () => {
+            const text = ReportService.generateMonthlyTextReport();
+            const ok = await TextSyncService.copyText(text);
+            if (ok) {
+                Toast.show('Monthly report copied. Paste into WhatsApp or email.', 'success', 4000);
+            } else {
+                Toast.show('Could not copy automatically. Use the preview below to select and copy manually.', 'warning', 5000);
+            }
+        });
+
+        // Share monthly report via native share sheet
+        this.container.querySelector('#report-share-monthly-btn')?.addEventListener('click', async () => {
+            const text = ReportService.generateMonthlyTextReport();
+            const result = await TextSyncService.shareText(text, 'Monthly Report');
+            if (result.method === 'share') {
+                Toast.show('Share sheet opened.', 'success');
+            } else if (result.method === 'clipboard') {
+                Toast.show('Share not available — report copied to clipboard.', 'info', 4000);
+            } else if (result.method === 'none' && result.error) {
+                Toast.show('Could not share: ' + result.error, 'error');
+            }
+        });
+
+        // Download CSV
+        this.container.querySelector('#report-download-csv-btn')?.addEventListener('click', () => {
+            const csv = ReportService.generateVisitorCSV();
+            const filename = `Visitors_${new Date().toISOString().split('T')[0]}.csv`;
+            // Prepend BOM so Excel handles UTF-8 correctly
+            downloadFile('\ufeff' + csv, filename);
+            Toast.show('CSV downloaded.', 'success');
         });
     }
 

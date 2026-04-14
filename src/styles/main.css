@@ -1514,6 +1514,43 @@ html {
 .dashboard-card-followups { border-left: 4px solid #f59e0b; }
 .dashboard-card-attention { border-left: 4px solid #fb923c; }
 .dashboard-card-quality { border-left: 4px solid #6366f1; }
+.dashboard-card-reports { border-left: 4px solid #0891b2; }
+
+.dashboard-card-subtitle {
+  padding: 0 1.25rem;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.dashboard-reports-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.25rem 0.5rem;
+}
+
+.dashboard-report-preview {
+  padding: 0.25rem 1.25rem 1rem;
+  font-size: 0.85rem;
+}
+
+.dashboard-report-preview > summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  padding: 0.25rem 0;
+}
+
+.dashboard-report-pre {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  margin: 0.5rem 0 0 0;
+}
 
 .dashboard-card-header {
   display: flex;

@@ -72,6 +72,7 @@ export class VisitorView {
             Visitor ID: <code>${this.visitor.id}</code> | Category: ${this.escapeHtml(this.visitor.category || 'None')}
             ${this.renderLastContactInfo()}
           </p>
+          ${this.renderEngagementMeta()}
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           ${!isDnc ? `
@@ -382,6 +383,101 @@ export class VisitorView {
     const label = EngagementService.getLabel(score);
     const colorClass = EngagementService.getColorClass(score);
     return `<span class="badge ${colorClass}" title="Engagement: ${score}/100">${label} (${score})</span>`;
+  }
+
+  /**
+   * Render compact engagement meta row: contact frequency avg + next action.
+   * Appears below the ID/Category line on the view header.
+   */
+  renderEngagementMeta() {
+    const parts = [];
+
+    // 1. Contact frequency average (from actual interactions)
+    const freqAvg = this.computeContactFrequencyAvg();
+    const target = this.visitor.contactFrequencyDays;
+    if (freqAvg !== null) {
+      let line = `Avg contact: every ~${freqAvg} days`;
+      if (target) line += ` · Target: every ${target} days`;
+      parts.push(line);
+    } else if (target) {
+      parts.push(`Target: contact every ${target} days`);
+    }
+
+    // 2. Next action — follow-up due OR next event (birthday/anniversary)
+    const nextAction = this.computeNextAction();
+    if (nextAction) parts.push(nextAction);
+
+    if (parts.length === 0) return '';
+    return `<p class="text-secondary" style="margin: 0.2rem 0 0 0; font-size: 0.85rem;">${parts.map(p => this.escapeHtml(p)).join(' · ')}</p>`;
+  }
+
+  /**
+   * Average days between consecutive interactions (null if < 2 interactions).
+   */
+  computeContactFrequencyAvg() {
+    if (!this.interactions || this.interactions.length < 2) return null;
+    const dates = this.interactions
+      .map(i => new Date(i.interactionDate).getTime())
+      .filter(t => !isNaN(t))
+      .sort((a, b) => a - b);
+    if (dates.length < 2) return null;
+    const totalSpan = dates[dates.length - 1] - dates[0];
+    const intervals = dates.length - 1;
+    const avgDays = Math.round(totalSpan / (intervals * 86400000));
+    return avgDays;
+  }
+
+  /**
+   * Compute next action — follow-up date first, else next upcoming event.
+   * Returns a human-readable string or null.
+   */
+  computeNextAction() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Earliest pending follow-up from interactions
+    let nextFollowUp = null;
+    this.interactions.forEach(i => {
+      if (!i.followUpDate) return;
+      const fu = new Date(i.followUpDate);
+      if (isNaN(fu.getTime())) return;
+      if (!nextFollowUp || fu < nextFollowUp) nextFollowUp = fu;
+    });
+
+    // Earliest upcoming event (birthday/anniversary in next 60 days)
+    let nextEvent = null;
+    let nextEventLabel = '';
+    this.visitor.contacts?.forEach(c => {
+      const events = [
+        { date: c.dob, label: 'Birthday' },
+        { date: c.marriageDate, label: 'Anniversary' }
+      ];
+      events.forEach(e => {
+        if (!e.date) return;
+        const d = new Date(e.date);
+        if (isNaN(d.getTime())) return;
+        // Project to this year (or next year if already past)
+        const projected = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+        if (projected < today) projected.setFullYear(today.getFullYear() + 1);
+        const daysUntil = Math.round((projected - today) / 86400000);
+        if (daysUntil <= 60 && (!nextEvent || projected < nextEvent)) {
+          nextEvent = projected;
+          nextEventLabel = `${e.label} of ${c.name}`;
+        }
+      });
+    });
+
+    if (nextFollowUp && (!nextEvent || nextFollowUp <= nextEvent)) {
+      const days = Math.round((nextFollowUp - today) / 86400000);
+      const when = days <= 0 ? 'today (overdue)' : days === 1 ? 'tomorrow' : `in ${days} days`;
+      return `Next: follow-up ${when}`;
+    }
+    if (nextEvent) {
+      const days = Math.round((nextEvent - today) / 86400000);
+      const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`;
+      return `Next: ${nextEventLabel} ${when}`;
+    }
+    return null;
   }
 
   /**
