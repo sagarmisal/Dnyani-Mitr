@@ -182,9 +182,9 @@ export class GreetingQueue {
         s.pendingSend = { index: idx };
         GreetingQueue._saveState(s);
 
-        // Open WhatsApp
+        // Open WhatsApp (platform-aware — window.open fails inside Capacitor WebView)
         const url = `https://wa.me/91${normalized}?text=${encodeURIComponent(message)}`;
-        window.open(url, '_blank');
+        InteractionLogger.openExternalUrl(url);
 
         // If visibilitychange fires quickly (user didn't leave), handle via timeout
         // Otherwise, onResume handler catches the return

@@ -3,8 +3,7 @@
   "appName": "NGO Mitr",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https",
-    "allowNavigation": ["*"]
+    "androidScheme": "https"
   },
   "android": {
     "allowMixedContent": true,

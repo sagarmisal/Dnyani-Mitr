@@ -165,11 +165,11 @@ export class VisitorForm {
 
     return `
       <div class="form-group date-field-group" style="margin-bottom: 0;">
-        <label class="form-label">${label}</label>
+        <label class="form-label" for="${fieldId}">${label}</label>
         <input type="date" id="${fieldId}" class="form-input" value="${dateValue}" />
         <label class="year-unknown-label">
           <input type="checkbox" id="${fieldId}-year-unknown" ${yearUnknown ? 'checked' : ''} />
-          Year unknown
+          Don't know the year (just month / day)
         </label>
       </div>
     `;
@@ -205,87 +205,85 @@ export class VisitorForm {
     const selfContact = this.formData.contacts.find(c => c.relationType === 'SELF') || this.createEmptyContact('SELF');
 
     return `
-      <h3 style="color:var(--color-primary); margin-bottom:0.5rem;">Primary Contact</h3>
-      <p class="text-secondary" style="margin-bottom:1.5rem;">Main visitor information</p>
-      
+      <h3 style="margin: 0 0 0.25rem 0;">Primary contact</h3>
+      <p class="text-secondary" style="margin: 0 0 1.5rem 0;">The main person you're recording.</p>
+
       <div class="form-row">
-          <div class="form-group form-col-2">
-            <label class="form-label">Full Name *</label>
-            <input type="text" id="self-name" class="form-input" value="${this.escapeHtml(selfContact.name)}" required placeholder="e.g. Amit Patil" />
-          </div>
-          <div class="form-group form-col-1">
-             <label class="form-label">Preference</label>
-             <select id="self-comm-pref" class="form-select">
-                <option value="whatsapp" ${this.formData.communicationPreference === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
-                <option value="call" ${this.formData.communicationPreference === 'call' ? 'selected' : ''}>Phone Call</option>
-                <option value="sms" ${this.formData.communicationPreference === 'sms' ? 'selected' : ''}>SMS</option>
-             </select>
-          </div>
-      </div>
-      
-      <!-- Split Address Row -->
-      <div class="form-row">
-          <div class="form-group form-col-1">
-             <label class="form-label">City / Village</label>
-             <input type="text" id="self-city" class="form-input" value="${this.escapeHtml(this.formData.city)}" placeholder="e.g. Pune" />
-          </div>
-          <div class="form-group form-col-2">
-             <label class="form-label">Address</label>
-             <input type="text" id="self-address" class="form-input" value="${this.escapeHtml(this.formData.address)}" placeholder="Flat No, Building, Area..." />
-          </div>
+        <div class="form-group form-col-2">
+          <label class="form-label" for="self-name">Full name *</label>
+          <input type="text" id="self-name" class="form-input" value="${this.escapeHtml(selfContact.name)}" required autocomplete="name" placeholder="e.g. Amit Patil" />
+          <div class="field-error" data-error-for="self-name"></div>
+        </div>
+        <div class="form-group form-col-1">
+          <label class="form-label" for="self-comm-pref">Preferred contact</label>
+          <select id="self-comm-pref" class="form-select">
+            <option value="whatsapp" ${this.formData.communicationPreference === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
+            <option value="call" ${this.formData.communicationPreference === 'call' ? 'selected' : ''}>Phone call</option>
+            <option value="sms" ${this.formData.communicationPreference === 'sms' ? 'selected' : ''}>SMS</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Phones and Emails -->
       <div class="form-row">
-        <div class="form-group">
-            <label class="form-label">Phone Numbers</label>
-            <div id="self-phones">
-              ${selfContact.phones.map((phone, idx) => `
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                  <input type="tel" class="form-input phone-input" data-index="${idx}" value="${this.escapeHtml(phone)}" placeholder="Mobile Number" />
-                  ${idx > 0 ? `<button type="button" class="btn btn-secondary btn-sm remove-phone" data-index="${idx}">✕</button>` : ''}
-                </div>
-              `).join('')}
-            </div>
-            <button type="button" id="add-phone" class="btn btn-secondary btn-sm" style="width:100%">+ Add Phone</button>
+        <div class="form-group form-col-1">
+          <label class="form-label" for="self-city">City / Village</label>
+          <input type="text" id="self-city" class="form-input" value="${this.escapeHtml(this.formData.city)}" autocomplete="address-level2" placeholder="e.g. Pune" />
         </div>
-        
-        <div class="form-group">
-            <label class="form-label">Email Addresses</label>
-            <div id="self-emails">
-              ${selfContact.emails.map((email, idx) => `
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                  <input type="email" class="form-input email-input" data-index="${idx}" value="${this.escapeHtml(email)}" placeholder="Email Address" />
-                  ${idx > 0 ? `<button type="button" class="btn btn-secondary btn-sm remove-email" data-index="${idx}">✕</button>` : ''}
-                </div>
-              `).join('')}
-            </div>
-            <button type="button" id="add-email" class="btn btn-secondary btn-sm" style="width:100%">+ Add Email</button>
+        <div class="form-group form-col-2">
+          <label class="form-label" for="self-address">Address</label>
+          <input type="text" id="self-address" class="form-input" value="${this.escapeHtml(this.formData.address)}" autocomplete="street-address" placeholder="Flat / building / area" />
         </div>
       </div>
-      
-      <!-- Smart Dates -->
+
       <div class="form-row">
         <div class="form-group">
-            ${this.renderDateGroup('self-dob', 'Date of Birth', selfContact.dob, selfContact.dobMonthOnly)}
+          <label class="form-label">Phone numbers</label>
+          <div id="self-phones">
+            ${selfContact.phones.map((phone, idx) => `
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <input type="tel" inputmode="tel" autocomplete="tel" class="form-input phone-input" data-index="${idx}" value="${this.escapeHtml(phone)}" placeholder="Mobile number" style="flex: 1; min-width: 0;" />
+                ${idx > 0 ? `<button type="button" class="btn btn-secondary btn-sm remove-phone" data-index="${idx}" aria-label="Remove this phone" style="flex: 0 0 auto; min-width: 44px;">✕</button>` : ''}
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" id="add-phone" class="btn btn-secondary btn-sm" style="width: 100%;">+ Add another phone</button>
         </div>
-        
+
         <div class="form-group">
-            ${this.renderDateGroup('self-marriage', 'Anniversary', selfContact.marriageDate, selfContact.marriageMonthOnly)}
+          <label class="form-label">Email addresses</label>
+          <div id="self-emails">
+            ${selfContact.emails.map((email, idx) => `
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <input type="email" inputmode="email" autocomplete="email" class="form-input email-input" data-index="${idx}" value="${this.escapeHtml(email)}" placeholder="Email address" style="flex: 1; min-width: 0;" />
+                ${idx > 0 ? `<button type="button" class="btn btn-secondary btn-sm remove-email" data-index="${idx}" aria-label="Remove this email" style="flex: 0 0 auto; min-width: 44px;">✕</button>` : ''}
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" id="add-email" class="btn btn-secondary btn-sm" style="width: 100%;">+ Add another email</button>
         </div>
       </div>
-      
+
+      <div class="form-row">
+        <div class="form-group">
+          ${this.renderDateGroup('self-dob', 'Date of birth', selfContact.dob, selfContact.dobMonthOnly)}
+        </div>
+        <div class="form-group">
+          ${this.renderDateGroup('self-marriage', 'Anniversary', selfContact.marriageDate, selfContact.marriageMonthOnly)}
+        </div>
+      </div>
+
       <div class="form-group">
-        <label class="form-label">Notes</label>
-        <textarea id="self-notes" class="form-textarea" rows="2" placeholder="Any additional details...">${this.escapeHtml(selfContact.notes || '')}</textarea>
+        <label class="form-label" for="self-notes">Notes</label>
+        <textarea id="self-notes" class="form-textarea" rows="2" placeholder="Anything you want to remember about this person...">${this.escapeHtml(selfContact.notes || '')}</textarea>
       </div>
 
       ${!this.isEditMode ? `
-      <div class="form-group consent-group" style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.5rem;">
-        <label class="consent-label" style="display: flex; align-items: start; gap: 0.75rem; cursor: pointer;">
-          <input type="checkbox" id="consent-checkbox" ${this.formData.consentGiven ? 'checked' : ''} style="margin-top: 0.2rem; min-width: 18px; min-height: 18px;" />
-          <span>I have permission to store this person's contact information</span>
+      <div class="form-group consent-group" style="margin-top: 1rem; padding: 0.9rem 1rem; background: var(--color-surface-hover); border: 1px solid var(--color-border); border-left: 3px solid var(--color-success); border-radius: var(--radius-md);">
+        <label class="consent-label" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="consent-checkbox" ${this.formData.consentGiven ? 'checked' : ''} style="margin-top: 0.2rem; min-width: 20px; min-height: 20px; flex-shrink: 0;" />
+          <span style="font-size: 0.95rem;">I have permission to store this person's contact information.</span>
         </label>
+        <div class="field-error" data-error-for="consent-checkbox"></div>
       </div>
       ` : ''}
     `;
@@ -298,16 +296,14 @@ export class VisitorForm {
     const familyContacts = this.formData.contacts.filter(c => c.relationType !== 'SELF');
 
     return `
-      <h3>Family Members</h3>
-      <p class="text-secondary">Add spouse, children, or parents. Important for relationship management.</p>
-      
+      <h3 style="margin: 0 0 0.25rem 0;">Family members</h3>
+      <p class="text-secondary" style="margin: 0 0 1.5rem 0;">Spouse, children, or parents — so you can remember birthdays for the whole family. Optional.</p>
+
       <div id="family-contacts">
         ${familyContacts.map((contact, idx) => this.renderFamilyContact(contact, idx)).join('')}
       </div>
-      
-      ${familyContacts.length === 0 ? '<div style="padding: 2rem; text-align: center; background: #f8fafc; border-radius: 0.5rem; border: 1px dashed #cbd5e1; margin-bottom: 1rem;"><p class="text-secondary">No family members added.</p></div>' : ''}
-      
-      <button type="button" id="add-family-member" class="btn btn-primary" style="width: 100%;">+ Add Family Member</button>
+
+      <button type="button" id="add-family-member" class="btn btn-primary" style="width: 100%;">+ Add family member</button>
     `;
   }
 
@@ -318,89 +314,96 @@ export class VisitorForm {
     // We need unique IDs for the date inputs within this list
     // Format: family-{index}-dob
     return `
-      <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem; border-left: 4px solid var(--color-primary);" data-contact-index="${index}">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-          <h4 style="margin: 0; color: var(--color-primary);">${contact.name || 'New Member'}</h4>
-          <button type="button" class="btn btn-error btn-sm remove-family" data-index="${index}">✕ Remove</button>
+      <div class="card family-contact-card" style="margin-bottom: 1.25rem; padding: 1rem; border: 1px solid var(--color-border);" data-contact-index="${index}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; flex-wrap: wrap;">
+          <h4 style="margin: 0; font-size: 1rem; color: var(--color-text-primary);">${this.escapeHtml(contact.name || 'New family member')}</h4>
+          <button type="button" class="btn btn-secondary btn-sm remove-family" data-index="${index}">✕ Remove</button>
         </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Relationship *</label>
-              <select class="form-select family-relation" data-index="${index}">
-                ${Object.entries(RELATIONSHIP_LABELS).filter(([key]) => key !== 'SELF').map(([key, label]) => `
-                  <option value="${key}" ${contact.relationType === key ? 'selected' : ''}>${label}</option>
-                `).join('')}
-              </select>
-            </div>
-            
-            <div class="form-group form-col-2">
-              <label class="form-label">Name *</label>
-              <input type="text" class="form-input family-name" data-index="${index}" value="${this.escapeHtml(contact.name)}" placeholder="Member Name" />
-            </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Phone (Optional)</label>
-          <input type="tel" class="form-input family-phone" data-index="${index}" value="${this.escapeHtml(contact.phones[0] || '')}" placeholder="Mobile Number" />
-        </div>
-        
-        <div class="form-row">
-            <div class="form-group">
-                ${this.renderDateGroup(`family-${index}-dob`, 'Date of Birth', contact.dob, contact.dobMonthOnly)}
-            </div>
 
-            <div class="form-group">
-                ${this.renderDateGroup(`family-${index}-marriage`, 'Anniversary', contact.marriageDate, contact.marriageMonthOnly)}
-            </div>
-            
-            <div class="form-group">
-                 ${this.renderDateGroup(`family-${index}-death`, 'Death Date', contact.deathDate, contact.deathMonthOnly)}
-            </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="family-${index}-relation">Relationship *</label>
+            <select class="form-select family-relation" data-index="${index}" id="family-${index}-relation">
+              ${Object.entries(RELATIONSHIP_LABELS).filter(([key]) => key !== 'SELF').map(([key, label]) => `
+                <option value="${key}" ${contact.relationType === key ? 'selected' : ''}>${label}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-group form-col-2">
+            <label class="form-label" for="family-${index}-name">Name *</label>
+            <input type="text" class="form-input family-name" id="family-${index}-name" data-index="${index}" value="${this.escapeHtml(contact.name)}" autocomplete="name" placeholder="Family member's name" />
+            <div class="field-error" data-error-for="family-${index}-name"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="family-${index}-phone">Phone (optional)</label>
+          <input type="tel" inputmode="tel" autocomplete="tel" class="form-input family-phone" id="family-${index}-phone" data-index="${index}" value="${this.escapeHtml(contact.phones[0] || '')}" placeholder="Mobile number" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            ${this.renderDateGroup(`family-${index}-dob`, 'Date of birth', contact.dob, contact.dobMonthOnly)}
+          </div>
+          <div class="form-group">
+            ${this.renderDateGroup(`family-${index}-marriage`, 'Anniversary', contact.marriageDate, contact.marriageMonthOnly)}
+          </div>
+          <div class="form-group">
+            ${this.renderDateGroup(`family-${index}-death`, 'Death anniversary', contact.deathDate, contact.deathMonthOnly)}
+          </div>
         </div>
       </div>
     `;
   }
 
-  // Step 3 remains similar...
   renderStep3() {
+    const existingCategories = VisitorService.getCategories();
+    const hasFreq = this.formData.contactFrequencyDays != null && this.formData.contactFrequencyDays > 0;
+
     return `
-      <h3>Additional Details</h3>
-      <p class="text-secondary">Categorize logic for better filtering.</p>
-      
+      <h3 style="margin: 0 0 0.25rem 0;">More details</h3>
+      <p class="text-secondary" style="margin: 0 0 1.5rem 0;">Categorize and add notes. All optional.</p>
+
       <div class="form-group">
-        <label class="form-label">Category</label>
-        <input type="text" id="visitor-category" class="form-input" value="${this.escapeHtml(this.formData.category)}" 
-               placeholder="e.g. Regular, Donor, VIP" list="category-suggestions" />
+        <label class="form-label" for="visitor-category">Category</label>
+        <input type="text" id="visitor-category" class="form-input" value="${this.escapeHtml(this.formData.category)}" placeholder="e.g. Regular, Donor, VIP" list="category-suggestions" autocomplete="off" />
         <datalist id="category-suggestions">
-          ${VisitorService.getCategories().map(cat => `<option value="${this.escapeHtml(cat)}">`).join('')}
+          ${existingCategories.map(cat => `<option value="${this.escapeHtml(cat)}">`).join('')}
         </datalist>
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label">Tags</label>
-        <input type="text" id="visitor-tags" class="form-input" value="${this.escapeHtml(this.formData.tags.join(', '))}"
-               placeholder="Comma separated tags..." />
-      </div>
-      
-      <div class="form-group">
-        <label class="form-label">General Notes</label>
-        <textarea id="visitor-notes" class="form-textarea" rows="4" placeholder="History, context, or special instructions...">${this.escapeHtml(this.formData.notes)}</textarea>
+        ${existingCategories.length > 0 ? `
+          <p style="margin: 0.4rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
+            Used before: ${existingCategories.slice(0, 5).map(c => `<button type="button" class="category-suggestion-chip" data-cat="${this.escapeHtml(c)}" style="background: var(--color-surface-hover); border: 1px solid var(--color-border); padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.85rem; margin: 0 0.15rem; cursor: pointer;">${this.escapeHtml(c)}</button>`).join('')}
+          </p>
+        ` : ''}
       </div>
 
       <div class="form-group">
-        <label class="form-label">Contact Frequency Target</label>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <span style="font-size: 0.85rem;">Remind me if not contacted in</span>
-          <input type="number" id="visitor-freq-days" class="form-input" min="1" max="365" step="1"
-                 value="${this.formData.contactFrequencyDays ?? ''}"
-                 placeholder="e.g. 30"
+        <label class="form-label" for="visitor-tags">Tags</label>
+        <input type="text" id="visitor-tags" class="form-input" value="${this.escapeHtml(this.formData.tags.join(', '))}" placeholder="Comma-separated, e.g. youth, mentor" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="visitor-notes">General notes</label>
+        <textarea id="visitor-notes" class="form-textarea" rows="4" placeholder="History, context, or anything you want to remember.">${this.escapeHtml(this.formData.notes)}</textarea>
+      </div>
+
+      <div class="form-group" style="background: var(--color-surface-hover); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem;">
+        <label class="form-checkbox" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
+          <input type="checkbox" id="visitor-freq-toggle" ${hasFreq ? 'checked' : ''} style="margin-top: 0.2rem; min-width: 20px; min-height: 20px; flex-shrink: 0;" />
+          <span>
+            <strong>Remind me if I haven't contacted them in a while</strong>
+            <span style="display: block; font-size: 0.9rem; color: var(--color-text-secondary); font-weight: 400; margin-top: 0.15rem;">
+              They'll show up in reminders when the interval has passed.
+            </span>
+          </span>
+        </label>
+        <div id="freq-input-row" class="${hasFreq ? '' : 'hidden'}" style="margin-top: 0.75rem; padding-left: 2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          <span>Every</span>
+          <input type="number" id="visitor-freq-days" class="form-input" inputmode="numeric" min="1" max="365" step="1"
+                 value="${this.formData.contactFrequencyDays ?? 30}"
                  style="width: 90px;" />
-          <span style="font-size: 0.85rem;">days</span>
+          <span>days</span>
         </div>
-        <p style="margin: 0.4rem 0 0 0; font-size: 0.75rem; color: var(--color-text-tertiary);">
-          Leave blank for no target. When the interval is overdue, this visitor appears in reminders.
-        </p>
       </div>
     `;
   }
@@ -492,20 +495,75 @@ export class VisitorForm {
         });
       });
     }
+
+    if (this.currentStep === 3) {
+      const freqToggle = this.container.querySelector('#visitor-freq-toggle');
+      const freqInputRow = this.container.querySelector('#freq-input-row');
+      if (freqToggle && freqInputRow) {
+        freqToggle.addEventListener('change', (e) => {
+          freqInputRow.classList.toggle('hidden', !e.target.checked);
+        });
+      }
+
+      this.container.querySelectorAll('.category-suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          const catInput = this.container.querySelector('#visitor-category');
+          if (catInput) {
+            catInput.value = e.currentTarget.dataset.cat;
+            catInput.focus();
+          }
+        });
+      });
+    }
+  }
+
+  showFieldError(fieldId, message) {
+    const errorEl = this.container.querySelector(`[data-error-for="${fieldId}"]`);
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add('visible');
+    }
+    const fieldEl = this.container.querySelector(`#${fieldId}`);
+    if (fieldEl) {
+      fieldEl.classList.add('field-invalid');
+      fieldEl.focus();
+    }
+  }
+
+  clearFieldErrors() {
+    this.container.querySelectorAll('.field-error').forEach(el => {
+      el.textContent = '';
+      el.classList.remove('visible');
+    });
+    this.container.querySelectorAll('.field-invalid').forEach(el => {
+      el.classList.remove('field-invalid');
+    });
   }
 
   validateCurrentStep() {
+    this.clearFieldErrors();
     if (this.currentStep === 1) {
       const name = this.container.querySelector('#self-name').value.trim();
-      if (!name) { Toast.show('Visitor Name is required', 'error'); return false; }
+      if (!name) {
+        this.showFieldError('self-name', 'Please enter the visitor\'s name.');
+        return false;
+      }
       if (!this.isEditMode) {
         const consent = this.container.querySelector('#consent-checkbox');
-        if (consent && !consent.checked) { Toast.show('Please confirm consent to store contact information', 'error'); return false; }
+        if (consent && !consent.checked) {
+          this.showFieldError('consent-checkbox', 'Please confirm consent before continuing.');
+          return false;
+        }
       }
     }
     if (this.currentStep === 2) {
       const names = this.container.querySelectorAll('.family-name');
-      for (let n of names) { if (!n.value.trim()) { Toast.show('Family Member Name is required', 'error'); return false; } }
+      for (let n of names) {
+        if (!n.value.trim()) {
+          this.showFieldError(n.id, 'Please enter a name for this family member, or remove the entry.');
+          return false;
+        }
+      }
     }
     return true;
   }
@@ -571,11 +629,14 @@ export class VisitorForm {
       this.formData.category = this.container.querySelector('#visitor-category').value.trim();
       this.formData.tags = this.container.querySelector('#visitor-tags').value.split(',').map(t => t.trim()).filter(t => t);
       this.formData.notes = this.container.querySelector('#visitor-notes').value.trim();
+
+      const freqToggle = this.container.querySelector('#visitor-freq-toggle');
       const freqInput = this.container.querySelector('#visitor-freq-days');
-      if (freqInput) {
-        const raw = freqInput.value.trim();
-        const n = parseInt(raw, 10);
-        this.formData.contactFrequencyDays = (raw && !isNaN(n) && n > 0) ? n : null;
+      if (freqToggle && freqToggle.checked && freqInput) {
+        const n = parseInt(freqInput.value.trim(), 10);
+        this.formData.contactFrequencyDays = (!isNaN(n) && n > 0) ? n : null;
+      } else {
+        this.formData.contactFrequencyDays = null;
       }
     }
   }
@@ -607,18 +668,19 @@ export class VisitorForm {
     this.renderCurrentStep();
   }
 
-  // renderProgressSteps, details etc
   renderProgressSteps() {
     const steps = ['Primary', 'Family', 'Details'];
-    return steps.map((s, i) => {
+    return `<div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center;">${steps.map((s, i) => {
       const n = i + 1;
       const active = n === this.currentStep;
       const done = n < this.currentStep;
-      return `<div class="progress-step ${active ? 'active' : ''} ${done ? 'completed' : ''}" style="margin-right:1rem; display:inline-flex; align-items:center;">
-         <span style="width:24px; height:24px; background:${active ? 'var(--color-primary)' : done ? 'var(--color-success)' : '#cbd5e1'}; color:white; border-radius:50%; text-align:center; line-height:24px; display:inline-block; margin-right:0.5rem; font-size:0.8rem;">${done ? '✓' : n}</span>
-         <span style="color:${active ? 'var(--color-primary)' : '#64748b'}">${s}</span>
+      const bg = active ? 'var(--color-primary)' : done ? 'var(--color-success)' : 'var(--color-border)';
+      const labelColor = active ? 'var(--color-primary)' : 'var(--color-text-secondary)';
+      return `<div class="progress-step ${active ? 'active' : ''} ${done ? 'completed' : ''}" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+         <span style="width: 24px; height: 24px; background: ${bg}; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 0.8rem; flex-shrink: 0;">${done ? '✓' : n}</span>
+         <span style="color: ${labelColor}; font-size: 0.95rem;">${s}</span>
        </div>`;
-    }).join('');
+    }).join('')}</div>`;
   }
 
   escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }

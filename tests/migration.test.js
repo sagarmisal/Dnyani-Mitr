@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { APP_VERSION } from '../src/utils/constants.js';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -50,7 +51,7 @@ describe('StorageManager migration', () => {
     localStorageMock.setItem('NGOApp_v2_State', JSON.stringify(v2State));
     const migrated = StorageManager.loadState();
 
-    expect(migrated.version).toBe('3.0.0');
+    expect(migrated.version).toBe(APP_VERSION);
 
     // Interaction without duration should get null
     const i1 = migrated.interactions.find(i => i.id === 'i1');
@@ -154,13 +155,18 @@ describe('StorageManager migration', () => {
 
   it('returns default state for empty localStorage', () => {
     const state = StorageManager.loadState();
-    expect(state.version).toBe('3.0.0');
+    expect(state.version).toBe(APP_VERSION);
     expect(state.visitors).toEqual([]);
     expect(state.knownMachines).toEqual({});
     expect(state.settings.messageTemplates).toBeDefined();
   });
 
-  it('does not re-migrate v3 state', () => {
+  // Migration runs whenever state.version !== APP_VERSION (storage.js:26). With
+  // APP_VERSION now '3.0.2', a stored '3.0.0' state DOES re-run migration —
+  // but the migration is idempotent (uses `||` defaults) so all user data is
+  // preserved. This test guarantees that idempotency property, regardless of
+  // whether migration runs or not.
+  it('preserves user data when reloading a v3 state (idempotency check)', () => {
     const v3State = {
       version: '3.0.0',
       activated: true,

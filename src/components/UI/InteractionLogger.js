@@ -3,6 +3,7 @@
 
 import InteractionService from '../../services/InteractionService.js';
 import ReminderService from '../../services/ReminderService.js';
+import VisitorService from '../../services/VisitorService.js';
 import ActivationManager from '../../core/activation.js';
 import { Toast } from './Toast.js';
 import {
@@ -27,8 +28,40 @@ export class InteractionLogger {
    * @param {string} [opts.eventType] - Birthday/Anniversary/Death for template selection
    * @param {Function} [opts.onDone] - Callback after action
    */
+  /**
+   * Defense-in-depth: even if a reminder tile for a DoNotContact visitor slips
+   * through (stale cached UI state, late toggle, etc.), every comm-button entry
+   * point validates the flag here at click time. Returns true if BLOCKED so
+   * callers can early-return; surfaces a Toast so the user understands.
+   *
+   * Per CLAUDE.md protocol: "DoNotContact visitors MUST be excluded from
+   * reminders, lapsed detection, and communication buttons."
+   */
+  static _blockedByDoNotContact(visitorId, contactName) {
+    if (!visitorId) return false;
+    try {
+      const visitor = VisitorService.getById(visitorId);
+      if (visitor?.doNotContact) {
+        Toast.show(
+          `${contactName || 'This contact'} is marked Do Not Contact — communication blocked.`,
+          'warning',
+          4000
+        );
+        return true;
+      }
+    } catch (e) {
+      // Service unavailable / lookup error — fail open. Worst case the comm
+      // proceeds for a visitor whose DNC flag we couldn't read; we'd rather
+      // a working button than a stuck one if the data layer is broken.
+      console.warn('DoNotContact check failed:', e);
+    }
+    return false;
+  }
+
   static quickAction(type, opts) {
     const { visitorId, reminderId, contactName, phone, eventType, onDone } = opts;
+
+    if (InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
 
     const typeMap = {
       'whatsapp': INTERACTION_TYPES.WHATSAPP,
@@ -283,16 +316,46 @@ export class InteractionLogger {
     return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
   }
 
-  static openWhatsApp(phone, contactName, eventType) {
+  static openWhatsApp(phone, contactName, eventType, visitorId = null) {
+    if (visitorId && InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
     const normalized = normalizePhone(phone);
     if (!normalized) return;
 
     const message = InteractionLogger.composeMessage(eventType, contactName);
     const url = `https://wa.me/91${normalized}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    InteractionLogger.openExternalUrl(url);
   }
 
-  static openCall(phone) {
+  /**
+   * Open an external HTTPS URL that should leave the app.
+   * Capacitor Android routes `window.open(url, '_blank')` through
+   * WebChromeClient.onCreateWindow, which doesn't trigger the bridge's
+   * external-intent path — so wa.me silently fails. A synthetic anchor click
+   * goes through shouldOverrideUrlLoading instead, which Capacitor intercepts
+   * and externalises via Intent.ACTION_VIEW.
+   */
+  static openExternalUrl(url) {
+    if (InteractionLogger._isCapacitorNative()) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.rel = 'noopener noreferrer';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  static _isCapacitorNative() {
+    return !!(window.Capacitor
+      && typeof window.Capacitor.isNativePlatform === 'function'
+      && window.Capacitor.isNativePlatform());
+  }
+
+  static openCall(phone, visitorId = null, contactName = null) {
+    if (visitorId && InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
     const normalized = normalizePhone(phone);
     if (!normalized) return;
     if (!InteractionLogger._isMobileDevice()) {
@@ -302,7 +365,8 @@ export class InteractionLogger {
     InteractionLogger._openProtocolLink(`tel:+91${normalized}`);
   }
 
-  static openSMS(phone, contactName, eventType) {
+  static openSMS(phone, contactName, eventType, visitorId = null) {
+    if (visitorId && InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
     const normalized = normalizePhone(phone);
     if (!normalized) return;
     if (!InteractionLogger._isMobileDevice()) {
@@ -314,7 +378,8 @@ export class InteractionLogger {
     InteractionLogger._openProtocolLink(`sms:+91${normalized}?body=${encodeURIComponent(message)}`);
   }
 
-  static openEmail(email, contactName, eventType) {
+  static openEmail(email, contactName, eventType, visitorId = null) {
+    if (visitorId && InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
     if (!email) return;
     const settings = StateManager.getSettings();
     const orgName = settings.organizationName || ORGANIZATION;

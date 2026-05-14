@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { APP_VERSION } from '../src/utils/constants.js';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -62,12 +63,12 @@ describe('SyncService', () => {
   describe('prepareExport', () => {
     it('includes dataVersion in metadata', () => {
       const pkg = SyncService.prepareExport();
-      expect(pkg.metadata.dataVersion).toBe('3.0.0');
+      expect(pkg.metadata.dataVersion).toBe(APP_VERSION);
     });
 
     it('includes version in metadata', () => {
       const pkg = SyncService.prepareExport();
-      expect(pkg.metadata.version).toBe('3.0.0');
+      expect(pkg.metadata.version).toBe(APP_VERSION);
     });
 
     it('includes machine info in metadata', () => {

@@ -307,10 +307,15 @@ export class VisitorView {
     const phone2 = self2?.phones?.[0] || '';
     const email2 = self2?.emails?.[0] || '';
 
+    // VisitorView already hides comm buttons for DNC visitors at render time;
+    // the visitorId arg here is belt-and-suspenders for the open* methods'
+    // own DNC guard (Iter 9.1).
+    const vid = this.visitor.id;
+
     const whatsappBtn = this.container.querySelector('#btn-whatsapp');
     if (whatsappBtn) {
       whatsappBtn.addEventListener('click', () => {
-        InteractionLogger.openWhatsApp(phone2, self2?.name);
+        InteractionLogger.openWhatsApp(phone2, self2?.name, null, vid);
         Toast.show('WhatsApp opened — use "Log Interaction" to record it', 'info');
       });
     }
@@ -318,21 +323,21 @@ export class VisitorView {
     const callBtn = this.container.querySelector('#btn-call');
     if (callBtn) {
       callBtn.addEventListener('click', () => {
-        InteractionLogger.openCall(phone2);
+        InteractionLogger.openCall(phone2, vid, self2?.name);
       });
     }
 
     const smsBtn = this.container.querySelector('#btn-sms');
     if (smsBtn) {
       smsBtn.addEventListener('click', () => {
-        InteractionLogger.openSMS(phone2, self2?.name);
+        InteractionLogger.openSMS(phone2, self2?.name, null, vid);
       });
     }
 
     const emailBtn = this.container.querySelector('#btn-email');
     if (emailBtn) {
       emailBtn.addEventListener('click', () => {
-        InteractionLogger.openEmail(email2, self2?.name);
+        InteractionLogger.openEmail(email2, self2?.name, null, vid);
       });
     }
 

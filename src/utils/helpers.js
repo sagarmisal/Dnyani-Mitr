@@ -79,41 +79,127 @@ export function safeJSONParse(str, fallback = null) {
 }
 
 /**
- * Download a file (with Android/Capacitor fallback)
+ * Detect what sync paths the current device supports.
+ * Used by SyncManager to label the right path as "Recommended" per platform.
+ *
+ * @returns {{
+ *   canShareFiles: boolean,    // navigator.share with files - mobile + some desktops
+ *   canShareText: boolean,     // navigator.share with text - mobile + some desktops
+ *   canCopy: boolean,          // navigator.clipboard.writeText - all modern browsers
+ *   canDownload: boolean,      // <a download> works - all desktops, unreliable in Capacitor WebView
+ *   isCapacitor: boolean,      // running inside the Android APK
+ *   platformLabel: string      // human-friendly description for UI hints
+ * }}
  */
-export function downloadFile(content, filename, mimeType = 'application/json') {
-    try {
-        const blob = new Blob([content], { type: mimeType });
+export function getSyncCapabilities() {
+    const isCapacitor = !!(typeof window !== 'undefined'
+        && window.Capacitor
+        && typeof window.Capacitor.isNativePlatform === 'function'
+        && window.Capacitor.isNativePlatform());
 
-        // Check if running inside Capacitor/Android WebView
-        // where URL.createObjectURL may not trigger a download
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            // IE/Edge legacy
-            window.navigator.msSaveOrOpenBlob(blob, filename);
-            return;
+    const hasNav = typeof navigator !== 'undefined';
+    const canShareText = hasNav && typeof navigator.share === 'function';
+
+    // canShare with files probe — modern Capacitor WebView (Chrome 89+) supports this
+    let canShareFiles = false;
+    if (canShareText && typeof navigator.canShare === 'function') {
+        try {
+            // Probe with a tiny File to check files support specifically
+            const probe = new File(['x'], 'probe.txt', { type: 'text/plain' });
+            canShareFiles = navigator.canShare({ files: [probe] });
+        } catch {
+            canShareFiles = false;
         }
+    }
 
+    const canCopy = hasNav
+        && navigator.clipboard
+        && typeof navigator.clipboard.writeText === 'function';
+
+    // Download anchor works on every desktop browser. On Capacitor WebView the
+    // <a download> click does fire but the resulting file lands in app-private
+    // storage where the user can't access it, so we treat it as unreliable on Capacitor.
+    const canDownload = !isCapacitor;
+
+    let platformLabel = 'desktop';
+    if (isCapacitor) platformLabel = 'Android app';
+    else if (hasNav && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) platformLabel = 'mobile browser';
+
+    return { canShareFiles, canShareText, canCopy, canDownload, isCapacitor, platformLabel };
+}
+
+/**
+ * Save content to a file the user can access. Platform-aware:
+ *
+ * - Mobile / Capacitor: opens the system share sheet so the user can route
+ *   the file to WhatsApp / Drive / Email / Files. This is the path that
+ *   actually works on MIUI/ColorOS where in-WebView downloads disappear.
+ * - Desktop: triggers a normal browser download.
+ *
+ * Returns a Promise so callers can await and surface platform-appropriate
+ * feedback (e.g. "Share sheet opened" vs "File downloaded"). Existing call
+ * sites that don't await still work — the operation fires and the promise
+ * is harmlessly discarded.
+ *
+ * @param {string} content
+ * @param {string} filename
+ * @param {string} [mimeType='application/json']
+ * @returns {Promise<{method: 'share'|'download'|'datauri', cancelled?: boolean, error?: string}>}
+ */
+export async function saveFile(content, filename, mimeType = 'application/json') {
+    const blob = new Blob([content], { type: mimeType });
+    const caps = getSyncCapabilities();
+
+    // Path 1: Web Share API with files — best path on Capacitor + mobile browsers.
+    if (caps.canShareFiles) {
+        try {
+            const file = new File([blob], filename, { type: mimeType });
+            await navigator.share({ files: [file], title: filename });
+            return { method: 'share', cancelled: false };
+        } catch (err) {
+            if (err && err.name === 'AbortError') {
+                return { method: 'share', cancelled: true };
+            }
+            // Share failed for some other reason — fall through to download.
+        }
+    }
+
+    // Path 2: Standard browser download.
+    try {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = filename;
         link.style.display = 'none';
         document.body.appendChild(link);
-
-        // Use setTimeout to ensure the click registers on all WebViews
-        setTimeout(() => {
+        await new Promise((resolve) => setTimeout(() => {
             link.click();
             setTimeout(() => {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
+                resolve();
             }, 250);
-        }, 0);
+        }, 0));
+        return { method: 'download', cancelled: false };
     } catch (err) {
-        // Final fallback: open data URI in new tab
-        console.error('Download failed, trying data URI fallback:', err);
-        const dataUri = 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(content);
-        window.open(dataUri, '_blank');
+        // Final fallback: data URI in new tab. Last resort for very old WebViews.
+        try {
+            const dataUri = 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(content);
+            window.open(dataUri, '_blank');
+            return { method: 'datauri', cancelled: false };
+        } catch (err2) {
+            return { method: 'download', cancelled: false, error: err2.message || String(err2) };
+        }
     }
+}
+
+/**
+ * Backward-compat alias. Existing callers do not await, so the returned
+ * Promise is harmlessly discarded.
+ * @deprecated use saveFile() and await it for proper UX feedback
+ */
+export function downloadFile(content, filename, mimeType = 'application/json') {
+    return saveFile(content, filename, mimeType);
 }
 
 /**

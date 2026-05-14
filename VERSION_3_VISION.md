@@ -59,15 +59,27 @@ Mark each feature as it's completed. This is the live status board.
 | 5 | F4: Sync log + known machines | DONE | Auto-recorded on import/export |
 | 5 | G3: Volunteer attribution in UI | DONE | Timeline + history show volunteer names |
 | 5 | G4: Data quality indicator | DONE | Progress bars on dashboard |
-| 6 | E1: Coordinator Analytics Dashboard | PENDING | |
-| 6 | E2: Text report export | PENDING | |
-| 6 | E3: Enhanced per-visitor timeline | PENDING | |
-| 6 | A3: Smart contact frequency | PENDING | |
-| 6 | D2: Visit planner by city | PENDING | |
-| 6 | G5: Backup to file | PENDING | |
+| 6 | H1: WhatsApp-native text sync (copy-paste, Web Share) | DONE | Added 2026-04-14. TextSyncService with gzip+base64+CRC32, chunking, Web Share API. 15 unit tests. |
+| 6 | E2: Text report export | DONE | ReportService + Reports card on MyDayDashboard. Text monthly summary + CSV. |
+| 6 | E3: Enhanced per-visitor timeline | DONE | renderEngagementMeta() on VisitorView with frequency avg + next action. |
+| 6 | A3: Smart contact frequency | DONE | VisitorForm Step 3 field + ReminderService._generateFrequencyReminder. ContactDue reminder type. |
+| 6 | G5: Backup (text-first + file fallback) | DONE | Reshaped 2026-04-14. Dual-path in SyncManager (primary text, secondary file). Full state including settings. |
+| 6.5 | Android deploy hardening | DONE | 2026-05-01. versionCode/Name from gradle vars, network_security_config, backup_rules, data_extraction_rules, file_paths root removed. |
+| 6.6 | WhatsApp button externalisation hotfix | DONE | 2026-05-06. Removed `allowNavigation: ["*"]` from capacitor.config.json. WebView now hands wa.me to OS → App Links resolve to WhatsApp. |
+| 7 | UX-1: Sync platform parity (file on mobile + text on laptop) | DONE | 2026-05-07. New `saveFile()` uses `navigator.share({files})` on Capacitor. `getSyncCapabilities()` helper labels best path per device. Backward-compat alias preserves existing callers. |
+| 7 | UX-2: CSS tokens & primitives (WCAG AA, 44px touch) | DONE | 2026-05-07. `--color-text-secondary` → #4b5563, `--color-text-tertiary` → #6b7280, `.btn-sm` 44px, `.quick-action-btn` no-important, `.visitor-grid` min(), `.app-nav` clean wrap. |
+| 7 | UX-3: SyncManager redesign | DONE | 2026-05-07. Single role-aware Send/Receive card + capability hint. "More options" collapsible. Jargon stripped. Single confirm verb. |
+| 7 | UX-4: ReminderDashboard redesign | DONE | 2026-05-07. Filters collapsible. Tile compact. Snooze via native `<select>` (kills overlap bug). Sticky batch bar. |
+| 7 | UX-5: VisitorForm redesign | DONE | 2026-05-07. Inline error placement. Frequency toggle. Category quick-pick chips. inputmode/autocomplete attrs. Family card less colorful. |
+| 7 | E1: Coordinator Analytics Dashboard | **DEFERRED** | Deferred from Iteration 6 on 2026-04-14. Re-deferred. |
+| 7 | D2: Visit planner by city | **DEFERRED** | Deferred from Iteration 6 on 2026-04-14. Re-deferred. |
 | 7 | F-Notif: Local notifications | PENDING | |
 | 7 | F-Contacts: Contact book import | PENDING | |
 | 7 | B3: Post-communication auto-log | PENDING | |
+| 7 | UX-6: Dashboard / VisitorView / VisitorList / InteractionHistory / Settings / Activation full redesigns | DEFERRED | Stage A token fixes already cleaned them up; full redesigns can wait until next iteration unless OEM testing surfaces issues. |
+| 7 | UX-7: Dark mode complete or remove | DEFERRED | Currently partial — only neutral tokens flip; brand colors don't. Defer to Phase 3+. |
+| 8 | HOTFIX: WhatsApp deep-link navigation on Capacitor | DONE | 2026-05-12. Bug discovered after Iter 7: per-contact 💬 WhatsApp button did nothing / errored on APK; opened WhatsApp Web on desktop. RCA: `window.open('https://wa.me/…', '_blank')` routes through `WebChromeClient.onCreateWindow` which Capacitor doesn't externalise — Iter 6.6's removal of `allowNavigation: ["*"]` was necessary but not sufficient. Fix: new `InteractionLogger.openExternalUrl()` uses synthetic-anchor click on Capacitor (goes through `shouldOverrideUrlLoading` → `Intent.ACTION_VIEW`) and `window.open` on desktop. Same pattern already proven for tel:/sms:/mailto: in `_openProtocolLink`. Two call sites updated: `InteractionLogger.openWhatsApp`, `GreetingQueue` send button. versionCode bumped 2→3 / versionName 3.0.0→3.0.1 for install-over-install. |
+| 9 | B4: Native bulk SMS plugin + WhatsApp demotion | DONE | 2026-05-14. Added because the WhatsApp deep-link path (Iter 6.6 + Iter 8) is OEM-fragile and the volunteer fleet needs a reliable bulk-greeting channel. New `SmsPlugin.java` exposes `SmsManager.sendTextMessage()` to JS via Capacitor bridge; new `SmsService.sendBulkNative()` paces 1.5s/msg, logs Interactions, marks Reminders. New `SmsBatchQueue` UI mirrors GreetingQueue with blue palette. Bulk SMS button is primary on ReminderDashboard batch bar + MyDayDashboard Today section (Capacitor only); WhatsApp button demoted from primary to secondary but kept fully functional. Per-contact 📱 SMS button added to reminder tiles (uses existing `sms:` URI). Settings page has new SMS permission panel. Zero data model changes; zero migration code; 12 new unit tests. v3.0.1 → v3.0.2 (versionCode 3→4). Iter 8 + Iter 9 ship together as one APK. |
 
 ---
 
@@ -192,6 +204,29 @@ v3 must answer: *"Who should I contact today, what should I say, and how do I do
 ---
 
 ### B. One-Tap Communication (The Hands)
+
+#### B4. Native Bulk SMS (Iter 9 addition)
+**Added 2026-05-14** after owner reported the WhatsApp path felt unreliable across OEMs and asked for a concrete, working bulk SMS option for birthday + anniversary greetings.
+
+**Problem:** Per-contact `sms:` URI works everywhere but requires one tap per contact in the system SMS app. For 30 birthdays = 30 manual sends. WhatsApp bulk (Iter 4 + 6.6 + 8) had per-OEM uncertainty.
+
+**Solution:** Hybrid path with automatic fallback.
+- **Native (Capacitor + SEND_SMS granted):** `SmsPlugin.java` calls `SmsManager.sendTextMessage()` per contact, paced 1.5s/msg. Truly one-tap for the whole batch.
+- **Protocol (everywhere else):** falls back to existing per-contact `sms:` URI via `InteractionLogger.openSMS()`. Already worked; no new path needed.
+
+**Why this works for an NGO context:**
+- Sender is the volunteer's own number — personal touch.
+- Free / on-plan SMS — no API costs, no gateway dependency.
+- P2P SMS from personal SIMs is exempt from TRAI DLT registration (which applies to bulk gateway senders).
+- Offline-first (uses cellular).
+- No Play Store policy issue — app is sideloaded.
+
+**Files:**
+- `android/.../SmsPlugin.java` — Capacitor plugin with `checkPermission`, `requestPermission`, `sendSms`.
+- `src/services/SmsService.js` — capability detection + bulk send orchestration.
+- `src/components/UI/SmsBatchQueue.js` — UI modal (intro / sending / done phases).
+
+**Implementation rule:** every successful SMS send (native or protocol) MUST create an Interaction record + mark the Reminder, same as every other quick-action in v3.
 
 #### B1. WhatsApp Deep Links with Pre-Composed Messages
 **Problem:** 10 birthdays/day × 5 minutes each = 50 minutes wasted on manual WhatsApp.
@@ -554,14 +589,69 @@ if (state.version < '3.0.0') {
 
 No new data model — computed from existing fields.
 
-#### G5. Backup to File (Disaster Recovery)
-**Problem:** If phone breaks, all data is lost. Pre-sync backup is only in localStorage.
+#### G5. Backup (Text-First + File Fallback)
+**Problem:** If phone breaks, all data is lost. Pre-sync backup is only in localStorage. Files shared on WhatsApp often can't be re-opened after download (see H1).
 
-**Solution:** "Download Full Backup" button on SyncManager:
-- Creates JSON with ALL data: visitors, interactions, reminderActions, settings, syncLog
-- Saves to device Downloads folder
-- Different from sync export: includes reminderActions and settings (sync export excludes these)
-- Restore via existing import mechanism (with flag to restore settings too)
+**Solution (reshaped 2026-04-14):** "Full Backup" panel on SyncManager with TWO paths:
+- **Primary — Copy to clipboard** (uses H1 text-sync format): includes ALL data (visitors, interactions, reminderActions, settings, syncLog). User pastes into WhatsApp self-chat or email to self. Works on any device regardless of storage permission.
+- **Secondary — Download as file** (for desktop users): same payload, .json file
+- Restore: text paste (primary) or file select (fallback) via existing import mechanism with `restoreMode: true` flag that also restores settings + reminderActions
+
+---
+
+### H. WhatsApp-Native Operations (The Reality Check) — NEW CATEGORY
+
+*Added 2026-04-14 after user feedback. The single biggest adoption blocker across all iterations so far: sync files shared on WhatsApp become inaccessible after download on many Android devices (MIUI, ColorOS, OneUI) due to Scoped Storage (Android 11+), SAF permission quirks, and downloads landing in app-private folders the import picker can't see.*
+
+*The file-based sync model is NOT broken — the Android file system behaviour is hostile. The fix is to make file transfer optional, not mandatory.*
+
+#### H1. WhatsApp-Native Text Sync (THE Core Feature)
+**Problem:** Every iteration has fixed file-sharing bugs (BOM handling, paste fallback, file picker fallbacks) but the underlying issue — that a file downloaded from WhatsApp is often unreachable to the app — cannot be fixed at the app layer.
+
+**Solution: Skip files entirely. Use text messages.**
+
+**Export flow:**
+1. User taps "Share via Text" on Sync page
+2. App generates a compact text blob wrapped in recognizable markers (`====DM-SYNC v1====`)
+3. Blob contains:
+   - Metadata line: machine name, role, export time, CRC32 checksum, chunk count
+   - Payload: base64-encoded, gzip-compressed JSON of `{metadata, data}`
+   - Same shape as existing JSON sync package — re-uses `SyncService.merge()`
+4. Two actions offered:
+   - **Copy to clipboard** (universal) → user pastes into WhatsApp chat
+   - **Share to WhatsApp directly** (Web Share API `navigator.share({text})`) → opens Android share sheet, pre-filled, user picks WhatsApp contact/group
+5. If payload exceeds comfortable paste size (~40,000 chars), app splits into numbered chunks. Each chunk is its own WhatsApp message. User sends chunks in order.
+
+**Import flow:**
+1. User taps "Paste from Text" on Sync page
+2. Large textarea appears, placeholder: "Paste the shared message(s) here"
+3. User pastes one chunk (or all chunks at once)
+4. App parses, validates CRC32, decompresses, shows preview (same as file import)
+5. If chunks missing: shows "Waiting for chunk 3 of 5 — paste next message"
+6. Once complete, user confirms → merge via existing `SyncService.merge()` → done
+
+**Technical design:**
+- Compression: `CompressionStream('gzip')` API (Chrome 80+, Android WebView 80+, Node 18+)
+  - Fallback if unavailable: raw base64 (larger, but still works)
+- Checksum: CRC32 (pure JS, ~10 lines, no deps) — catches paste corruption
+- Format resilient to: surrounding WhatsApp metadata (timestamps, sender names), extra whitespace, BOM, line-ending variation
+- Chunk format: `====DM-SYNC v1 1/5====` + payload + `====END 1/5====` — regex parser tolerates noise between markers
+- Max chunk size: 3500 chars (safe for Android keyboards and WhatsApp paste behaviour)
+- All existing file-based sync paths kept intact — text sync is additive, not replacement
+
+**Coverage goals:**
+- 100 visitors + 300 interactions → fits in single WhatsApp message
+- 500 visitors + 2000 interactions → 5-6 chunks, still workable
+- If user has 5000+ visitors → warn "Consider file export to desktop" (they're the outlier)
+
+**Why this is the right fix (not more file-handling bugs):**
+- WhatsApp text messages work on every Android device, every version, every OEM skin — no Scoped Storage issues, no SAF permissions, no DocumentsUI quirks
+- Users already know how to copy/paste in WhatsApp
+- Works for Satellite → Satellite (peer) the same as Root → Satellite
+- Offline-compatible (WhatsApp queues messages)
+
+#### H2. Share Intent Wiring
+Use `navigator.share({text, title})` for the "Share" button to open Android's native share sheet. Feature-detected; falls back to clipboard copy + instruction toast when unavailable (older WebView, desktop without Web Share).
 
 ---
 
@@ -666,23 +756,26 @@ DEFAULT_MESSAGE_TEMPLATES: { birthday: '...', anniversary: '...', ... }
 | G3 | Volunteer attribution in UI | Low | Surface createdBy as volunteer name |
 | G4 | Data quality indicator | Low | Computed metrics on analytics |
 
-### Iteration 6: "The Plan Release" — Efficiency & Reporting
-**Theme:** Work smarter, reports for the board
+### Iteration 6: "The Share Release" — WhatsApp-Native Sync & Reports
+**Theme:** Remove the #1 adoption blocker (file-share failure on Android), deliver board-ready reports
+
+**Reshaped 2026-04-14.** Original plan focused on analytics + city planner. User feedback identified that after multiple iterations, the core complaint remains: **shared WhatsApp files don't re-open after download**. Since no app-layer fix can solve this (it's OS-level Scoped Storage behaviour), we pivot to bypassing files entirely for sync. E1 analytics and D2 city planner are valuable but don't move the needle on daily use the way H1 does — deferred to Iteration 7.
 
 | # | Feature | Effort | Notes |
 |---|---------|--------|-------|
-| E1 | Coordinator Analytics Dashboard | Medium | Charts + tables + volunteer breakdown |
-| E2 | Text report export | Low | Copy-to-clipboard for WhatsApp |
-| E3 | Enhanced per-visitor timeline | Low | Score + frequency + next action |
-| A3 | Smart contact frequency | Low | Per-visitor target + auto-reminder |
-| D2 | Visit planner by city | Medium | Group-by-city + bulk log |
-| G5 | Backup to file (disaster recovery) | Low | Full state export to Downloads |
+| H1 | WhatsApp-native text sync | High | **Priority** — copy-paste sync with gzip+base64+CRC32, chunking for large payloads, Web Share API to WhatsApp |
+| G5 | Backup (text-first + file fallback) | Low | Reuses H1 text format. Full state including reminderActions + settings |
+| E2 | Text report export | Low | Monthly summary for WhatsApp + CSV export |
+| E3 | Enhanced per-visitor timeline | Low | Contact frequency avg + next action above timeline |
+| A3 | Smart contact frequency | Low | Per-visitor target + auto-reminder when overdue |
 
-### Iteration 7: "The Reach Release" — Platform & Notifications
-**Theme:** Never miss a birthday again
+### Iteration 7: "The Reach Release" — Analytics, Planner, Platform
+**Theme:** Coordinator reports, route planning, notifications
 
 | # | Feature | Effort | Notes |
 |---|---------|--------|-------|
+| E1 | Coordinator Analytics Dashboard | Medium | **Moved from Iter 6** — Charts + tables + volunteer breakdown |
+| D2 | Visit planner by city | Medium | **Moved from Iter 6** — Group-by-city + bulk log |
 | F-Notif | Local notifications | High | Capacitor plugin + AndroidManifest + OEM guide |
 | F-Contacts | Contact book import | High | Capacitor plugin + runtime permissions |
 | B3 | Post-communication auto-log | Medium | visibilitychange + localStorage fallback |

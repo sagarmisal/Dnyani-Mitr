@@ -8,16 +8,30 @@ import { getCurrentDate } from '../utils/formatters.js';
 import { REMINDER_ACTIONS } from '../utils/constants.js';
 import EventBus, { EVENTS } from '../core/events.js';
 
+// Recent overdue events stay surfaced for this many days after the event date.
+// Belated wishes are still actionable for a couple of weeks; after that they're
+// noise. Tune via settings.reminderLookbackDays if needed; default 30.
+const DEFAULT_LOOKBACK_DAYS = 30;
+
 class ReminderService {
     /**
-     * Generate all reminders within lookahead window.
+     * Generate reminders within the window [today - lookbackDays, today + lookaheadDays].
+     *
+     * Historical note: prior to Iter 9.1 this filter was `daysUntil >= 0 && <= days`,
+     * which silently dropped every overdue event. `getGroupedReminders` had an
+     * `overdue` bucket but the generator never produced overdue entries, so the
+     * Reminders tab showed nothing on quiet days even when there were recently-
+     * missed birthdays. The fix is to let `daysUntil < 0` events through and let
+     * Reminder.getUrgency() classify them as 'overdue' as it already does.
+     *
      * Includes:
      *   - event-based reminders (birthday/anniversary/death)
      *   - frequency-based "contact due" reminders (A3: when visitor.contactFrequencyDays is overdue)
      */
-    generateReminders(lookaheadDays = null) {
+    generateReminders(lookaheadDays = null, lookbackDays = null) {
         const settings = StateManager.getSettings();
-        const days = lookaheadDays ?? settings.reminderLookahead ?? 7;
+        const ahead = lookaheadDays ?? settings.reminderLookahead ?? 7;
+        const back = lookbackDays ?? settings.reminderLookbackDays ?? DEFAULT_LOOKBACK_DAYS;
 
         const visitors = VisitorService.getAll().filter(v => !v.doNotContact);
         const reminderActions = StateManager.getReminderActions();
@@ -37,26 +51,53 @@ class ReminderService {
                         event.monthOnly
                     );
 
-                    // Check if within lookahead window
-                    if (reminder.daysUntil >= 0 && reminder.daysUntil <= days) {
-                        // Check if snoozed
+                    // Window: include recent past (overdue) + future up to lookahead.
+                    if (reminder.daysUntil >= -back && reminder.daysUntil <= ahead) {
                         if (!this.isSnoozed(reminder.id, reminderActions)) {
-                            reminders.push(reminder);
+                            // Skip items already marked 'contacted' within the
+                            // current cycle. Window-aware: a contacted action from
+                            // a previous year (older than back+ahead days) does NOT
+                            // suppress this year's reminder.
+                            if (!this._isAlreadyContactedThisCycle(reminder.id, reminderActions, back + ahead)) {
+                                reminders.push(reminder);
+                            }
                         }
                     }
                 });
             });
 
-            // Frequency-based reminder (A3)
+            // Frequency-based reminder (A3) — same expansion: include items
+            // that became due in the past `back` days, not just upcoming.
             const freqReminder = this._generateFrequencyReminder(visitor);
-            if (freqReminder && freqReminder.daysUntil <= days) {
+            if (freqReminder && freqReminder.daysUntil >= -back && freqReminder.daysUntil <= ahead) {
                 if (!this.isSnoozed(freqReminder.id, reminderActions)) {
-                    reminders.push(freqReminder);
+                    if (!this._isAlreadyContactedThisCycle(freqReminder.id, reminderActions, back + ahead)) {
+                        reminders.push(freqReminder);
+                    }
                 }
             }
         });
 
         return reminders;
+    }
+
+    /**
+     * Has this reminder been marked 'contacted' within the current cycle window?
+     * The reminderId is stable across years (hash of visitor+contact+eventType+rawDate),
+     * so we MUST be window-aware — otherwise a contacted action from last year would
+     * suppress this year's reminder forever. The window is back+ahead days, matching
+     * the period during which a reminder could legitimately appear.
+     */
+    _isAlreadyContactedThisCycle(reminderId, reminderActions, windowDays) {
+        const cutoff = new Date();
+        cutoff.setHours(0, 0, 0, 0);
+        cutoff.setDate(cutoff.getDate() - windowDays);
+        return reminderActions.some(a =>
+            a.reminderId === reminderId &&
+            a.action === 'contacted' &&
+            a.actionAt &&
+            new Date(a.actionAt) >= cutoff
+        );
     }
 
     /**

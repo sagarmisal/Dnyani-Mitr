@@ -48,6 +48,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
 
+    <!-- SEND_SMS: required for bulk birthday/anniversary SMS via SmsPlugin.
+         "Dangerous" permission — runtime grant required (handled by Capacitor permission flow).
+         When denied, SmsService falls back to per-contact sms: protocol (system SMS app). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <!-- Android 11+ app visibility: required to open external apps via Intent -->
     <queries>
         <!-- WhatsApp -->

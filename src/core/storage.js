@@ -22,9 +22,24 @@ class StorageManager {
 
             const state = safeJSONParse(data, this.getDefaultState());
 
-            // Migrate if needed
-            if (state.version !== APP_VERSION) {
+            // Schema migration runs ONLY on actual schema differences (v1.x or
+            // v2.x → v3). v3.x.y → v3.a.b is just a release bump — no data shape
+            // changed, so don't re-run the (idempotent but noisy) migration.
+            // Before Iter 9.1 this was `state.version !== APP_VERSION`, which
+            // re-migrated and spammed the console on every app version bump.
+            const needsSchemaMigration = !state.version
+                || state.version.startsWith('1.')
+                || state.version.startsWith('2.');
+
+            if (needsSchemaMigration) {
                 return this.migrateState(state);
+            }
+
+            // Same schema, just refresh the version stamp silently so future
+            // checks read the current app version without triggering migration.
+            if (state.version !== APP_VERSION) {
+                state.version = APP_VERSION;
+                this.saveState(state);
             }
 
             return state;

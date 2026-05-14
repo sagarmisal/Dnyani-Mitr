@@ -11,8 +11,8 @@ import {
 } from '../src/utils/constants.js';
 
 describe('APP_VERSION', () => {
-  it('is 3.0.0', () => {
-    expect(APP_VERSION).toBe('3.0.0');
+  it('is a 3.x.x semver string', () => {
+    expect(APP_VERSION).toMatch(/^3\.\d+\.\d+$/);
   });
 });
 

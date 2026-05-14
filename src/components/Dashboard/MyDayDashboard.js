@@ -11,6 +11,7 @@ import Router, { ROUTES } from '../../core/router.js';
 import { formatDateShort, formatRelativeTime, normalizePhone } from '../../utils/formatters.js';
 import { INTERACTION_TYPE_LABELS } from '../../utils/constants.js';
 import { InteractionLogger } from '../UI/InteractionLogger.js';
+import { SmsBatchQueue } from '../UI/SmsBatchQueue.js';
 import { Toast } from '../UI/Toast.js';
 import { downloadFile } from '../../utils/helpers.js';
 
@@ -153,16 +154,67 @@ export class MyDayDashboard {
                 </div>`;
         }
 
+        // Count reminders that are eligible for bulk SMS (have a valid phone).
+        const eligibleCount = this._countSmsEligible(reminders);
+        const showSmsBulk = this._isCapacitor() && eligibleCount > 1;
+
         return `
             <div class="dashboard-card dashboard-card-today">
                 <div class="dashboard-card-header">
                     <h3>Today</h3>
                     <span class="badge badge-primary">${reminders.length}</span>
                 </div>
+                ${showSmsBulk ? `
+                    <div style="padding: 0.5rem 1rem 0;">
+                        <button id="dashboard-sms-bulk-btn" class="btn btn-sm" style="background: #0ea5e9; border-color: #0ea5e9; color: white; width: 100%;" title="Send SMS to all ${eligibleCount} contacts with phone numbers">
+                            📱 Send SMS to all ${eligibleCount}
+                        </button>
+                    </div>` : ''}
                 <div class="dashboard-card-body">
                     ${reminders.map(r => this._renderReminderRow(r, false)).join('')}
                 </div>
             </div>`;
+    }
+
+    _countSmsEligible(reminders) {
+        let count = 0;
+        for (const r of reminders) {
+            const visitor = VisitorService.getById(r.visitorId);
+            const contact = visitor?.contacts?.find(c => c.id === r.contactId);
+            const selfContact = visitor?.contacts?.find(c => c.relationType === 'SELF');
+            let phone = contact?.phones?.[0];
+            if (!phone && selfContact) phone = selfContact.phones?.[0];
+            if (normalizePhone(phone)) count++;
+        }
+        return count;
+    }
+
+    _collectSmsItems(reminders) {
+        const items = [];
+        for (const r of reminders) {
+            const visitor = VisitorService.getById(r.visitorId);
+            const contact = visitor?.contacts?.find(c => c.id === r.contactId);
+            const selfContact = visitor?.contacts?.find(c => c.relationType === 'SELF');
+            const name = contact?.name || selfContact?.name || 'Unknown';
+            let phone = contact?.phones?.[0];
+            if (!phone && selfContact) phone = selfContact.phones?.[0];
+            if (!normalizePhone(phone)) continue;
+            items.push({
+                visitorId: visitor?.id,
+                reminderId: r.id,
+                contactName: name,
+                phone,
+                eventType: r.eventType
+            });
+        }
+        return items;
+    }
+
+    _isCapacitor() {
+        return !!(typeof window !== 'undefined'
+            && window.Capacitor
+            && typeof window.Capacitor.isNativePlatform === 'function'
+            && window.Capacitor.isNativePlatform());
     }
 
     _renderOverdueSection(reminders) {
@@ -202,8 +254,9 @@ export class MyDayDashboard {
                     </div>
                 </div>
                 <div class="reminder-row-actions">
-                    ${hasValidPhone ? `<button class="btn btn-sm qa-whatsapp" data-action="whatsapp" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone)}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}">💬</button>` : ''}
-                    <button class="btn btn-sm qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone || '')}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}">📞</button>
+                    ${hasValidPhone ? `<button class="btn btn-sm qa-whatsapp" data-action="whatsapp" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone)}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="WhatsApp">💬</button>` : ''}
+                    ${hasValidPhone ? `<button class="btn btn-sm qa-sms" data-action="sms" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone)}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="SMS">📱</button>` : ''}
+                    <button class="btn btn-sm qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone || '')}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="Called">📞</button>
                     <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${visitor?.id}">View</button>
                 </div>
             </div>`;
@@ -337,7 +390,21 @@ export class MyDayDashboard {
     }
 
     _attachEventListeners() {
-        // Quick action buttons (WhatsApp, Called)
+        // Bulk SMS button on Today section (Capacitor only)
+        const bulkSmsBtn = this.container.querySelector('#dashboard-sms-bulk-btn');
+        if (bulkSmsBtn) {
+            bulkSmsBtn.addEventListener('click', () => {
+                const reminders = this._getTodayReminders();
+                const items = this._collectSmsItems(reminders);
+                if (items.length === 0) {
+                    Toast.show('No contacts with valid phone numbers for today.', 'warning');
+                    return;
+                }
+                SmsBatchQueue.start(items, () => this._refresh());
+            });
+        }
+
+        // Quick action buttons (WhatsApp, SMS, Called)
         this.container.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const el = e.currentTarget;
