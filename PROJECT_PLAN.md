@@ -207,6 +207,80 @@
 
 *(See git commit 5f45b5e for full details)*
 
+### Iteration 9.3 — Reminders Month View Shows Handled State (2026-05-15)
+**Status:** CODE COMPLETE — ready for real-device test, ships as v3.0.5 (rebuilt on top of Iter 9.2's v3.0.4 APK)
+**Scope:** One UX fix triggered by a user-reported discrepancy between the default Reminders view ("Next N days") and the "Show <month>" escape-hatch view. Default view hid two visible upcoming birthdays; Show May showed them. User assumed default view was buggy; investigation found the two views applied **different** filter logic.
+
+**Driver:** `ReminderService.generateReminders` (default view) suppresses reminders that have an active snooze OR a 'contacted' action within the rolling cycle window (`back + ahead` days, default 37). That suppression is intentional — once you've handled a reminder, it should stop nagging. But `ReminderService.getRemindersForMonth` (the explicit "Show <month>" path) had **no** such filter, so it re-surfaced items the user had already snoozed or marked contacted, with no visual indication. The user reasonably concluded the default view was hiding things it shouldn't be. Fix: surface the handled state in the month view too, but as dimmed-with-badge rather than removed — the user explicitly chose a wider view and should still see the items, just understand why no action is required.
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `src/services/ReminderService.js` | `getRemindersForMonth` now reads `reminderActions` + `settings` and annotates each generated Reminder with `handled` / `handledReason` / `handledAt` / `handledUntil` via the new `_annotateHandled(reminder, reminderActions, cycleWindow)` helper. The helper reuses the existing `isSnoozed` and `_isAlreadyContactedThisCycle` predicates so the rules stay in one place. Sort changed: unhandled items first (actionable on top), handled items below, day-of-month within each group. |
+| `src/components/Reminders/ReminderDashboard.js` | `renderTile` now reads `reminder.handled` and dims the card (`opacity: 0.65; background: var(--color-surface-hover)`) when true. New `_renderHandledBadge(reminder)` returns a small pill near the date row: green "✓ Contacted &lt;date&gt;" for `handledReason === 'contacted'`, blue "💤 Until &lt;date&gt;" for `handledReason === 'snoozed'`. Action buttons remain enabled — the user can still re-act on a handled item if they want to log another touchpoint. |
+| `tests/reminder-service.test.js` | **New file.** 6 tests pin the annotation contract: no-action visitor → `handled=false`; recent contacted action → `handled=true, reason='contacted', handledAt` set; active snooze → `handled=true, reason='snoozed', handledUntil` set; expired snooze → `handled=false`; sort order (unhandled first, then handled, by day); `doNotContact=true` excluded entirely. |
+| `src/utils/constants.js` | `APP_VERSION '3.0.4' → '3.0.5'`. |
+| `android/variables.gradle` | `appVersionCode = 6 → 7`, `appVersionName = '3.0.4' → '3.0.5'`. |
+| `package.json` | `version '3.0.4' → '3.0.5'`. |
+
+**Deliberately NOT changed:**
+- `generateReminders` (default view) keeps suppressing handled items — that's the correct behavior; the bug was only in the month-view path.
+- Reminder model — `handled` is set as a mutated property on the derived instance, not added to the class signature. The Reminder object lives only inside one render pass; no migration needed.
+- Action buttons on handled tiles — left fully enabled. Lower-friction than disabling, and clicking another action just records another `'contacted'` entry which is idempotent.
+
+**Verification (done locally before handoff):**
+- `npx vitest run` → 111/111 pass (was 105; +6 month-view annotation tests).
+- `npx vite build` → 336.66 kB / 125.25 kB gzip (+1.5 kB vs Iter 9.2, accounts for the `_annotateHandled` helper + `_renderHandledBadge` + the new test file isn't bundled).
+- `npx cap sync android` → clean.
+
+**MUST-RUN before shipping (folds into the Iter 9.1/9.2 device-test loop; install fresh APK after versionCode bump 6→7):**
+- [ ] App Health panel shows "Version: 3.0.5".
+- [ ] Reproduce the original symptom: have a visitor with an upcoming-week birthday, mark them Called/SMS/WhatsApp via the reminder tile. Default Reminders view → reminder disappears (correct, matches Iter 9.1 behavior). Click **Show <currentMonth>** → reminder reappears with a dimmed card and a green **✓ Contacted &lt;date&gt;** badge near the date.
+- [ ] Snooze a reminder for 3 days. Show <currentMonth> → that tile is dimmed with a blue **💤 Until &lt;date&gt;** badge.
+- [ ] Within a month view that has both handled and unhandled items: unhandled tiles appear above handled tiles (sort order). Day-of-month order is preserved within each group.
+- [ ] On a handled tile, clicking 📞 Called / 📱 SMS still works (no buttons are disabled), just records another contacted action. Reminder stays dimmed.
+
+**If the green badge is too quiet** (field testing surfaces that users don't notice why the card is dim) we can raise the contrast or add a clearer "Handled" label in a follow-up. Holding off until at least one volunteer has a chance to react to the current treatment.
+
+---
+
+### Iteration 9.2 — Sync Metadata Round-Trip Fix (2026-05-15)
+**Status:** CODE COMPLETE — ready for real-device test, ships as v3.0.4 (rebuilt on top of Iter 9.1's v3.0.3 APK before the device-test loop)
+**Scope:** One bug fix, one regression test, version bump. Triggered by a pre-device-test code review of the sync flow.
+
+**Driver:** Reviewing `SyncService.merge` + `SyncManager.performImport` before sending the v3.0.3 APK to volunteers, found that `performImport` passed `pendingImport.data` to `merge`, but `merge` reads `packageData.metadata` at the top level. Result: every successful WhatsApp-text or file import silently dropped the sender's `machineId` / `machineName` / `dataVersion`. Sync log showed "📥 In · Unknown" for every import; `knownMachines` (the "Devices you've synced with" panel in More Options) stayed permanently empty regardless of how many syncs the device had received. Visitor + interaction data merged correctly — only the audit trail was broken. The unit tests at f9d9bf5 didn't catch this because `sync.test.js` called `merge()` directly with a hand-rolled flat shape and `textsync.test.js` only exercised encode→decode; nothing exercised `prepareExport → merge`.
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `src/services/SyncService.js` | `merge(packageData)` now unwraps the v3 wrapped shape `{ metadata, data: { visitors, ... } }` and falls back to treating the input as already flat for legacy/direct callers. Top-of-function: `const data = packageData.data && typeof packageData.data === 'object' ? packageData.data : packageData; const incomingMeta = packageData.metadata || {};`. All later references to incoming visitors/interactions/reminderActions read from `data.*`; the duplicate `incomingMeta` declaration at Step 6 was removed. |
+| `src/components/Sync/SyncManager.js` | `performImport` now passes the full `pendingImport` to `SyncService.merge` instead of `pendingImport.data`. One-line change at the call site; merge does the unwrapping. |
+| `tests/sync.test.js` | New `prepareExport → merge round-trip` describe block with two tests: (a) wrapped package records sender's `machineId`/`machineName`/`dataVersion` in the sync log and registers the machine in `knownMachines`; (b) flat package still merges and records "Unknown" sender (no metadata to attribute). Pins both shapes so this regression can't reappear. |
+| `src/utils/constants.js` | `APP_VERSION '3.0.3' → '3.0.4'`. |
+| `android/variables.gradle` | `appVersionCode = 5 → 6`, `appVersionName = '3.0.3' → '3.0.4'`. |
+| `package.json` | `version '3.0.3' → '3.0.4'`. |
+
+**Deliberately NOT changed:**
+- `TextSyncService.js` — the wire format and chunking are unaffected; this bug was strictly in the merge call site.
+- `helpers.js` `saveFile` — unaffected.
+- Visitor / interaction merge logic in `SyncService` — two-tier matching, soft-delete handling, last-write-wins all unchanged.
+- v2 backward compat — still works (the unit test that passes a flat `{visitors, interactions}` to merge still passes unchanged, because the new unwrap step is a no-op when `packageData.data` is absent).
+
+**Verification (done locally before handoff):**
+- `npx vitest run` → 105/105 pass (was 103; +2 round-trip tests).
+- `npx vite build` → 335.15 kB / 124.77 kB gzip (+0.1 kB vs Iter 9.1, just comment additions).
+- `npx cap sync android` → clean.
+
+**MUST-RUN before shipping (folds into the Iter 9.1 device-test loop; install fresh APK after versionCode bump 5→6):**
+- [ ] App Health panel shows "Version: 3.0.4" (proves the new APK is actually installed).
+- [ ] On the receiving device, after a successful WhatsApp-text or file import, open Settings → More options → "Sync history" — the new entry shows the sender's machine name, NOT "Unknown".
+- [ ] Same path → "Devices you've synced with" panel now lists the sending machine after a successful import (was permanently empty before this fix).
+- [ ] Existing Iter 9.1 device-test checklist still passes — overdue Reminders, App Health buttons, SMS path. The sync code is unchanged below the merge call site, so no functional regression in visitor / interaction merge.
+
+**If the device test surfaces an audit-trail discrepancy** (e.g., wrong sender attributed to a sync) the most likely cause is a state file that was imported pre-9.2 — those old entries already lost their metadata and can't be recovered. New imports going forward will be attributed correctly.
+
+---
+
 ### Iteration 9.1 — Reminders Bug Fix + DNC Audit + Schema Decoupling + App Health (2026-05-14)
 **Status:** CODE COMPLETE — ready for real-device test, ships as v3.0.3 (bundled with Iter 8 + Iter 9 in the same APK)
 **Scope:** Owner reviewed the Iter 9 build and asked "what can be fixed now to be in a better position." Five fixes, all purely additive, zero sync-code touched.

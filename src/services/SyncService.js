@@ -66,13 +66,28 @@ class SyncService {
     /**
      * Merge incoming data package into local state.
      * Two-tier matching: visitor ID (primary) + phone number dedup (secondary).
+     *
+     * Accepts both v3 wrapped shape `{ metadata, data: { visitors, ... } }` and
+     * legacy/flat shape `{ visitors, interactions, ... }`. The wrapped shape is
+     * what prepareExport produces; without unwrapping here, metadata (sender
+     * machine name, dataVersion) is silently lost from the sync log.
      */
     merge(packageData) {
-        if (!packageData || !packageData.visitors) {
+        if (!packageData) {
+            throw new Error('Invalid sync package: No data found');
+        }
+
+        // Unwrap v3 shape if present; otherwise treat the package as already flat.
+        const data = packageData.data && typeof packageData.data === 'object'
+            ? packageData.data
+            : packageData;
+        const incomingMeta = packageData.metadata || {};
+
+        if (!data.visitors) {
             throw new Error('Invalid sync package: No visitor data found');
         }
 
-        if (!Array.isArray(packageData.visitors)) {
+        if (!Array.isArray(data.visitors)) {
             throw new Error('Invalid sync package: visitors must be an array');
         }
 
@@ -80,9 +95,9 @@ class SyncService {
         const backupCreatedAt = this.createBackup();
 
         const currentState = StateManager.getState();
-        const incomingVisitors = packageData.visitors;
-        const incomingInteractions = packageData.interactions || [];
-        const incomingActions = packageData.reminderActions || [];
+        const incomingVisitors = data.visitors;
+        const incomingInteractions = data.interactions || [];
+        const incomingActions = data.reminderActions || [];
 
         // Step 1: Build lookup indexes
         const localIdMap = new Map();
@@ -211,7 +226,6 @@ class SyncService {
         EventBus.emit(EVENTS.IMPORT_COMPLETED);
 
         // Step 6: Record sync log + known machines
-        const incomingMeta = packageData.metadata || {};
         if (incomingMeta.machineId) {
             StateManager.registerKnownMachine(incomingMeta.machineId, incomingMeta.machineName);
         }

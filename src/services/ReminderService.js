@@ -217,10 +217,22 @@ class ReminderService {
     }
 
     /**
-     * Get reminders for a specific month (0-11)
+     * Get reminders for a specific month (0-11).
+     *
+     * Unlike the default Reminders view (which hides snoozed/contacted items),
+     * this is an explicit "show me everything in <month>" view. We surface
+     * everything but annotate each reminder with `handled`/`handledReason`/
+     * `handledAt`/`handledUntil` so the UI can dim items the user already
+     * acted on. Sort: unhandled first (most actionable on top), handled below,
+     * both by day-of-month.
      */
     getRemindersForMonth(monthIndex) {
         const visitors = VisitorService.getAll().filter(v => !v.doNotContact);
+        const reminderActions = StateManager.getReminderActions();
+        const settings = StateManager.getSettings();
+        const ahead = settings.reminderLookahead ?? 7;
+        const back = settings.reminderLookbackDays ?? DEFAULT_LOOKBACK_DAYS;
+        const cycleWindow = back + ahead;
         const reminders = [];
 
         visitors.forEach(visitor => {
@@ -229,23 +241,58 @@ class ReminderService {
                 events.forEach(event => {
                     const date = new Date(event.date);
                     if (!isNaN(date.getTime()) && date.getMonth() === parseInt(monthIndex)) {
-                        reminders.push(new Reminder(
+                        const reminder = new Reminder(
                             visitor,
                             contact,
                             event.type,
                             event.date,
                             event.monthOnly
-                        ));
+                        );
+                        this._annotateHandled(reminder, reminderActions, cycleWindow);
+                        reminders.push(reminder);
                     }
                 });
             });
         });
 
         return reminders.sort((a, b) => {
+            if (a.handled !== b.handled) return a.handled ? 1 : -1;
             const dayA = new Date(a.rawDate).getDate();
             const dayB = new Date(b.rawDate).getDate();
             return dayA - dayB;
         });
+    }
+
+    /**
+     * Mutate `reminder` with handled metadata so the UI can dim it.
+     * - snoozed (active): handledReason='snoozed', handledUntil=snoozeUntil
+     * - contacted this cycle: handledReason='contacted', handledAt=most recent actionAt
+     * - neither: handled=false
+     */
+    _annotateHandled(reminder, reminderActions, cycleWindow) {
+        if (this.isSnoozed(reminder.id, reminderActions)) {
+            const snoozeAction = reminderActions.find(a =>
+                a.reminderId === reminder.id &&
+                a.action === REMINDER_ACTIONS.SNOOZED &&
+                a.snoozeUntil &&
+                new Date(a.snoozeUntil) > new Date()
+            );
+            reminder.handled = true;
+            reminder.handledReason = 'snoozed';
+            reminder.handledUntil = snoozeAction?.snoozeUntil || null;
+            reminder.handledAt = snoozeAction?.actionAt || null;
+            return;
+        }
+        if (this._isAlreadyContactedThisCycle(reminder.id, reminderActions, cycleWindow)) {
+            const contactedAction = reminderActions
+                .filter(a => a.reminderId === reminder.id && a.action === REMINDER_ACTIONS.CONTACTED)
+                .sort((a, b) => new Date(b.actionAt) - new Date(a.actionAt))[0];
+            reminder.handled = true;
+            reminder.handledReason = 'contacted';
+            reminder.handledAt = contactedAction?.actionAt || null;
+            return;
+        }
+        reminder.handled = false;
     }
 
     /**

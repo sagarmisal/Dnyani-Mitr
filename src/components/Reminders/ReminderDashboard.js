@@ -338,6 +338,21 @@ export class ReminderDashboard {
     `;
   }
 
+  /**
+   * Small status pill for the top of a month-view tile that's already handled.
+   * `reminder.handledReason` is set by ReminderService._annotateHandled.
+   */
+  _renderHandledBadge(reminder) {
+    if (reminder.handledReason === 'snoozed' && reminder.handledUntil) {
+      return `<span style="font-size: 0.75rem; color: #075985; background: #e0f2fe; padding: 0.15rem 0.5rem; border-radius: 999px;" title="Snoozed">💤 Until ${this.escapeHtml(formatDateShort(reminder.handledUntil))}</span>`;
+    }
+    if (reminder.handledReason === 'contacted') {
+      const when = reminder.handledAt ? formatDateShort(reminder.handledAt) : '';
+      return `<span style="font-size: 0.75rem; color: #065f46; background: #d1fae5; padding: 0.15rem 0.5rem; border-radius: 999px;" title="Already contacted this cycle">✓ Contacted${when ? ' ' + this.escapeHtml(when) : ''}</span>`;
+    }
+    return '';
+  }
+
   renderTile(reminder, isUrgent) {
     const visitor = VisitorService.getById(reminder.visitorId);
     const contact = visitor?.contacts.find(c => c.id === reminder.contactId);
@@ -368,15 +383,26 @@ export class ReminderDashboard {
     const familyOf = (reminder.relationType !== 'SELF' && primary) ? primary.name : '';
     const isSelected = this.selectedIds.has(reminder.id);
 
+    // Month view dims items the user has already snoozed or contacted this
+    // cycle (annotated by ReminderService.getRemindersForMonth). Keeps the
+    // tile visible for context but signals "no action needed right now".
+    const handled = !!reminder.handled;
+    const handledBadge = handled ? this._renderHandledBadge(reminder) : '';
+    const cardStyle = [
+      isUrgent ? 'border-left: 3px solid #ef4444;' : '',
+      handled ? 'opacity: 0.65; background: var(--color-surface-hover);' : ''
+    ].filter(Boolean).join(' ');
+
     return `
-      <div class="tile-card" style="${isUrgent ? 'border-left: 3px solid #ef4444;' : ''}">
-        <!-- Top: checkbox + date + event type pill -->
+      <div class="tile-card" style="${cardStyle}">
+        <!-- Top: checkbox + date + handled badge + event type pill -->
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
           ${hasValidPhone ? `
             <input type="checkbox" class="tile-select" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" ${isSelected ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;" aria-label="Select for batch greeting" />
           ` : ''}
           <span style="font-size: 1.1rem; flex-shrink: 0;" aria-hidden="true">${icon}</span>
           <span style="font-weight: 700; color: ${dateColor};">${dateText}</span>
+          ${handledBadge}
           <span style="margin-left: auto; font-size: 0.8rem; color: var(--color-text-secondary); background: var(--color-surface-hover); padding: 0.15rem 0.5rem; border-radius: 999px;">${this.escapeHtml(prettyEventLabel)}</span>
         </div>
 

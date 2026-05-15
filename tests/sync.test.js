@@ -114,4 +114,63 @@ describe('SyncService', () => {
       expect(result.visitorsAdded).toBe(1);
     });
   });
+
+  describe('prepareExport → merge round-trip (regression: Iter 9.2)', () => {
+    // Until Iter 9.2 the SyncManager unwrapped pendingImport.data before passing
+    // it to merge, which silently dropped metadata. As a result, every import
+    // recorded "Unknown" as the sender and knownMachines never populated.
+    // These tests pin both shapes: wrapped (what prepareExport produces) and
+    // flat (legacy v2 + direct callers).
+
+    it('records sender machineName in the sync log when given a wrapped package', () => {
+      // Simulate machine A's export, then merge it on machine B's state.
+      const wrappedPkg = {
+        metadata: {
+          app: 'NGO_Visitor_Manager',
+          version: '3.0.4',
+          dataVersion: '3.0.4',
+          exportedAt: '2026-05-15T09:00:00.000Z',
+          machineId: 'machine_alpha',
+          machineName: 'Pune Field Phone',
+          machineRole: 'satellite'
+        },
+        data: {
+          visitors: [
+            { id: 'va', contacts: [{ relationType: 'SELF', name: 'Alpha', phones: ['9999990001'] }], status: 'active', updatedAt: '2026-05-15T08:55:00Z' }
+          ],
+          interactions: []
+        }
+      };
+
+      const result = SyncService.merge(wrappedPkg);
+      expect(result.visitorsAdded).toBe(1);
+
+      const log = StateManager.getSyncLog();
+      expect(log.length).toBeGreaterThan(0);
+      const last = log[0]; // unshift — newest first
+      expect(last.direction).toBe('import');
+      expect(last.machineId).toBe('machine_alpha');
+      expect(last.machineName).toBe('Pune Field Phone');
+      expect(last.dataVersion).toBe('3.0.4');
+
+      const known = StateManager.getKnownMachines();
+      expect(known['machine_alpha']).toBe('Pune Field Phone');
+    });
+
+    it('still merges a flat package (no metadata) without crashing — sync log shows Unknown', () => {
+      const flatPkg = {
+        visitors: [
+          { id: 'vf', contacts: [{ relationType: 'SELF', name: 'Flat', phones: ['9999990002'] }], status: 'active', updatedAt: '2026-05-15T08:55:00Z' }
+        ],
+        interactions: []
+      };
+
+      const result = SyncService.merge(flatPkg);
+      expect(result.visitorsAdded).toBe(1);
+
+      const log = StateManager.getSyncLog();
+      const last = log[0];
+      expect(last.machineName).toBe('Unknown'); // no metadata to attribute
+    });
+  });
 });

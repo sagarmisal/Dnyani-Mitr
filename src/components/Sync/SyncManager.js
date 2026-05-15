@@ -621,7 +621,9 @@ export class SyncManager {
         });
         if (!confirmed) return;
         try {
-            const results = SyncService.merge(this.pendingImport.data);
+            // Pass the whole package — merge unwraps `.data` and reads `.metadata`
+            // so the sender's machine name lands in the sync log + knownMachines.
+            const results = SyncService.merge(this.pendingImport);
             let message = `${results.visitorsAdded} new visitors added\n`;
             message += `${results.visitorsUpdated} existing visitors updated\n`;
             if (results.visitorsUpdatedByPhone > 0) {
