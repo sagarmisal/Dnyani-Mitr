@@ -1,6 +1,13 @@
 /* CSS Custom Properties (Design Tokens) */
 
 :root {
+  /* Lock to the designed light theme on web + all WebViews. Prevents OEM
+     WebViews (MIUI/ColorOS) from algorithmically darkening form controls and
+     stops device dark-mode from flipping our tokens. See note below — the app
+     has no completed dark theme, so auto-dark only produced unreadable
+     white-on-white surfaces. */
+  color-scheme: light;
+
   /* Colors - Primary */
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
@@ -92,26 +99,10 @@
   --z-tooltip: 4000;
 }
 
-/* Dark Mode (Foundation) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #111827;
-    --color-surface: #1f2937;
-    --color-surface-hover: #374151;
-    --color-border: #374151;
-    --color-text-primary: #f9fafb;
-    --color-text-secondary: #d1d5db;
-    --color-text-tertiary: #9ca3af;
-  }
-}
-
-/* Dark mode class override */
-.dark {
-  --color-bg: #111827;
-  --color-surface: #1f2937;
-  --color-surface-hover: #374151;
-  --color-border: #374151;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-tertiary: #9ca3af;
-}
+/* Dark mode intentionally NOT shipped. The app's ~149 hard-coded color
+   literals are light-only, so flipping the 7 neutral tokens under
+   `prefers-color-scheme: dark` left token-driven text near-white on
+   hard-coded white backgrounds (invisible inputs, invisible reminder names).
+   The removed `@media (prefers-color-scheme: dark)` block + unused `.dark`
+   class lived here. Dark mode was deliberately dropped (Iter 9.4); bringing
+   it back would be a fresh, planned iteration, not an accidental side effect. */
