@@ -37,11 +37,11 @@
 
 ## 2. Current State
 
-**Version:** 3.0.3
+**Version:** 3.0.6
 **Tech Stack:** Vanilla JS (ES6 modules), vanilla CSS, Vite, Capacitor (Android) + native `SmsPlugin`
-**Last Updated:** 2026-05-14 (Iteration 9.1 — Empty-state bug + DNC audit + schema-version decoupling + diagnostic panel)
-**Build:** 335.05 kB / 124.75 kB gzip · 103/103 tests pass · Android assets synced · `appVersionCode = 5` / `appVersionName = '3.0.3'`
-**Pending before ship:** Real-device verification of (a) Iter 9 SMS permission flow + bulk send on MIUI/ColorOS/OneUI, (b) Iter 8 WhatsApp deep-link still works, (c) regression check on per-contact tel:/sms:/mailto: and text/file sync, (d) Iter 9.1 — Reminders tab now populates the Overdue section by default; empty-state CTAs route to current-month / 12-month views; App Health diagnostic panel in Settings — see Section 3 → Iteration 9.1 → "MUST-RUN"
+**Last Updated:** 2026-05-26 (Iteration 9.4 — Force-light theme: removed the accidental dark mode that rendered text white-on-white on dark-mode devices)
+**Build:** 336.30 kB / 125.19 kB gzip · 111/111 tests pass · Android assets synced · `appVersionCode = 8` / `appVersionName = '3.0.6'`
+**Pending before ship:** Real-device verification of (a) Iter 9 SMS permission flow + bulk send on MIUI/ColorOS/OneUI, (b) Iter 8 WhatsApp deep-link still works, (c) per-contact tel:/sms:/mailto: + text/file sync regression, (d) Iter 9.1 Overdue section / smart empty-state / App Health panel, (e) Iter 9.2 sender attribution on import + 9.3 month-view handled badges, (f) **Iter 9.4 — on a phone SET TO SYSTEM DARK MODE: Add Visitor inputs stay readable while typing (no white-on-white) and Reminder visitor names are visible** — see Section 3 → Iteration 9.4 → "MUST-RUN"
 
 ### What Works Today
 - Activation with master key (root/satellite machine setup)
@@ -206,6 +206,45 @@
 **Scope:** Full interaction logger, quick-log on reminders, WhatsApp deep links, one-tap communication, consent capture, do-not-contact, message templates, v2-to-v3 migration, batch greeting queue
 
 *(See git commit 5f45b5e for full details)*
+
+### Iteration 9.4 — Force-Light Theme: Remove Accidental Dark Mode (2026-05-26)
+**Status:** CODE COMPLETE — pending real-device retest on a dark-mode phone, ships as v3.0.6
+**Scope:** One contrast/readability fix triggered by the v3.0.5 device test. All flows worked, but on volunteer phones set to system Dark Mode, text was invisible on many screens — e.g., Add Visitor inputs showed white text on a white background *while typing*, and Reminder tiles rendered visitor names invisibly.
+
+**Driver:** The app has no completed dark theme and no dark-mode toggle, but `variables.css` carried a `@media (prefers-color-scheme: dark)` block (plus an unused `.dark` class) that flipped 7 neutral tokens (`--color-bg`, `--color-surface`, `--color-text-primary`, …) to dark values whenever the *device* was set to Dark. Meanwhile ~149 hard-coded color literals (115 in `main.css`, 34 inline in components) are light-only and don't flip. On a dark-set phone the token-driven text went near-white while hard-coded backgrounds stayed white → white-on-white. Two confirmed instances: `.form-input:focus` hard-codes `background-color: #ffffff` while `color` is `var(--color-text-primary)` (→ near-white on focus) = the Add Visitor "while typing" bug; `.tile-card { background: white }` with the name `<h4 style="color: var(--color-text-primary)">` = the invisible Reminder name. Desktop testing missed it because the dev laptop was in light mode, so the media query never fired. No `color-scheme` was declared anywhere, which additionally let OEM WebViews (MIUI/ColorOS) algorithmically darken form controls.
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `src/styles/variables.css` | Added `color-scheme: light` to `:root`. Removed the `@media (prefers-color-scheme: dark)` block and the unused `.dark` class (replaced with an explanatory comment). Tokens now stay light always, matching the light-only literals. |
+| `index.html` | Added `<meta name="color-scheme" content="light">` so the WebView renders form controls in light scheme and suppresses algorithmic darkening on OEM WebViews. |
+| `src/styles/main.css` | `.form-input:focus` `background-color: #ffffff` → `var(--color-surface)` (token hygiene; was the direct cause of the focused-input white-on-white). |
+| `src/utils/constants.js` | `APP_VERSION '3.0.5' → '3.0.6'`. |
+| `android/variables.gradle` | `appVersionCode = 7 → 8`, `appVersionName = '3.0.5' → '3.0.6'`. |
+| `package.json` | `version '3.0.5' → '3.0.6'`. |
+
+**Deliberately NOT changed:**
+- The ~149 hard-coded color literals — now harmless because the app is locked to light; chasing all of them is unnecessary once the token-flip is gone (that flip was the only thing making them inconsistent). They'd matter again only if a real dark theme is built.
+- `settings.theme: 'light'` in `constants.js` — left as inert config; nothing applies a dark class now. Optional cleanup later.
+- No data model / migration change.
+
+**Resolves:** Known Issue 7.1 (hardcoded colors are no longer a latent dark-mode hazard) and VERSION_3_VISION UX-7, resolved as *remove*.
+
+**Verification (local):**
+- `npx vite build` → 336.30 kB / 125.19 kB gzip (~0.4 kB smaller; dark CSS removed).
+- `npx vitest run` → 111/111 (CSS + version only; `constants.test.js` checks a version regex, not a literal).
+- `npx cap sync android` → clean.
+- **Code-verified only.** NOT web-render-verified in-session and NOT device-verified — the bug only manifests in device dark mode, so the dark-mode-phone retest below is the real proof.
+
+**MUST-RUN before shipping (real-device, install fresh APK after versionCode bump 7→8; perform on a phone SET TO SYSTEM DARK MODE):**
+- [ ] App Health panel shows "Version: 3.0.6".
+- [ ] Phone in system Dark Mode → Add Visitor → tap into Name / Phone / any field and type → text is clearly readable (dark text on a light field), NOT white-on-white, both before and during focus.
+- [ ] Same phone → Reminders tab → every tile's visitor name is visible (not invisible on a white card).
+- [ ] Sweep the other reported-unreadable screens (Visitor list, Visitor view, Settings, Sync) → no invisible text in dark mode.
+- [ ] Toggle the phone back to Light Mode → app looks identical (confirms light mode wasn't regressed).
+- [ ] If inputs STILL darken on MIUI/ColorOS specifically → residual WebView force-dark; apply `WebSettingsCompat.setAlgorithmicDarkeningAllowed(getBridge().getWebView().getSettings(), false)` in `MainActivity.java` (androidx.webkit 1.14.0) and rebuild. Left out for now since `color-scheme: light` usually suffices.
+
+---
 
 ### Iteration 9.3 — Reminders Month View Shows Handled State (2026-05-15)
 **Status:** CODE COMPLETE — ready for real-device test, ships as v3.0.5 (rebuilt on top of Iter 9.2's v3.0.4 APK)
@@ -1091,7 +1130,7 @@ MERGE(incomingPackage):
 - [ ] Visit planner by city — deferred
 - [ ] Onboarding tour for first-time users
 - [ ] Dashboard / VisitorView / VisitorList / InteractionHistory / Settings / Activation full redesigns — deferred to next iteration (Stage A token fixes already cleaned them up)
-- [ ] Dark mode completion or removal — currently partial, deferred
+- [x] Dark mode completion or removal — **REMOVED in Iter 9.4** (forced `color-scheme: light`; the partial dark theme caused white-on-white text on dark-mode devices). See §3 Iter 9.4.
 
 ### Phase 3 — Leadership & Compliance (Iterations 6-8)
 - [ ] Donation/contribution data model
@@ -1112,10 +1151,11 @@ MERGE(incomingPackage):
 
 > Issues that exist but are deferred. Each entry explains why it's OK for now.
 
-### 7.1 CSS Hardcoded Colors (Deferred)
-- **What:** ~22 instances of hardcoded hex colors instead of CSS variables in components and main.css
-- **Impact:** Zero — app is light-only, no dark mode toggle exists. All hardcoded values match the design system.
-- **When to fix:** When adding dark mode (Phase 3+)
+### 7.1 CSS Hardcoded Colors (~149; now benign after Iter 9.4)
+- **What:** ~115 hardcoded color literals in `main.css` + ~34 inline in components, instead of CSS variables.
+- **History:** Previously logged here as "impact zero." That was wrong while `variables.css` carried a `@media (prefers-color-scheme: dark)` token-flip — on dark-mode devices the literals didn't flip, producing white-on-white text (the Iter 9.4 RCA). Iter 9.4 removed the dark media query and forced `color-scheme: light`, so the app is genuinely light-only again and every literal matches the design system.
+- **Impact:** Zero, now truly — the only path that made them inconsistent (device dark mode) is gone.
+- **When to fix:** Only if a real dark theme is ever built (a fresh planned iteration); at that point tokenize all literals first.
 
 ### 7.2 EventBus Memory Leaks (Deferred)
 - **What:** Components subscribe to EventBus in render() but never unsubscribe on navigation
