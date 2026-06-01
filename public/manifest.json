@@ -1,6 +1,6 @@
 {
-    "name": "NGO Visitor & Reminder Manager",
-    "short_name": "NGO Mitr",
+    "name": "Dnyani Mitr",
+    "short_name": "Dnyani Mitr",
     "description": "Offline Visitor Manager for NGOs",
     "start_url": "./index.html",
     "display": "standalone",

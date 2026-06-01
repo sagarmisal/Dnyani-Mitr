@@ -1,7 +1,7 @@
 // Application Constants
 
-export const APP_VERSION = '3.0.6';
-export const APP_NAME = 'NGO Visitor & Reminder Manager';
+export const APP_VERSION = '3.0.7';
+export const APP_NAME = 'Dnyani Mitr';
 export const ORGANIZATION = 'Sewa Sankalp Pratishthan';
 export const ORGANIZATION_URL = 'https://sewasankalp.org/';
 

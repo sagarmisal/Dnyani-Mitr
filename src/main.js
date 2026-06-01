@@ -84,7 +84,7 @@ class App {
             <div class="header-logo">
               <img src="${logoSrc}" alt="Logo" style="height: 48px;">
               <div>
-                <h1 class="header-title">Dnyani Mitra</h1>
+                <h1 class="header-title">Dnyani Mitr</h1>
                 <p class="header-subtitle">Verified Visitor & Reminder System</p>
               </div>
             </div>

@@ -274,7 +274,7 @@ function inspect(rawText) {
  * Falls back to clipboard copy when unavailable.
  * @returns {Promise<{method: 'share'|'clipboard'|'none', error?: string}>}
  */
-async function shareText(text, title = 'Dnyani Mitra sync') {
+async function shareText(text, title = 'Dnyani Mitr sync') {
     // Try Web Share API first
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
         try {

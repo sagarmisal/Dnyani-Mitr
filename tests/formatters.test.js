@@ -82,7 +82,11 @@ describe('isValidDate', () => {
 
 describe('getDaysUntil', () => {
   it('returns 0 for today', () => {
-    const today = new Date().toISOString().split('T')[0];
+    // Build "today" from LOCAL date parts. getDaysUntil compares at local
+    // midnight, so using toISOString() (UTC) here flaked between local midnight
+    // and UTC midnight for timezones ahead of UTC (e.g. IST 00:00–05:30).
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     expect(getDaysUntil(today)).toBe(0);
   });
 

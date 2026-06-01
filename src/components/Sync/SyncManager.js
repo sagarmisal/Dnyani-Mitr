@@ -244,7 +244,7 @@ export class SyncManager {
             if (!this.generatedTextBlob) return;
             const result = await TextSyncService.shareText(
                 this.generatedTextBlob,
-                `Dnyani Mitra sync — ${this.machineInfo.machineName}`
+                `Dnyani Mitr sync — ${this.machineInfo.machineName}`
             );
             this.toastForShareResult(result);
         });
@@ -403,7 +403,7 @@ export class SyncManager {
             // Trigger the appropriate sharing path based on caps
             const result = await TextSyncService.shareText(
                 text,
-                `Dnyani Mitra sync — ${this.machineInfo.machineName}`
+                `Dnyani Mitr sync — ${this.machineInfo.machineName}`
             );
             this.toastForShareResult(result);
         } catch (err) {
@@ -490,7 +490,7 @@ export class SyncManager {
         };
 
         if (mode === 'file') {
-            const filename = `DnyaniMitra_Backup_${this.machineInfo.machineName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+            const filename = `DnyaniMitr_Backup_${this.machineInfo.machineName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
             const result = await saveFile(JSON.stringify(backupPkg, null, 2), filename);
             if (result.method === 'share' && !result.cancelled) {
                 Toast.show('Share sheet opened — pick where to save your backup.', 'success', 5000);

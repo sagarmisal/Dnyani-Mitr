@@ -235,7 +235,7 @@ export class SmsBatchQueue {
                             Android is no longer showing the permission dialog for this app.
                         </p>
                         <p style="color: var(--color-text-secondary); font-size: 0.9rem;">
-                            To enable bulk SMS, open your phone's <strong>Settings → Apps → NGO Mitr → Permissions → SMS</strong> and turn it on.
+                            To enable bulk SMS, open your phone's <strong>Settings → Apps → Dnyani Mitr → Permissions → SMS</strong> and turn it on.
                         </p>
                         <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
                             Or keep using the per-contact <span style="white-space:nowrap;">📱 button</span> on each reminder — that always works without any permission.

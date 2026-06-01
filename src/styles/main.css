@@ -311,6 +311,22 @@ a:hover {
   padding: 0.55rem 1rem;
   font-size: var(--font-size-sm);
   min-height: 44px;
+  /* Compact buttons live in tight flex rows with min-width floors (reminders'
+     WhatsApp/SMS/Called/Visited, visitor comm buttons, sync/settings actions).
+     Let the label wrap inside the button instead of overflowing onto the
+     neighbour: OEM WebViews (MIUI/ColorOS) render at a larger default font
+     scale, which pushed the inherited `white-space: nowrap` label past its
+     min-width box -> the reported text overlap. */
+  white-space: normal;
+  line-height: 1.2;
+}
+
+@media (max-width: 380px) {
+  .btn-sm {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    font-size: 0.8rem;
+  }
 }
 
 .btn-lg {
@@ -782,8 +798,15 @@ a:hover {
   }
 
   .view-header .btn {
-    flex: 1;
-    min-width: 0;
+    /* Grow to share the row, but never shrink below the label's intrinsic
+       width. The previous `min-width: 0` defeated flexbox's default
+       min-content floor, so the multi-button action row (WhatsApp / Call /
+       SMS / Log Interaction / Edit / Delete) squeezed each button narrower
+       than its text and the labels overflowed/clipped onto their neighbours
+       on mobile. `min-width: auto` + the parent's `flex-wrap: wrap` makes the
+       buttons keep their width and wrap to additional rows instead. */
+    flex: 1 1 auto;
+    min-width: auto;
   }
 
   .details-grid {
