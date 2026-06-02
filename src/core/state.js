@@ -249,6 +249,64 @@ class StateManager {
     }
 
     /**
+     * Persist + notify helper (used by occasion/campaign mutators).
+     */
+    _saveAndNotify() {
+        const saved = StorageManager.saveState(this.state);
+        if (saved) {
+            this.notifyObservers();
+            EventBus.emit(EVENTS.STATE_CHANGED, this.state);
+        }
+        return saved;
+    }
+
+    // ─── Occasions (Iter 10) ───────────────────────────────────────────────
+    getOccasions() {
+        return deepClone(this.state.occasions || []);
+    }
+
+    addOccasion(occasion) {
+        if (!this.state.occasions) this.state.occasions = [];
+        this.state.occasions.push(occasion);
+        return this._saveAndNotify();
+    }
+
+    updateOccasion(occasionId, updates) {
+        const list = this.state.occasions || [];
+        const index = list.findIndex(o => o.id === occasionId);
+        if (index === -1) return false;
+        list[index] = { ...list[index], ...updates, updatedAt: new Date().toISOString() };
+        return this._saveAndNotify();
+    }
+
+    deleteOccasion(occasionId) {
+        const list = this.state.occasions || [];
+        const next = list.filter(o => o.id !== occasionId);
+        if (next.length === list.length) return false;
+        this.state.occasions = next;
+        return this._saveAndNotify();
+    }
+
+    // ─── Campaigns (Iter 10) ───────────────────────────────────────────────
+    getCampaigns() {
+        return deepClone(this.state.campaigns || []);
+    }
+
+    addCampaign(campaign) {
+        if (!this.state.campaigns) this.state.campaigns = [];
+        this.state.campaigns.push(campaign);
+        return this._saveAndNotify();
+    }
+
+    updateCampaign(campaignId, updates) {
+        const list = this.state.campaigns || [];
+        const index = list.findIndex(c => c.id === campaignId);
+        if (index === -1) return false;
+        list[index] = { ...list[index], ...updates, updatedAt: new Date().toISOString() };
+        return this._saveAndNotify();
+    }
+
+    /**
      * Get settings
      */
     getSettings() {

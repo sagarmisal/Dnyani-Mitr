@@ -136,6 +136,22 @@ describe('SmsService.sendBulkNative', () => {
         expect(InteractionService.log).not.toHaveBeenCalled();
     });
 
+    it('campaign mode: uses item.message, logs with item.notes, skips reminder marking', async () => {
+        const out = [];
+        const sendSms = vi.fn(async ({ to, message }) => { out.push({ to, message }); return { sent: true, parts: 1 }; });
+        setCapacitor({ sendSms, checkPermission: async () => ({ granted: true }) });
+
+        // Campaign item: pre-composed message + notes, NO reminderId, NO eventType.
+        const items = [{ visitorId: 'v1', contactName: 'Asha', phone: '9876543210', message: 'प्रजासत्ताक दिनाच्या शुभेच्छा', notes: 'Campaign: Republic Day' }];
+        const result = await SmsService.sendBulkNative(items);
+
+        expect(result.sent).toBe(1);
+        expect(out[0].message).toBe('प्रजासत्ताक दिनाच्या शुभेच्छा'); // override used, not eventType template
+        expect(InteractionService.log).toHaveBeenCalledTimes(1);
+        expect(InteractionService.log.mock.calls[0][0].notes).toBe('Campaign: Republic Day');
+        expect(ReminderService.recordAction).not.toHaveBeenCalled();   // no reminderId → no marking
+    });
+
     it('aborts early when plugin reports PERMISSION_DENIED', async () => {
         const sendSms = vi.fn()
             .mockResolvedValueOnce({ sent: true, parts: 1 })

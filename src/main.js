@@ -8,9 +8,12 @@ import { VisitorList } from './components/Visitors/VisitorList.js';
 import { VisitorForm } from './components/Visitors/VisitorForm.js';
 import { VisitorView } from './components/Visitors/VisitorView.js';
 import { ReminderDashboard } from './components/Reminders/ReminderDashboard.js';
+import { CampaignList } from './components/Campaigns/CampaignList.js';
+import { CampaignBuilder } from './components/Campaigns/CampaignBuilder.js';
 import { SyncManager } from './components/Sync/SyncManager.js';
 import { SettingsPage } from './components/Settings/SettingsPage.js';
 import { Toast } from './components/UI/Toast.js';
+import NotificationService from './services/NotificationService.js';
 import { MyDayDashboard } from './components/Dashboard/MyDayDashboard.js';
 import { InteractionHistory } from './components/Interactions/InteractionHistory.js';
 import { APP_NAME, APP_VERSION, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
@@ -70,6 +73,9 @@ class App {
 
     // Start router
     Router.handleRouteChange();
+
+    // Reconcile local notifications with saved settings (no-op off-device).
+    NotificationService.sync(StateManager.getSettings());
   }
 
   /**
@@ -98,6 +104,7 @@ class App {
             <a href="#${ROUTES.DASHBOARD}" class="nav-link">Dashboard</a>
             <a href="#${ROUTES.VISITORS}" class="nav-link">Visitors</a>
             <a href="#${ROUTES.REMINDERS}" class="nav-link">Reminders</a>
+            <a href="#${ROUTES.CAMPAIGNS}" class="nav-link">Campaigns</a>
             <a href="#${ROUTES.INTERACTIONS}" class="nav-link">History</a>
             <a href="#${ROUTES.SYNC}" class="nav-link">Sync</a>
             <a href="#${ROUTES.SETTINGS}" class="nav-link">Settings</a>
@@ -178,6 +185,18 @@ class App {
     Router.register(ROUTES.REMINDERS, () => {
       const reminders = new ReminderDashboard();
       this.renderComponent(reminders.render());
+    });
+
+    // Campaigns route (list + suggestions)
+    Router.register(ROUTES.CAMPAIGNS, () => {
+      const campaigns = new CampaignList();
+      this.renderComponent(campaigns.render());
+    });
+
+    // Campaign builder (create/send). Optional ?occasionId= preselects an occasion.
+    Router.register('/campaigns/new', (params) => {
+      const builder = new CampaignBuilder(params.occasionId || null);
+      this.renderComponent(builder.render());
     });
 
     // Interactions route

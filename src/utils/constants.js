@@ -1,6 +1,6 @@
 // Application Constants
 
-export const APP_VERSION = '3.0.7';
+export const APP_VERSION = '3.1.0';
 export const APP_NAME = 'Dnyani Mitr';
 export const ORGANIZATION = 'Sewa Sankalp Pratishthan';
 export const ORGANIZATION_URL = 'https://sewasankalp.org/';
@@ -96,7 +96,7 @@ export const STORAGE_KEYS = {
 };
 
 // Default Message Templates
-// Use {name}, {org}, {volunteer} variables — substituted at send time
+// Tokens (substituted at send time): {name} {org} {volunteer} {occasion} {tagline}
 export const DEFAULT_MESSAGE_TEMPLATES = {
     birthday: "Happy Birthday {name}! Warm wishes from {org}. 🎂",
     anniversary: "Happy Anniversary {name}! Wishing you many more years together. 💍 — {org}",
@@ -104,6 +104,80 @@ export const DEFAULT_MESSAGE_TEMPLATES = {
     followUp: "Hi {name}, following up on our last conversation. How can we help? — {volunteer}, {org}",
     thankYou: "Thank you {name} for your generous support of {org}! 🙏"
 };
+
+// ─── Iteration 10: Occasion Campaigns ───────────────────────────────────────
+
+// Org sign-off tagline (Marathi). Editable in Settings → settings.taglineMr.
+export const DEFAULT_TAGLINE_MR = 'चला जरा वेगळे जगुया ...';
+
+// Campaign channels & lifecycle status
+export const CAMPAIGN_CHANNELS = { SMS: 'sms', WHATSAPP: 'whatsapp', BOTH: 'both' };
+export const CAMPAIGN_STATUS = {
+    DRAFT: 'draft',
+    SENDING: 'sending',
+    SENT: 'sent',
+    PARTIAL: 'partial',
+    CANCELLED: 'cancelled'
+};
+
+// Generic greeting/invitation templates — used for custom occasions or no-occasion campaigns.
+// Same token set as above. {occasion} resolves to the occasion's name in the campaign language.
+export const DEFAULT_CAMPAIGN_TEMPLATES = {
+    greeting: {
+        en: "Dear {name}, warm greetings from {org}! 🙏\n{tagline}",
+        mr: "{name} जी, {org} तर्फे हार्दिक शुभेच्छा! 🙏\n{tagline}"
+    },
+    invitation: {
+        en: "Dear {name}, {org} cordially invites you. Your presence is requested. 🙏\n{tagline}",
+        mr: "{name} जी, {org} तर्फे आयोजित कार्यक्रमास आपणास सादर निमंत्रण. कृपया उपस्थित रहावे. 🙏\n{tagline}"
+    }
+};
+
+// Seeded fixed-Gregorian-date occasions (builtin:true). Users add their own (e.g. the
+// Foundation Day, or movable festivals each year) via the Occasion Manager. Each occasion
+// owns bilingual greeting + invitation templates. createdAt/updatedAt are null for built-ins.
+export const DEFAULT_OCCASIONS = [
+    {
+        id: 'occasion_new_year', name: 'New Year', nameMr: 'नववर्ष', month: 1, day: 1, builtin: true,
+        templates: {
+            greeting: { en: "Happy New Year, {name}! 🎉 Warm wishes from {org}.\n{tagline}", mr: "{name} जी, नववर्षाच्या हार्दिक शुभेच्छा! 🎉 — {org}\n{tagline}" },
+            invitation: { en: "Dear {name}, {org} invites you to our New Year programme. 🙏\n{tagline}", mr: "{name} जी, {org} तर्फे नववर्ष कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}" }
+        },
+        createdAt: null, updatedAt: null
+    },
+    {
+        id: 'occasion_republic_day', name: 'Republic Day', nameMr: 'प्रजासत्ताक दिन', month: 1, day: 26, builtin: true,
+        templates: {
+            greeting: { en: "Happy Republic Day, {name}! 🇮🇳 Warm wishes from {org}.\n{tagline}", mr: "{name} जी, प्रजासत्ताक दिनाच्या हार्दिक शुभेच्छा! 🇮🇳 — {org}\n{tagline}" },
+            invitation: { en: "Dear {name}, {org} invites you to our Republic Day programme. 🙏\n{tagline}", mr: "{name} जी, प्रजासत्ताक दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}" }
+        },
+        createdAt: null, updatedAt: null
+    },
+    {
+        id: 'occasion_maharashtra_day', name: 'Maharashtra Day', nameMr: 'महाराष्ट्र दिन', month: 5, day: 1, builtin: true,
+        templates: {
+            greeting: { en: "Happy Maharashtra Day, {name}! 🚩 — {org}\n{tagline}", mr: "{name} जी, महाराष्ट्र दिनाच्या हार्दिक शुभेच्छा! 🚩 — {org}\n{tagline}" },
+            invitation: { en: "Dear {name}, {org} invites you to our Maharashtra Day programme. 🙏\n{tagline}", mr: "{name} जी, महाराष्ट्र दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}" }
+        },
+        createdAt: null, updatedAt: null
+    },
+    {
+        id: 'occasion_independence_day', name: 'Independence Day', nameMr: 'स्वातंत्र्य दिन', month: 8, day: 15, builtin: true,
+        templates: {
+            greeting: { en: "Happy Independence Day, {name}! 🇮🇳 — {org}\n{tagline}", mr: "{name} जी, स्वातंत्र्य दिनाच्या हार्दिक शुभेच्छा! 🇮🇳 — {org}\n{tagline}" },
+            invitation: { en: "Dear {name}, {org} invites you to our Independence Day programme. 🙏\n{tagline}", mr: "{name} जी, स्वातंत्र्य दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}" }
+        },
+        createdAt: null, updatedAt: null
+    },
+    {
+        id: 'occasion_gandhi_jayanti', name: 'Gandhi Jayanti', nameMr: 'गांधी जयंती', month: 10, day: 2, builtin: true,
+        templates: {
+            greeting: { en: "On Gandhi Jayanti, warm wishes, {name}. 🙏 — {org}\n{tagline}", mr: "{name} जी, गांधी जयंतीच्या हार्दिक शुभेच्छा! 🙏 — {org}\n{tagline}" },
+            invitation: { en: "Dear {name}, {org} invites you to our Gandhi Jayanti programme. 🙏\n{tagline}", mr: "{name} जी, गांधी जयंतीनिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}" }
+        },
+        createdAt: null, updatedAt: null
+    }
+];
 
 // Engagement Score Thresholds
 export const ENGAGEMENT_THRESHOLDS = {
@@ -120,7 +194,13 @@ export const DEFAULT_SETTINGS = {
     organizationName: ORGANIZATION, // user-configurable org name for templates
     theme: 'light',
     language: 'en',
-    messageTemplates: { ...DEFAULT_MESSAGE_TEMPLATES }
+    messageTemplates: { ...DEFAULT_MESSAGE_TEMPLATES },
+    // Iter 10 — campaigns + notifications
+    taglineMr: DEFAULT_TAGLINE_MR,   // org sign-off appended to campaign messages
+    taglineEn: '',
+    defaultCampaignLanguage: 'mr',   // 'mr' | 'en'
+    notificationsEnabled: false,     // local notification opt-in
+    notificationDigestTime: '09:00'  // HH:mm for the daily reminder digest
 };
 
 // Visitor Categories (Predefined, but users can add custom)

@@ -1,6 +1,6 @@
 // LocalStorage Management
 
-import { STORAGE_KEYS, APP_VERSION, DEFAULT_SETTINGS, DEFAULT_MESSAGE_TEMPLATES } from '../utils/constants.js';
+import { STORAGE_KEYS, APP_VERSION, DEFAULT_SETTINGS, DEFAULT_MESSAGE_TEMPLATES, DEFAULT_OCCASIONS } from '../utils/constants.js';
 import { safeJSONParse } from '../utils/helpers.js';
 
 /**
@@ -35,10 +35,16 @@ class StorageManager {
                 return this.migrateState(state);
             }
 
-            // Same schema, just refresh the version stamp silently so future
-            // checks read the current app version without triggering migration.
+            // Same MAJOR schema (v3.x). migrateState does NOT run here, so any
+            // collections/fields introduced in a later v3 MINOR release (e.g.
+            // Iter 10 occasions/campaigns + settings) must be back-filled
+            // idempotently before use. Then refresh the version stamp silently.
+            let changed = this.ensureForwardFields(state);
             if (state.version !== APP_VERSION) {
                 state.version = APP_VERSION;
+                changed = true;
+            }
+            if (changed) {
                 this.saveState(state);
             }
 
@@ -83,10 +89,62 @@ class StorageManager {
             visitors: [],
             reminderActions: [],
             interactions: [],
+            occasions: this._seedOccasions(),
+            campaigns: [],
             settings: { ...DEFAULT_SETTINGS },
             knownMachines: {},
             syncLog: []
         };
+    }
+
+    /**
+     * Fresh deep copy of the seeded built-in occasions (Iter 10).
+     */
+    _seedOccasions() {
+        return JSON.parse(JSON.stringify(DEFAULT_OCCASIONS));
+    }
+
+    /**
+     * Idempotently back-fill collections/fields added in later v3 MINOR releases
+     * onto an already-v3 state. Runs on same-major load (where migrateState does
+     * not). Returns true if anything was added. Preserves existing data and any
+     * falsy user-set values (uses `=== undefined` checks, not truthiness).
+     */
+    ensureForwardFields(state) {
+        let changed = false;
+
+        // Iter 10: occasions — seed ONCE if never present; respect later user deletions
+        // (an empty array means the user cleared them, so don't resurrect).
+        if (!Array.isArray(state.occasions)) {
+            state.occasions = this._seedOccasions();
+            changed = true;
+        }
+        // Iter 10: campaigns collection
+        if (!Array.isArray(state.campaigns)) {
+            state.campaigns = [];
+            changed = true;
+        }
+        // Iter 10: new settings fields
+        if (!state.settings || typeof state.settings !== 'object') {
+            state.settings = { ...DEFAULT_SETTINGS };
+            changed = true;
+        } else {
+            const forwardSettings = {
+                taglineMr: DEFAULT_SETTINGS.taglineMr,
+                taglineEn: DEFAULT_SETTINGS.taglineEn,
+                defaultCampaignLanguage: DEFAULT_SETTINGS.defaultCampaignLanguage,
+                notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
+                notificationDigestTime: DEFAULT_SETTINGS.notificationDigestTime
+            };
+            for (const key in forwardSettings) {
+                if (state.settings[key] === undefined) {
+                    state.settings[key] = forwardSettings[key];
+                    changed = true;
+                }
+            }
+        }
+
+        return changed;
     }
 
     /**
@@ -185,6 +243,13 @@ class StorageManager {
         // Ensure v3 state-level fields
         newState.knownMachines = oldState.knownMachines || {};
         newState.syncLog = oldState.syncLog || [];
+        // Carry over occasions/campaigns if an older state somehow had them; otherwise
+        // newState already holds the seeded defaults from getDefaultState().
+        if (Array.isArray(oldState.occasions)) newState.occasions = oldState.occasions;
+        if (Array.isArray(oldState.campaigns)) newState.campaigns = oldState.campaigns;
+
+        // Back-fill any later-v3-minor fields (idempotent) before persisting.
+        this.ensureForwardFields(newState);
 
         // Save migrated state
         this.saveState(newState);

@@ -145,6 +145,9 @@ class SmsService {
   }
 
   static _composeMessage(item) {
+    // Campaign items carry a pre-composed message; reminder items derive it from
+    // the eventType template. Honor an explicit message when present.
+    if (item.message != null) return item.message;
     return InteractionLogger.composeMessage(item.eventType, item.contactName);
   }
 
@@ -184,7 +187,9 @@ class SmsService {
         // SMS dispatched to carrier — now write the local record. If that fails
         // the message was still sent; we surface a warning rather than counting
         // it as a failure so the user doesn't think a contact was missed.
-        const logStatus = this._logAndMark(item);
+        // item.notes (set by campaigns) overrides the default note; reminder
+        // marking is skipped automatically when item.reminderId is absent.
+        const logStatus = this._logAndMark(item, item.notes);
         result.sent++;
         if (!logStatus.logged || !logStatus.reminderMarked) {
           result.logWarnings.push({

@@ -100,6 +100,7 @@ export const ROUTES = {
     VISITOR_ADD: '/visitor/add',
     VISITOR_EDIT: '/visitor/edit',
     REMINDERS: '/reminders',
+    CAMPAIGNS: '/campaigns',
     INTERACTIONS: '/interactions',
     SYNC: '/sync',
     BACKUP: '/backup',

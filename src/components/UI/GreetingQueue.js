@@ -149,8 +149,10 @@ export class GreetingQueue {
             <div class="gq-contact-card">
               <div class="gq-contact-name">${GreetingQueue._escapeHtml(current.contactName)}</div>
               <div class="gq-contact-detail">
-                <span class="gq-event-badge">${GreetingQueue._eventIcon(current.eventType)} ${current.eventType}</span>
-                <span>📞 ${current.phone}</span>
+                ${(current.eventType || current.occasionLabel)
+                    ? `<span class="gq-event-badge">${GreetingQueue._eventIcon(current.eventType)} ${GreetingQueue._escapeHtml(current.eventType || current.occasionLabel)}</span>`
+                    : ''}
+                <span>📞 ${GreetingQueue._escapeHtml(current.phone)}</span>
               </div>
             </div>
 
@@ -285,7 +287,7 @@ export class GreetingQueue {
       InteractionService.log({
         visitorId: item.visitorId,
         interactionType: INTERACTION_TYPES.WHATSAPP,
-        notes: `WhatsApp greeting sent (${item.eventType})`,
+        notes: item.notes || `WhatsApp greeting sent${item.eventType ? ` (${item.eventType})` : ''}`,
         outcome: 'successful'
       });
     } catch (e) {
@@ -304,6 +306,8 @@ export class GreetingQueue {
   }
 
   static _composeMessage(item) {
+    // Campaign items carry a pre-composed message; reminders derive from eventType.
+    if (item.message != null) return item.message;
     return InteractionLogger.composeMessage(item.eventType, item.contactName);
   }
 

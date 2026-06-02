@@ -7,6 +7,8 @@ import { Toast } from '../UI/Toast.js';
 import { APP_VERSION, APP_NAME, ORGANIZATION, DEFAULT_SETTINGS, DEFAULT_MESSAGE_TEMPLATES } from '../../utils/constants.js';
 import SmsService from '../../services/SmsService.js';
 import { InteractionLogger } from '../UI/InteractionLogger.js';
+import { OccasionManager } from '../Campaigns/OccasionManager.js';
+import NotificationService from '../../services/NotificationService.js';
 import { normalizePhone, formatDateShort } from '../../utils/formatters.js';
 
 export class SettingsPage {
@@ -61,6 +63,21 @@ export class SettingsPage {
                 <div class="setting-help">Mark visitors as "needs attention" if no contact for this many days (7–365)</div>
               </div>
 
+              <div class="setting-item">
+                <label for="tagline-mr">Campaign sign-off (Marathi tagline)</label>
+                <input type="text" id="tagline-mr" class="form-input"
+                  value="${this.escapeHtml(this.settings.taglineMr || '')}" placeholder="चला जरा वेगळे जगुया ..." />
+                <div class="setting-help">Appended to campaign greetings/invitations as {tagline}.</div>
+              </div>
+
+              <div class="setting-item">
+                <label for="default-campaign-lang">Default campaign language</label>
+                <select id="default-campaign-lang" class="form-select">
+                  <option value="mr" ${this.settings.defaultCampaignLanguage === 'mr' ? 'selected' : ''}>मराठी (Marathi)</option>
+                  <option value="en" ${this.settings.defaultCampaignLanguage === 'en' ? 'selected' : ''}>English</option>
+                </select>
+              </div>
+
               <div style="margin-top: 1.5rem;">
                 <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
               </div>
@@ -77,7 +94,7 @@ export class SettingsPage {
               <table class="machine-info-table">
                 <tr>
                   <td>Machine Name</td>
-                  <td>${machineInfo.machineName || '—'}</td>
+                  <td>${this.escapeHtml(machineInfo.machineName || '—')}</td>
                 </tr>
                 <tr>
                   <td>Role</td>
@@ -85,7 +102,7 @@ export class SettingsPage {
                 </tr>
                 <tr>
                   <td>Machine ID</td>
-                  <td><code style="font-size: 0.8rem;">${machineInfo.machineId || '—'}</code></td>
+                  <td><code style="font-size: 0.8rem;">${this.escapeHtml(machineInfo.machineId || '—')}</code></td>
                 </tr>
                 <tr>
                   <td>Activated</td>
@@ -158,10 +175,37 @@ export class SettingsPage {
         </div>
       </div>
 
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h2 class="card-title">🔔 Notifications</h2>
+        </div>
+        <div class="card-body">
+          <p class="text-secondary" style="margin-bottom: 0.75rem;">
+            Local reminders on this device (works offline). A daily digest of due reminders plus a nudge before upcoming occasions. Available in the Android app.
+          </p>
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="checkbox" id="notif-enabled" ${this.settings.notificationsEnabled ? 'checked' : ''}/> Enable daily notifications
+          </label>
+          <div class="setting-item" style="margin-top:0.75rem;">
+            <label for="notif-time">Daily time</label>
+            <input type="time" id="notif-time" class="form-input" value="${this.escapeHtml(this.settings.notificationDigestTime || '09:00')}" style="max-width:160px;" />
+          </div>
+          <button id="notif-save" class="btn btn-primary btn-sm" style="margin-top:0.5rem;">Save &amp; apply</button>
+          <div id="notif-status" class="setting-help"></div>
+        </div>
+      </div>
+
+      <div id="occasion-manager-mount"></div>
+
       ${this._renderDiagnosticPanel()}
     `;
 
     this.attachEventListeners();
+
+    // Mount the Occasion manager (separate component) into its placeholder.
+    const occMount = this.container.querySelector('#occasion-manager-mount');
+    if (occMount) occMount.appendChild(new OccasionManager().render());
+
     return this.container;
   }
 
@@ -193,7 +237,9 @@ export class SettingsPage {
         organizationName: orgNameVal,
         reminderLookahead: lookahead,
         autoBackupDays: backupDays,
-        lapseThresholdDays: lapseThreshold
+        lapseThresholdDays: lapseThreshold,
+        taglineMr: this.container.querySelector('#tagline-mr').value.trim(),
+        defaultCampaignLanguage: this.container.querySelector('#default-campaign-lang').value
       });
 
       Toast.show('Settings saved', 'success');
@@ -230,6 +276,28 @@ export class SettingsPage {
 
     // App Health diagnostic panel (Iter 9.1 E)
     this._wireDiagnosticPanel();
+
+    // Notifications (Iter 10 D) — save setting + (re)schedule on device.
+    const notifSave = this.container.querySelector('#notif-save');
+    if (notifSave) {
+      notifSave.addEventListener('click', async () => {
+        const enabled = this.container.querySelector('#notif-enabled').checked;
+        const time = this.container.querySelector('#notif-time').value || '09:00';
+        StateManager.updateSettings({ notificationsEnabled: enabled, notificationDigestTime: time });
+        const statusEl = this.container.querySelector('#notif-status');
+        if (!NotificationService.isAvailable()) {
+          if (statusEl) statusEl.textContent = 'Notifications run in the Android app — saved; they will apply on the device.';
+          Toast.show('Saved. Notifications apply in the Android app.', 'info');
+          return;
+        }
+        const res = await NotificationService.sync({ ...StateManager.getSettings() });
+        if (res.reason === 'denied') {
+          Toast.show('Notification permission was denied.', 'warning');
+        } else {
+          Toast.show(enabled ? `Notifications scheduled (${res.scheduled}).` : 'Notifications turned off.', 'success');
+        }
+      });
+    }
   }
 
   /**

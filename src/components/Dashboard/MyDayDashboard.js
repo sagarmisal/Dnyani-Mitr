@@ -1,6 +1,7 @@
 // My Day Dashboard - Default home screen for daily planning
 
 import ReminderService from '../../services/ReminderService.js';
+import OccasionService from '../../services/OccasionService.js';
 import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
 import EngagementService from '../../services/EngagementService.js';
@@ -39,6 +40,8 @@ export class MyDayDashboard {
 
             ${this._renderQuickStats(weekStats)}
 
+            ${this._renderOccasionNudge()}
+
             ${this._renderTodaySection(todayReminders)}
 
             ${this._renderOverdueSection(overdueReminders)}
@@ -55,10 +58,38 @@ export class MyDayDashboard {
         this.container = container;
         this._attachEventListeners();
 
+        // Occasion nudge CTA → campaign builder preselected for that occasion.
+        const occCta = container.querySelector('#dash-occasion-cta');
+        if (occCta) {
+            occCta.addEventListener('click', () => {
+                Router.navigate(`/campaigns/new?occasionId=${encodeURIComponent(occCta.dataset.id)}`);
+            });
+        }
+
         // Recalculate engagement scores in background
         setTimeout(() => EngagementService.recalculateAll(), 100);
 
         return container;
+    }
+
+    _renderOccasionNudge() {
+        let upcoming = [];
+        try { upcoming = OccasionService.upcomingWithin(14); } catch (e) { return ''; }
+        if (!upcoming.length) return '';
+        const u = upcoming[0];
+        const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const when = u.daysUntil === 0 ? 'today' : (u.daysUntil === 1 ? 'tomorrow' : `in ${u.daysUntil} days`);
+        const name = esc(u.occasion.nameMr || u.occasion.name);
+        return `
+            <div class="card" style="margin: 1rem 0; border-left: 4px solid var(--color-primary);">
+                <div class="card-body" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:0;">
+                        🎉 <strong>${name}</strong> is ${when}. Send greetings to your beneficiaries in bulk.
+                    </div>
+                    <button id="dash-occasion-cta" class="btn btn-primary btn-sm" data-id="${esc(u.occasion.id)}">Create campaign</button>
+                </div>
+            </div>
+        `;
     }
 
     _getGreeting() {

@@ -193,4 +193,57 @@ describe('StorageManager migration', () => {
     expect(loaded.settings.messageTemplates.birthday).toBe('Custom!');
     expect(loaded.knownMachines.m2).toBe('Phone');
   });
+
+  // ─── Iteration 10: forward-migration of occasions/campaigns/settings ───
+  it('back-fills Iter 10 occasions/campaigns/settings onto a v3.0.7 state', () => {
+    const v307 = {
+      version: '3.0.7', activated: true, machineId: 'm1', machineRole: 'root', machineName: 'Root',
+      visitors: [{ id: 'v1', consentGiven: true }],
+      interactions: [{ id: 'i1', interactionType: 'sms' }],
+      reminderActions: [], settings: { organizationName: 'My NGO' }, knownMachines: {}, syncLog: []
+    };
+    localStorageMock.setItem('NGOApp_v2_State', JSON.stringify(v307));
+    const loaded = StorageManager.loadState();
+
+    // New collections present
+    expect(Array.isArray(loaded.occasions)).toBe(true);
+    expect(loaded.occasions.length).toBeGreaterThanOrEqual(5);
+    expect(loaded.occasions.some(o => o.id === 'occasion_republic_day')).toBe(true);
+    expect(loaded.campaigns).toEqual([]);
+    // New settings with defaults
+    expect(loaded.settings.taglineMr).toBe('चला जरा वेगळे जगुया ...');
+    expect(loaded.settings.notificationsEnabled).toBe(false);
+    expect(loaded.settings.defaultCampaignLanguage).toBe('mr');
+    // Existing data untouched
+    expect(loaded.visitors[0].consentGiven).toBe(true);
+    expect(loaded.interactions[0].interactionType).toBe('sms');
+    expect(loaded.settings.organizationName).toBe('My NGO');
+  });
+
+  it('ensureForwardFields is idempotent and respects user-cleared occasions + user settings', () => {
+    const state = {
+      version: '3.0.7', visitors: [], interactions: [], reminderActions: [],
+      occasions: [], campaigns: [{ id: 'c1' }],
+      settings: { taglineMr: 'Custom tag', notificationsEnabled: true },
+      knownMachines: {}, syncLog: []
+    };
+    StorageManager.ensureForwardFields(state);
+    // Empty occasions array left as-is (user cleared) — NOT reseeded
+    expect(state.occasions).toEqual([]);
+    // Existing campaign + user settings preserved
+    expect(state.campaigns).toEqual([{ id: 'c1' }]);
+    expect(state.settings.taglineMr).toBe('Custom tag');
+    expect(state.settings.notificationsEnabled).toBe(true);
+    // Missing fields filled
+    expect(state.settings.defaultCampaignLanguage).toBe('mr');
+    // Second run is a no-op
+    expect(StorageManager.ensureForwardFields(state)).toBe(false);
+  });
+
+  it('default state includes seeded occasions and empty campaigns', () => {
+    const def = StorageManager.getDefaultState();
+    expect(def.occasions.length).toBeGreaterThanOrEqual(5);
+    expect(def.campaigns).toEqual([]);
+    expect(def.settings.taglineMr).toContain('जगुया');
+  });
 });
