@@ -37,11 +37,12 @@
 
 ## 2. Current State
 
-**Version:** 3.0.6
-**Tech Stack:** Vanilla JS (ES6 modules), vanilla CSS, Vite, Capacitor (Android) + native `SmsPlugin`
-**Last Updated:** 2026-05-26 (Iteration 9.4 — Force-light theme: removed the accidental dark mode that rendered text white-on-white on dark-mode devices)
-**Build:** 336.30 kB / 125.19 kB gzip · 111/111 tests pass · Android assets synced · `appVersionCode = 8` / `appVersionName = '3.0.6'`
-**Pending before ship:** Real-device verification of (a) Iter 9 SMS permission flow + bulk send on MIUI/ColorOS/OneUI, (b) Iter 8 WhatsApp deep-link still works, (c) per-contact tel:/sms:/mailto: + text/file sync regression, (d) Iter 9.1 Overdue section / smart empty-state / App Health panel, (e) Iter 9.2 sender attribution on import + 9.3 month-view handled badges, (f) **Iter 9.4 — on a phone SET TO SYSTEM DARK MODE: Add Visitor inputs stay readable while typing (no white-on-white) and Reminder visitor names are visible** — see Section 3 → Iteration 9.4 → "MUST-RUN"
+**Version:** 3.1.0
+**Tech Stack:** Vanilla JS (ES6 modules), vanilla CSS, Vite, Capacitor (Android) + native `SmsPlugin` + `@capacitor/local-notifications`
+**Last Updated:** 2026-06-02 (Iteration 10 — The Reach Release: bulk occasion campaigns + local notifications)
+**Build:** 378.82 kB / 136.12 kB gzip · 146/146 tests pass · Android assets synced · `appVersionCode = 10` / `appVersionName = '3.1.0'`
+**Device status:** v3.0.x general flows device-verified on **Oppo + Redmi**. Iter 9.5 (icon/name/overlap) + Iter 10 (campaigns/notifications) are CODE-verified (146 tests, render smoke incl. happy-dom) but NOT yet device-verified.
+**Pending before ship:** Real-device pass of Iter 10 (see `ITERATION_10_PLAN.md` → "Manual test checklist") — esp. in-place upgrade preserves data + seeds occasions; a real SMS/WhatsApp campaign logs one Interaction per recipient with DND excluded; local notification fires. Carry-forward: Iter 9.5 icon/name/overlap + Iter 9.4 dark-mode device checks. All of v3.0.7 (9.5) + v3.1.0 (10) land in ONE owner commit.
 
 ### What Works Today
 - Activation with master key (root/satellite machine setup)
@@ -206,6 +207,71 @@
 **Scope:** Full interaction logger, quick-log on reminders, WhatsApp deep links, one-tap communication, consent capture, do-not-contact, message templates, v2-to-v3 migration, batch greeting queue
 
 *(See git commit 5f45b5e for full details)*
+
+### Iteration 10 — The Reach Release: Bulk Occasion Campaigns + Local Notifications (2026-06-02)
+**Status:** CODE COMPLETE & code-verified (146 tests incl. happy-dom render smoke + adversarial review) — pending real-device pass. Ships as v3.1.0 / versionCode 10. Detailed plan + append-only log: `ITERATION_10_PLAN.md`.
+
+**What it adds:** bulk occasion **campaigns** (greetings + invitations) over SMS (native SIM, one-tap bulk) and WhatsApp (per-contact, ban-safe), plus opt-in **local notifications** (daily reminder digest + occasion nudge). Occasions are a seeded + **user-manageable** collection, each with bilingual (Marathi/English) templates; org tagline `चला जरा वेगळे जगुया ...` via `{tagline}`.
+
+**Built additively on existing infra:** reused `SmsService.sendBulkNative` + `GreetingQueue` (extended backward-compatibly to honor an explicit `item.message`/`item.notes`); the send engines still own interaction-logging, so every campaign recipient gets exactly one Interaction (data-flow rule) with no double-count. Campaign items omit `reminderId`, so reminder-marking is correctly skipped.
+
+**Data model (migrated):** new `state.occasions` (seeded built-ins + custom) and `state.campaigns`; new settings (`taglineMr`, `taglineEn`, `defaultCampaignLanguage`, `notificationsEnabled`, `notificationDigestTime`). Critical fix: `storage.js` previously skipped field-migration on same-major (v3.x) loads — added an **idempotent `ensureForwardFields`** that back-fills the new collections/settings onto a live v3.0.7 install with zero data loss (respects user-cleared occasions; preserves falsy user settings).
+
+**Files (new):** `models/{Occasion,Campaign}.js`; `services/{OccasionService,CampaignService,NotificationService}.js`; `components/Campaigns/{OccasionManager,CampaignList,CampaignBuilder}.js`; tests `{occasion-service,campaign-service,campaign-ui,notification-service}.test.js`. **(changed):** `constants.js`, `core/{state,storage,router}.js`, `main.js`, `services/SmsService.js`, `components/UI/GreetingQueue.js`, `components/Settings/SettingsPage.js`, `components/Dashboard/MyDayDashboard.js`, `tests/{migration,sms-service}.test.js`. **(deps):** `@capacitor/local-notifications@8.2.0`, dev `happy-dom`. Version bump across `package.json`/`constants.js`/`variables.gradle`.
+
+**Adversarial review (3 parallel agents) findings, all resolved:** (MED) stored-XSS via unescaped `current.phone` in GreetingQueue → escaped; (MED) `finalStatus` counted deliberate WhatsApp skips as non-delivery → skips now count as a decision; (LOW) composeFor now clears Devanagari placeholder names + collapses blank lines; (LOW) notification time clamped; (LOW, bug-class) escaped machineName/machineId in Settings machine table. Consent/DND enforcement, PII-logging, sync-regression, migration-idempotency, and reminder-flow backward-compat all reviewed clean.
+
+**Verification (local):** `vite build` 378.82 kB clean · `vitest` **146/146** · `cap sync` clean (plugin registered). **Code-verified only** — native notification firing + real bulk send are device-only (checklist in `ITERATION_10_PLAN.md`).
+
+**Known limits (documented, not bugs):** per-campaign channel is SMS *or* WhatsApp (no simultaneous double-send); WhatsApp images/posters deferred (deep-links are text-only); occasions/campaigns are device-local (the Interactions they create do sync); a WebView kill mid-WhatsApp-campaign can leave a campaign stuck in `sending` (same resume limit as reminders).
+
+---
+
+### Iteration 9.5 — Ship-Ready Polish: Branding + Button-Overlap Fix (2026-06-02)
+**Status:** CODE COMPLETE — pending real-device retest, ships as v3.0.7 (versionCode 9)
+**Driver:** Owner reported v3.0.6 general flows now **working on real devices including Oppo and Redmi** (clears the long-standing "code-verified only" ship blocker). Three remaining asks before "good to go": (1) the installed app should show the **Sewa Sankalp logo** as its launcher icon, not the default Capacitor icon; (2) the launcher/display name should read **"Dnyani Mitr"**, not "NGO Mitr"; (3) on the Reminders flow the action-button labels (💬 WhatsApp / 📱 SMS / 📞 Called / 🏠 Visited) **overlap** on some devices.
+
+**RCA (button overlap):** Global `.btn { white-space: nowrap }` (`main.css`) combined with the action rows, where each compact button has `flex: 1`/`flex: 2` (so `flex-basis: 0`) plus a fixed `min-width` floor (95–130px). On OEM WebViews (MIUI/ColorOS) the default *system font scale* is larger, so the nowrap label renders wider than its min-width box and, because it cannot wrap inside, overflows horizontally onto the neighbouring button = the reported overlap. The same flex-row + min-width + `.btn-sm` pattern exists in `VisitorView` (comm-btns), `SyncManager`, and `SettingsPage`, so it is a bug *class*, not a single screen. Fix targets the shared class: `.btn-sm` now allows label wrapping (`white-space: normal`, `line-height: 1.2`) so the worst case is a button that grows taller, never one whose text spills over its neighbour — covering every flow at once without per-component churn.
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `android/app/src/main/res/mipmap-*` (15 PNGs, 5 densities) | Regenerated `ic_launcher.png` / `ic_launcher_round.png` / `ic_launcher_foreground.png` from the Sewa Sankalp **emblem only** (figures + cupped hands; the small Marathi text is illegible at launcher size, so it was cropped out). Adaptive XML + `@color/ic_launcher_background` (#FFFFFF) unchanged — foreground is emblem-on-transparent in the 62% safe zone. Generated offline with PIL from `src/assets/sewa-sankalp-logo.png`. |
+| `src/assets/icon-emblem.png` | New — the cleaned emblem master kept for future icon regeneration. |
+| `android/app/src/main/res/values/strings.xml` | `app_name` + `title_activity_main`: "NGO Mitr" → "Dnyani Mitr". (`package_name` / `custom_url_scheme` / appId unchanged — must stay for the upgrade path.) |
+| `capacitor.config.json` | `appName`: "NGO Mitr" → "Dnyani Mitr". |
+| `public/manifest.json` | PWA `name` + `short_name` → "Dnyani Mitr". |
+| `index.html` | `<title>` "Dnyani Mitra" → "Dnyani Mitr" (align to the requested spelling). |
+| `src/utils/constants.js` | `APP_VERSION '3.0.6' → '3.0.7'`; `APP_NAME` → "Dnyani Mitr" (shown in the in-app About card). |
+| `src/components/UI/SmsBatchQueue.js` | SMS-permission instruction "Settings → Apps → NGO Mitr → …" → "Dnyani Mitr" so users find the right app entry. |
+| `src/main.js` | App header `<h1>` "Dnyani Mitra" → "Dnyani Mitr" (shown on every screen). |
+| `src/components/Sync/SyncManager.js` | Share titles (×2) "Dnyani Mitra sync" → "Dnyani Mitr sync"; backup filename prefix `DnyaniMitra_Backup_` → `DnyaniMitr_Backup_`. |
+| `src/services/TextSyncService.js` | Default share title → "Dnyani Mitr sync". |
+| `src/services/ReportService.js` | Report footer "Generated by Dnyani Mitra" → "Dnyani Mitr". |
+| `src/styles/main.css` | Two fixes: (a) `.btn-sm` → `white-space: normal` + `line-height: 1.2` + `@media (max-width: 380px)` font step so labels wrap instead of overflow; (b) **`.view-header .btn`** (mobile media query) → `min-width: 0` replaced with `flex: 1 1 auto; min-width: auto`. The `min-width: 0` was the actual VisitorView culprit — it defeated flexbox's min-content floor so the 7-button row (WhatsApp/Call/SMS/Log Interaction/Edit/Delete) squeezed each button narrower than its text and labels clipped/overlapped. Now buttons keep their intrinsic width and wrap to extra rows. |
+| `android/variables.gradle` | `appVersionCode = 8 → 9`, `appVersionName = '3.0.6' → '3.0.7'`. |
+| `package.json` | `version '3.0.6' → '3.0.7'`. |
+| `tests/formatters.test.js` | Fixed a pre-existing timezone flake in `getDaysUntil > returns 0 for today` (it built "today" via `toISOString()` (UTC) while `getDaysUntil` compares at local midnight → returned -1 during the IST 00:00–05:30 window). Now builds "today" from local date parts. Production code unchanged. |
+
+**Deliberately NOT changed:**
+- `appId` / Android package name `org.sewasankalp.ngomitr` — renaming would orphan installed data and break the in-place upgrade. Display name only.
+- PWA `manifest.json` icon (still the full `sewa-sankalp-logo.png`) — the full logo is fine at 512px for the web/PWA surface; only the Android launcher needed the small-size emblem treatment.
+- (Resolved) The "Mitr" vs "Mitra" spelling: owner confirmed **"Dnyani Mitr"** (no trailing *a*). All 6 literals across `main.js`, `SyncManager.js`, `TextSyncService.js`, `ReportService.js` aligned. Backup filenames now begin `DnyaniMitr_Backup_` (old `DnyaniMitra_Backup_*.json` files still import fine — filename is cosmetic).
+
+**Verification (local):**
+- `npx vite build` → 336.41 kB / 125.23 kB gzip, clean.
+- `npx vitest run` → 111/111 (after the timezone test fix).
+- `npx cap sync android` → clean.
+- **Code-verified only.** Launcher icon + name and the overlap fix are device-only-verifiable — see MUST-RUN below.
+
+**MUST-RUN before shipping (real-device, install fresh APK after versionCode bump 8→9):**
+- [ ] After install, the home-screen/launcher shows the **Sewa Sankalp emblem icon** (figures over cupped hands), and the app label reads **"Dnyani Mitr"**.
+- [ ] App Health (Settings → About) shows **Version: 3.0.7** and name **"Dnyani Mitr"**.
+- [ ] Reminders tab on the device(s) that showed overlap (Oppo/Redmi) → 💬 WhatsApp / 📱 SMS / 📞 Called / 🏠 Visited labels are fully readable, each within its own button, no text spilling across buttons (wrapping to two lines is fine).
+- [ ] Sweep the same on Visitor view (comm buttons), Sync, and Settings (diagnostics buttons) → no overlap.
+- [ ] Bump phone's system font size to Large/Largest → re-check the Reminders row still doesn't overlap.
+
+---
 
 ### Iteration 9.4 — Force-Light Theme: Remove Accidental Dark Mode (2026-05-26)
 **Status:** CODE COMPLETE — pending real-device retest on a dark-mode phone, ships as v3.0.6
