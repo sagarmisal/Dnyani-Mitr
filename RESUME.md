@@ -12,10 +12,37 @@
 | | |
 |---|---|
 | Version | **v3.2.0 / versionCode 11** (bumped from 3.1.0 / vc10) |
-| Tests | **314 passing**, 21 files |
 | Build | `dist/index.html` ~441 kB, ~153 kB gzip |
-| Git | **nothing committed** — all work is in the working tree |
-| Last commit | `20475ff` docs: Iteration 9.5 + 10 records (v3.1.0) |
+| Tests | **323 passing**, 22 files |
+| Git | committed **and pushed** |
+| Branch | **`iter-11-day-release`** (pushed to origin, NOT merged to main) |
+| Commit | `e5c00f6` — Iteration 11, 54 files, +14,456 / −5,386 |
+| Previous | `20475ff` docs: Iteration 9.5 + 10 records (v3.1.0) |
+
+## ▶ RESUME HERE (paused 2026-08-20)
+
+Work is committed and pushed. Nothing is half-finished in the working tree.
+
+**Immediate next steps, in order:**
+
+1. **Trigger the CI build** — GitHub → Actions → *Build Android APK (Capacitor)* → Run workflow →
+   branch `iter-11-day-release`. The `push` trigger only fires on main/master, so it needs the
+   manual dispatch. This proves `npm ci` resolves and the Android project compiles on a clean
+   machine; it does **not** produce a distributable APK.
+2. **Run the local test checklist** — `docs/LOCAL_TEST_v3.2.0.md`. Run B (upgrade with real data)
+   is the one that decides whether this ships.
+3. **Merge to main** only after 1 and 2 are green.
+4. **Then the pilot** — one volunteer phone + one laptop, 48-hour soak, before anyone else.
+
+**Two build gotchas on this machine** — both will waste an hour if forgotten:
+
+- `./gradlew` needs **Java 21**; the default `java` here is 17. Use
+  `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew assembleDebug --no-daemon`.
+- **Never run `npm audit fix --force`.** It bumps vite to 8, which is outside
+  `vite-plugin-singlefile@2.3.0`'s peer range, and `npm install` then fails for everyone. vite is
+  pinned to `^5.0.0` deliberately. The audit warnings are build-time-only dev dependencies.
+
+**Not started:** E5a (device pilot), E6 (volunteer instructions), and the owner actions below.
 
 ## What Iteration 11 changed
 
@@ -38,7 +65,7 @@ auditing how this release would actually reach three remote NGOs:
 ```bash
 cd ngo-visitor-manager
 npm install
-npx vitest run          # expect 314 passing
+npx vitest run          # expect 323 passing
 npx vite build          # expect dist/index.html
 npm run dev             # http://localhost:3000
 ```
@@ -75,7 +102,7 @@ what is already installed:
 
 ```bash
 npx vite build && npx cap sync android
-cd android && ./gradlew assembleDebug          # requires Java 21
+cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew assembleDebug
 cd .. && ./scripts/verify-apk.sh               # MUST print "Signature matches"
 ```
 
