@@ -42,6 +42,27 @@ export class SettingsPage {
                 <div class="setting-help">Used in message templates as {org}. Appears in WhatsApp/SMS greetings.</div>
               </div>
 
+              <!-- R3/C5a — the kill switch. A volunteer who finds the calendar
+                   landing confusing can put My Day back themselves, over the
+                   phone, with no rebuild and no new APK. -->
+              <div class="setting-item">
+                <label for="landing-screen">Opening screen</label>
+                <select id="landing-screen" class="form-input">
+                  <option value="calendar" ${this.settings.landingScreen !== 'dashboard' ? 'selected' : ''}>🗓 Calendar (recommended)</option>
+                  <option value="dashboard" ${this.settings.landingScreen === 'dashboard' ? 'selected' : ''}>📋 My Day</option>
+                </select>
+                <div class="setting-help">Which screen opens when you start the app. Takes effect next time you open it.</div>
+              </div>
+
+              <div class="setting-item">
+                <label for="calendar-starts-on">Week starts on</label>
+                <select id="calendar-starts-on" class="form-input">
+                  <option value="sun" ${this.settings.calendarStartsOn !== 'mon' ? 'selected' : ''}>Sunday</option>
+                  <option value="mon" ${this.settings.calendarStartsOn === 'mon' ? 'selected' : ''}>Monday</option>
+                </select>
+                <div class="setting-help">Sunday matches most Indian wall calendars.</div>
+              </div>
+
               <div class="setting-item">
                 <label for="reminder-lookahead">Reminder Lookahead (days)</label>
                 <input type="number" id="reminder-lookahead" class="form-input"
@@ -239,7 +260,9 @@ export class SettingsPage {
         autoBackupDays: backupDays,
         lapseThresholdDays: lapseThreshold,
         taglineMr: this.container.querySelector('#tagline-mr').value.trim(),
-        defaultCampaignLanguage: this.container.querySelector('#default-campaign-lang').value
+        defaultCampaignLanguage: this.container.querySelector('#default-campaign-lang').value,
+        landingScreen: this.container.querySelector('#landing-screen').value,
+        calendarStartsOn: this.container.querySelector('#calendar-starts-on').value
       });
 
       Toast.show('Settings saved', 'success');

@@ -19,6 +19,10 @@ export class Interaction {
         this.duration = (data.duration != null && data.duration !== '') ? Number(data.duration) : null; // minutes
         this.followUpDate = data.followUpDate || null; // ISO date
         this.followUpNotes = data.followUpNotes || '';
+        // Iter 11 (A6): follow-up completion. Storage back-fills this on load, but the
+        // model must declare AND serialise it — otherwise a round-trip through
+        // fromJSON/toJSON silently drops a completed follow-up and it reappears forever.
+        this.followUpCompletedAt = data.followUpCompletedAt || null;
     }
 
     /**
@@ -37,7 +41,8 @@ export class Interaction {
             outcome: this.outcome,
             duration: this.duration,
             followUpDate: this.followUpDate,
-            followUpNotes: this.followUpNotes
+            followUpNotes: this.followUpNotes,
+            followUpCompletedAt: this.followUpCompletedAt
         };
     }
 

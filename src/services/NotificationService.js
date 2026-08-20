@@ -7,6 +7,9 @@
 
 import ReminderService from './ReminderService.js';
 import OccasionService from './OccasionService.js';
+import CalendarService from './CalendarService.js';
+import { FEATURES } from '../utils/constants.js';
+import { toLocalISODate } from '../utils/formatters.js';
 
 const DIGEST_ID = 1001;
 const OCCASION_ID = 1002;
@@ -89,17 +92,33 @@ class NotificationService {
         const minute = Number.isInteger(mm) ? Math.min(59, Math.max(0, mm)) : 0;
         const at = { on: { hour, minute }, allowWhileIdle: true }; // daily recurring
 
-        // Daily reminder digest
+        // Daily digest. Iter 11 (D1/G15): today's PLANS lead, reminders follow.
+        // A plan nobody is reminded of relies on remembering to open the app,
+        // which is the whole reason planning-ahead fails in the field.
         try {
             const reminders = ReminderService.generateReminders(settings.reminderLookahead || 7) || [];
             const dueToday = reminders.filter(r => r.daysUntil === 0).length;
-            if (reminders.length > 0) {
+
+            let plansToday = 0;
+            if (FEATURES.dailyDigest) {
+                try {
+                    const todayKey = toLocalISODate(new Date());
+                    const { days } = CalendarService.getItemsForRange(todayKey, todayKey);
+                    plansToday = (days[todayKey] || []).filter(i =>
+                        i.kind === 'scheduled' && i.status === 'planned').length;
+                } catch (e) { /* calendar must never break the digest */ }
+            }
+
+            const parts = [];
+            if (plansToday > 0) parts.push(`${plansToday} planned today`);
+            if (dueToday > 0) parts.push(`${dueToday} due today`);
+            if (reminders.length > 0) parts.push(`${reminders.length} coming up`);
+
+            if (parts.length > 0) {
                 notifications.push({
                     id: DIGEST_ID,
-                    title: 'Dnyani Mitr — Reminders',
-                    body: dueToday > 0
-                        ? `${dueToday} due today, ${reminders.length} coming up.`
-                        : `${reminders.length} reminders coming up.`,
+                    title: 'Dnyani Mitr — Today',
+                    body: parts.join(', ') + '.',
                     schedule: at
                 });
             }

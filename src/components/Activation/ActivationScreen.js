@@ -2,7 +2,7 @@
 
 import ActivationManager from '../../core/activation.js';
 import Router, { ROUTES } from '../../core/router.js';
-import { MACHINE_ROLES, ORGANIZATION, ORGANIZATION_URL } from '../../utils/constants.js';
+import { MACHINE_ROLES, ORGANIZATION, ORGANIZATION_URL, APP_VERSION } from '../../utils/constants.js';
 
 import logoSrc from '../../assets/sewa-sankalp-logo.png';
 
@@ -26,8 +26,21 @@ export class ActivationScreen {
             </div>
             
             <h1>NGO Visitor & Reminder Manager</h1>
-            <p class="text-secondary">Version 2.0</p>
-            
+            <p class="text-secondary">Version ${APP_VERSION}</p>
+
+            <!-- R2.5 (G16): the laptop failure mode is opening the WRONG COPY.
+                 Browser storage is keyed to the file's location, so unzipping to
+                 a new folder instead of overwriting in place shows this screen
+                 and an empty app. Nothing was lost, but it is indistinguishable
+                 from total loss — and the natural reaction, re-entering the key
+                 and typing visitors in, creates a second divergent database. -->
+            <div class="activation-wrongcopy">
+              <strong>Already using Dnyani Mitr and seeing this screen?</strong>
+              <p>You have opened a different copy of the file. Close this, and open the app
+                 from the folder you always use. If you cannot find it, restore your backup —
+                 do not enter data here first.</p>
+            </div>
+
             <div style="margin: 2rem 0; padding: 1.5rem; background-color: var(--color-bg); border-radius: var(--radius-md);">
               <h3>Welcome!</h3>
               <p>This application requires activation with a master key provided by ${ORGANIZATION}.</p>

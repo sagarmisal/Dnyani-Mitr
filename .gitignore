@@ -4,3 +4,7 @@ dist
 *.log
 .vscode
 .idea
+
+# NGO data backups — these contain real visitor PII (names, phones, addresses).
+# They must never be committed to a remote repository.
+*.zip

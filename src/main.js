@@ -15,6 +15,9 @@ import { SettingsPage } from './components/Settings/SettingsPage.js';
 import { Toast } from './components/UI/Toast.js';
 import NotificationService from './services/NotificationService.js';
 import { MyDayDashboard } from './components/Dashboard/MyDayDashboard.js';
+import { CalendarView } from './components/Calendar/CalendarView.js';
+import { WhatsNew } from './components/UI/WhatsNew.js';
+import FileService from './services/FileService.js';
 import { InteractionHistory } from './components/Interactions/InteractionHistory.js';
 import { APP_NAME, APP_VERSION, ORGANIZATION, ORGANIZATION_URL } from './utils/constants.js';
 import logoSrc from './assets/sewa-sankalp-logo.png';
@@ -76,6 +79,18 @@ class App {
 
     // Reconcile local notifications with saved settings (no-op off-device).
     NotificationService.sync(StateManager.getSettings());
+
+    // U1: first run after an upgrade. Nobody is beside these volunteers to
+    // explain that the landing screen moved, so the app explains it once.
+    try { WhatsNew.showIfNeeded(); } catch (e) { console.error('WhatsNew failed', e); }
+
+    // F3: a backup tapped in WhatsApp arrives here. Route it to Sync with the
+    // content parked, so the existing preview + confirm flow handles it — no
+    // separate import path to keep correct.
+    FileService.onFileOpened((content, name) => {
+      window.__dnyaniMitrIncoming = { content, name };
+      Router.navigate(ROUTES.SYNC);
+    });
   }
 
   /**
@@ -101,7 +116,8 @@ class App {
           </div>
           
           <nav class="app-nav">
-            <a href="#${ROUTES.DASHBOARD}" class="nav-link">Dashboard</a>
+            <a href="#${ROUTES.CALENDAR}" class="nav-link">Calendar</a>
+            <a href="#${ROUTES.DASHBOARD}" class="nav-link">My Day</a>
             <a href="#${ROUTES.VISITORS}" class="nav-link">Visitors</a>
             <a href="#${ROUTES.REMINDERS}" class="nav-link">Reminders</a>
             <a href="#${ROUTES.CAMPAIGNS}" class="nav-link">Campaigns</a>
@@ -142,7 +158,14 @@ class App {
       this.showActivationScreen();
     });
 
-    // Dashboard route (default)
+    // Calendar route (Iter 11) — the landing screen.
+    Router.register(ROUTES.CALENDAR, (params) => {
+      const calendar = new CalendarView(params || {});
+      this.renderComponent(calendar.render());
+    });
+
+    // My Day is NOT deleted. It stays fully working here, reachable from the
+    // day pane, and is what the landingScreen kill-switch falls back to (S5).
     Router.register(ROUTES.DASHBOARD, () => {
       const dashboard = new MyDayDashboard();
       this.renderComponent(dashboard.render());
@@ -154,9 +177,9 @@ class App {
       this.renderComponent(visitorList.render());
     });
 
-    // Legacy root route redirects to dashboard
+    // Legacy root route follows whatever the landing preference says.
     Router.register('/', () => {
-      Router.navigate(ROUTES.DASHBOARD);
+      Router.navigate(this.landingRoute());
     });
 
     // Visitor view
@@ -268,8 +291,15 @@ class App {
       `);
     });
 
-    // Set default route
-    Router.setDefaultRoute(ROUTES.DASHBOARD);
+    // Set default route. C5a/S5 — the kill switch: a volunteer who finds the
+    // calendar landing confusing can put My Day back from Settings, over the
+    // phone, with no rebuild and no new APK.
+    Router.setDefaultRoute(this.landingRoute());
+  }
+
+  landingRoute() {
+    const settings = StateManager.getSettings();
+    return settings.landingScreen === 'dashboard' ? ROUTES.DASHBOARD : ROUTES.CALENDAR;
   }
 
   /**

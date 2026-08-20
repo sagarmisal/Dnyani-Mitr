@@ -306,6 +306,45 @@ class StateManager {
         return this._saveAndNotify();
     }
 
+    // ─── Scheduled items (Iter 11) ─────────────────────────────────────────
+    // Device-local: deliberately NOT part of the sync package (plan G2).
+    getScheduledItems() {
+        return deepClone(this.state.scheduledItems || []);
+    }
+
+    addScheduledItem(item) {
+        if (!this.state.scheduledItems) this.state.scheduledItems = [];
+        this.state.scheduledItems.push(item);
+        return this._saveAndNotify();
+    }
+
+    /**
+     * @param {boolean} preserveUpdatedAt - keep the `updatedAt` supplied in
+     *   `updates` instead of stamping now. Required by sync: re-stamping an
+     *   imported plan with local time discards the SENDER's edit time, which
+     *   breaks last-write-wins across three machines (A edits, B imports and
+     *   re-stamps, B relays to C — C then compares against B's import time,
+     *   so a genuinely later edit from A can lose to an earlier relayed one).
+     */
+    updateScheduledItem(itemId, updates, preserveUpdatedAt = false) {
+        const list = this.state.scheduledItems || [];
+        const index = list.findIndex(i => i.id === itemId);
+        if (index === -1) return false;
+        const stamp = (preserveUpdatedAt && updates.updatedAt)
+            ? updates.updatedAt
+            : new Date().toISOString();
+        list[index] = { ...list[index], ...updates, updatedAt: stamp };
+        return this._saveAndNotify();
+    }
+
+    deleteScheduledItem(itemId) {
+        const list = this.state.scheduledItems || [];
+        const next = list.filter(i => i.id !== itemId);
+        if (next.length === list.length) return false;
+        this.state.scheduledItems = next;
+        return this._saveAndNotify();
+    }
+
     /**
      * Get settings
      */

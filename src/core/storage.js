@@ -91,6 +91,7 @@ class StorageManager {
             interactions: [],
             occasions: this._seedOccasions(),
             campaigns: [],
+            scheduledItems: [],
             settings: { ...DEFAULT_SETTINGS },
             knownMachines: {},
             syncLog: []
@@ -124,6 +125,26 @@ class StorageManager {
             state.campaigns = [];
             changed = true;
         }
+        // Iter 11: scheduled items. Unlike occasions there is nothing to seed, so
+        // an empty array is simply the correct initial state — no "user cleared
+        // it" ambiguity to respect.
+        if (!Array.isArray(state.scheduledItems)) {
+            state.scheduledItems = [];
+            changed = true;
+        }
+        // Iter 11: back-fill the follow-up completion field on existing
+        // interactions. Records arriving from an older machine via sync do NOT
+        // pass through the Interaction constructor (SyncService.merge assigns
+        // plain objects), so every consumer must also treat a missing value as
+        // null rather than relying on this pass alone.
+        if (Array.isArray(state.interactions)) {
+            state.interactions.forEach(i => {
+                if (i && i.followUpCompletedAt === undefined) {
+                    i.followUpCompletedAt = null;
+                    changed = true;
+                }
+            });
+        }
         // Iter 10: new settings fields
         if (!state.settings || typeof state.settings !== 'object') {
             state.settings = { ...DEFAULT_SETTINGS };
@@ -134,7 +155,10 @@ class StorageManager {
                 taglineEn: DEFAULT_SETTINGS.taglineEn,
                 defaultCampaignLanguage: DEFAULT_SETTINGS.defaultCampaignLanguage,
                 notificationsEnabled: DEFAULT_SETTINGS.notificationsEnabled,
-                notificationDigestTime: DEFAULT_SETTINGS.notificationDigestTime
+                notificationDigestTime: DEFAULT_SETTINGS.notificationDigestTime,
+                calendarStartsOn: DEFAULT_SETTINGS.calendarStartsOn,
+                landingScreen: DEFAULT_SETTINGS.landingScreen,
+                whatsNewSeenVersion: DEFAULT_SETTINGS.whatsNewSeenVersion
             };
             for (const key in forwardSettings) {
                 if (state.settings[key] === undefined) {
@@ -222,7 +246,8 @@ class StorageManager {
             outcome: i.outcome || null,
             duration: (i.duration != null) ? i.duration : null,
             followUpDate: i.followUpDate || null,
-            followUpNotes: i.followUpNotes || ''
+            followUpNotes: i.followUpNotes || '',
+            followUpCompletedAt: i.followUpCompletedAt || null
         }));
 
         newState.visitors = newState.visitors.map(v => ({

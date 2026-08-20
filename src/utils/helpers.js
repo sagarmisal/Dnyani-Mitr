@@ -164,6 +164,21 @@ export async function saveFile(content, filename, mimeType = 'application/json')
         }
     }
 
+    // F0 (Iter 11): on Capacitor the anchor-download below is a SILENT NO-OP.
+    // Android WebView has no download support unless MainActivity registers a
+    // DownloadListener, and a blob: URL cannot be handed to DownloadManager
+    // anyway. The old code ran it regardless, returned {method:'download'}, and
+    // the UI said "Backup file downloaded. Store it safely." — manufacturing
+    // false confidence in a backup that was never written. Never claim a result
+    // we cannot deliver: say so, and let the caller offer the text route.
+    if (!caps.canDownload) {
+        return {
+            method: 'unavailable',
+            cancelled: false,
+            reason: 'This device cannot save files from the app. Use "Send as message" instead.'
+        };
+    }
+
     // Path 2: Standard browser download.
     try {
         const url = URL.createObjectURL(blob);
