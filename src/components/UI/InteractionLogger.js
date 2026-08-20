@@ -59,7 +59,10 @@ export class InteractionLogger {
   }
 
   static quickAction(type, opts) {
-    const { visitorId, reminderId, contactName, phone, eventType, onDone } = opts;
+    // Iter 11 (A9): `interactionDate` is optional and defaults to now, so every
+    // existing call site is unchanged. It exists so a calendar day pane can
+    // backfill work onto the day it actually happened (plan G4).
+    const { visitorId, reminderId, contactName, phone, eventType, onDone, interactionDate } = opts;
 
     if (InteractionLogger._blockedByDoNotContact(visitorId, contactName)) return;
 
@@ -86,6 +89,7 @@ export class InteractionLogger {
         visitorId,
         interactionType,
         notes,
+        interactionDate: interactionDate || undefined,
         outcome: 'successful'
       });
 

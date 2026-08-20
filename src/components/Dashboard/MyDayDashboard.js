@@ -35,6 +35,7 @@ export class MyDayDashboard {
         container.innerHTML = `
             <div class="dashboard-header">
                 <h2>My Day</h2>
+                <a class="btn btn-sm btn-link" href="#/calendar">🗓 Open the calendar</a>
                 <p class="text-secondary">${this._getGreeting()} &mdash; ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             </div>
 

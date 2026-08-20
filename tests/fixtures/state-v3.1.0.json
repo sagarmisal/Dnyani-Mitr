@@ -1,0 +1,367 @@
+{
+  "version": "3.1.0",
+  "activated": true,
+  "machineId": "machine_root_fixture",
+  "machineRole": "root",
+  "machineName": "Office Root (fixture)",
+  "visitors": [
+    {
+      "id": "visitor_fixture_001",
+      "primaryContactId": null,
+      "category": "Donor",
+      "tags": [],
+      "status": "active",
+      "customFields": {},
+      "address": "",
+      "city": "Kolhapur",
+      "communicationPreference": "whatsapp",
+      "notes": "",
+      "contacts": [
+        {
+          "id": "contact_f001_self",
+          "visitorId": "visitor_fixture_001",
+          "relationType": "SELF",
+          "name": "सुनीता पाटील",
+          "phones": [
+            "9876543210"
+          ],
+          "emails": [
+            "sunita@example.org"
+          ],
+          "dob": "1985-08-15",
+          "dobMonthOnly": false,
+          "deathDate": null,
+          "deathMonthOnly": false,
+          "marriageDate": null,
+          "marriageMonthOnly": false,
+          "customEvents": [],
+          "notes": "",
+          "createdAt": "2026-06-01T10:00:00.000Z",
+          "updatedAt": "2026-06-01T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-06-01T10:00:00.000Z",
+      "updatedAt": "2026-06-01T10:00:00.000Z",
+      "deletedAt": null,
+      "createdBy": "machine_root_fixture",
+      "updatedBy": null,
+      "consentGiven": true,
+      "consentDate": "2026-06-01T10:00:00.000Z",
+      "doNotContact": false,
+      "contactFrequencyDays": null,
+      "engagementScore": 0,
+      "engagementUpdatedAt": null
+    },
+    {
+      "id": "visitor_fixture_002",
+      "primaryContactId": null,
+      "category": "Volunteer",
+      "tags": [],
+      "status": "active",
+      "customFields": {},
+      "address": "",
+      "city": "Sangli",
+      "communicationPreference": "whatsapp",
+      "notes": "",
+      "contacts": [
+        {
+          "id": "contact_f002_self",
+          "visitorId": "visitor_fixture_002",
+          "relationType": "SELF",
+          "name": "रमेश जाधव",
+          "phones": [
+            "9822011223"
+          ],
+          "emails": [],
+          "dob": "1990-03-01",
+          "dobMonthOnly": true,
+          "deathDate": null,
+          "deathMonthOnly": false,
+          "marriageDate": null,
+          "marriageMonthOnly": false,
+          "customEvents": [],
+          "notes": "",
+          "createdAt": "2026-06-01T10:00:00.000Z",
+          "updatedAt": "2026-06-01T10:00:00.000Z"
+        },
+        {
+          "id": "contact_f002_spouse",
+          "visitorId": "visitor_fixture_002",
+          "relationType": "SPOUSE",
+          "name": "मीना जाधव",
+          "phones": [
+            "9822011224"
+          ],
+          "emails": [],
+          "dob": null,
+          "dobMonthOnly": false,
+          "deathDate": null,
+          "deathMonthOnly": false,
+          "marriageDate": "2012-11-20",
+          "marriageMonthOnly": false,
+          "customEvents": [],
+          "notes": "",
+          "createdAt": "2026-06-01T10:00:00.000Z",
+          "updatedAt": "2026-06-01T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-06-01T10:00:00.000Z",
+      "updatedAt": "2026-06-01T10:00:00.000Z",
+      "deletedAt": null,
+      "createdBy": "machine_sat_fixture",
+      "updatedBy": null,
+      "consentGiven": false,
+      "consentDate": null,
+      "doNotContact": false,
+      "contactFrequencyDays": 45,
+      "engagementScore": 0,
+      "engagementUpdatedAt": null
+    },
+    {
+      "id": "visitor_fixture_003",
+      "primaryContactId": null,
+      "category": "Beneficiary",
+      "tags": [],
+      "status": "active",
+      "customFields": {},
+      "address": "",
+      "city": "Kolhapur",
+      "communicationPreference": "whatsapp",
+      "notes": "",
+      "contacts": [
+        {
+          "id": "contact_f003_self",
+          "visitorId": "visitor_fixture_003",
+          "relationType": "SELF",
+          "name": "Anjali Kulkarni",
+          "phones": [
+            "9011223344"
+          ],
+          "emails": [],
+          "dob": "1996-02-29",
+          "dobMonthOnly": false,
+          "deathDate": null,
+          "deathMonthOnly": false,
+          "marriageDate": null,
+          "marriageMonthOnly": false,
+          "customEvents": [],
+          "notes": "",
+          "createdAt": "2026-06-01T10:00:00.000Z",
+          "updatedAt": "2026-06-01T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-06-01T10:00:00.000Z",
+      "updatedAt": "2026-06-01T10:00:00.000Z",
+      "deletedAt": null,
+      "createdBy": "machine_root_fixture",
+      "updatedBy": null,
+      "consentGiven": false,
+      "consentDate": null,
+      "doNotContact": true,
+      "contactFrequencyDays": null,
+      "engagementScore": 0,
+      "engagementUpdatedAt": null
+    }
+  ],
+  "reminderActions": [
+    {
+      "id": "raction_fixture_001",
+      "reminderId": "reminder_seed_contacted",
+      "action": "contacted",
+      "note": "called: Called for Birthday",
+      "actionAt": "2026-05-20T09:15:00.000Z",
+      "snoozeUntil": null
+    },
+    {
+      "id": "raction_fixture_002",
+      "reminderId": "reminder_seed_snoozed",
+      "action": "snoozed",
+      "note": "",
+      "actionAt": "2026-05-30T08:00:00.000Z",
+      "snoozeUntil": "2026-12-31T00:00:00.000Z"
+    }
+  ],
+  "interactions": [
+    {
+      "id": "interaction_fixture_001",
+      "visitorId": "visitor_fixture_001",
+      "contactId": "contact_f001_self",
+      "interactionType": "call",
+      "notes": "Routine check-in",
+      "interactionDate": "2026-05-20T09:15:00.000Z",
+      "createdAt": "2026-05-20T09:15:00.000Z",
+      "createdBy": "machine_root_fixture",
+      "outcome": "successful",
+      "duration": null,
+      "followUpDate": null,
+      "followUpNotes": ""
+    },
+    {
+      "id": "interaction_fixture_002",
+      "visitorId": "visitor_fixture_002",
+      "contactId": null,
+      "interactionType": "visit",
+      "notes": "Home visit, discussed donation receipt",
+      "interactionDate": "2026-05-28T11:00:00.000Z",
+      "createdAt": "2026-05-28T11:00:00.000Z",
+      "createdBy": "machine_sat_fixture",
+      "outcome": "successful",
+      "duration": null,
+      "followUpDate": "2026-06-05",
+      "followUpNotes": "Deliver receipt"
+    },
+    {
+      "id": "interaction_fixture_003",
+      "visitorId": "visitor_fixture_001",
+      "contactId": null,
+      "interactionType": "whatsapp",
+      "notes": "Late-night message (IST early morning)",
+      "interactionDate": "2026-06-01T21:00:00.000Z",
+      "createdAt": "2026-06-01T21:00:00.000Z",
+      "createdBy": "machine_sat_fixture",
+      "outcome": "successful",
+      "duration": null,
+      "followUpDate": null,
+      "followUpNotes": ""
+    }
+  ],
+  "occasions": [
+    {
+      "id": "occasion_new_year",
+      "name": "New Year",
+      "nameMr": "नववर्ष",
+      "month": 1,
+      "day": 1,
+      "builtin": true,
+      "templates": {
+        "greeting": {
+          "en": "Happy New Year, {name}! 🎉 Warm wishes from {org}.\n{tagline}",
+          "mr": "{name} जी, नववर्षाच्या हार्दिक शुभेच्छा! 🎉 — {org}\n{tagline}"
+        },
+        "invitation": {
+          "en": "Dear {name}, {org} invites you to our New Year programme. 🙏\n{tagline}",
+          "mr": "{name} जी, {org} तर्फे नववर्ष कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}"
+        }
+      },
+      "createdAt": null,
+      "updatedAt": null
+    },
+    {
+      "id": "occasion_republic_day",
+      "name": "Republic Day",
+      "nameMr": "प्रजासत्ताक दिन",
+      "month": 1,
+      "day": 26,
+      "builtin": true,
+      "templates": {
+        "greeting": {
+          "en": "Happy Republic Day, {name}! 🇮🇳 Warm wishes from {org}.\n{tagline}",
+          "mr": "{name} जी, प्रजासत्ताक दिनाच्या हार्दिक शुभेच्छा! 🇮🇳 — {org}\n{tagline}"
+        },
+        "invitation": {
+          "en": "Dear {name}, {org} invites you to our Republic Day programme. 🙏\n{tagline}",
+          "mr": "{name} जी, प्रजासत्ताक दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}"
+        }
+      },
+      "createdAt": null,
+      "updatedAt": null
+    },
+    {
+      "id": "occasion_maharashtra_day",
+      "name": "Maharashtra Day",
+      "nameMr": "महाराष्ट्र दिन",
+      "month": 5,
+      "day": 1,
+      "builtin": true,
+      "templates": {
+        "greeting": {
+          "en": "Happy Maharashtra Day, {name}! 🚩 — {org}\n{tagline}",
+          "mr": "{name} जी, महाराष्ट्र दिनाच्या हार्दिक शुभेच्छा! 🚩 — {org}\n{tagline}"
+        },
+        "invitation": {
+          "en": "Dear {name}, {org} invites you to our Maharashtra Day programme. 🙏\n{tagline}",
+          "mr": "{name} जी, महाराष्ट्र दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}"
+        }
+      },
+      "createdAt": null,
+      "updatedAt": null
+    },
+    {
+      "id": "occasion_independence_day",
+      "name": "Independence Day",
+      "nameMr": "स्वातंत्र्य दिन",
+      "month": 8,
+      "day": 15,
+      "builtin": true,
+      "templates": {
+        "greeting": {
+          "en": "Happy Independence Day, {name}! 🇮🇳 — {org}\n{tagline}",
+          "mr": "{name} जी, स्वातंत्र्य दिनाच्या हार्दिक शुभेच्छा! 🇮🇳 — {org}\n{tagline}"
+        },
+        "invitation": {
+          "en": "Dear {name}, {org} invites you to our Independence Day programme. 🙏\n{tagline}",
+          "mr": "{name} जी, स्वातंत्र्य दिनानिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}"
+        }
+      },
+      "createdAt": null,
+      "updatedAt": null
+    },
+    {
+      "id": "occasion_gandhi_jayanti",
+      "name": "Gandhi Jayanti",
+      "nameMr": "गांधी जयंती",
+      "month": 10,
+      "day": 2,
+      "builtin": true,
+      "templates": {
+        "greeting": {
+          "en": "On Gandhi Jayanti, warm wishes, {name}. 🙏 — {org}\n{tagline}",
+          "mr": "{name} जी, गांधी जयंतीच्या हार्दिक शुभेच्छा! 🙏 — {org}\n{tagline}"
+        },
+        "invitation": {
+          "en": "Dear {name}, {org} invites you to our Gandhi Jayanti programme. 🙏\n{tagline}",
+          "mr": "{name} जी, गांधी जयंतीनिमित्त {org} तर्फे कार्यक्रमास सादर निमंत्रण. 🙏\n{tagline}"
+        }
+      },
+      "createdAt": null,
+      "updatedAt": null
+    }
+  ],
+  "campaigns": [],
+  "settings": {
+    "reminderLookahead": 7,
+    "autoBackupDays": 7,
+    "lapseThresholdDays": 60,
+    "organizationName": "Sewa Sankalp Pratishthan",
+    "theme": "light",
+    "language": "en",
+    "messageTemplates": {
+      "birthday": "Happy Birthday {name}! Warm wishes from {org}. 🎂",
+      "anniversary": "Happy Anniversary {name}! Wishing you many more years together. 💍 — {org}",
+      "deathAnniversary": "Remembering your loved one today, {name}. Our thoughts are with you. 🙏 — {org}",
+      "followUp": "Hi {name}, following up on our last conversation. How can we help? — {volunteer}, {org}",
+      "thankYou": "Thank you {name} for your generous support of {org}! 🙏"
+    },
+    "taglineMr": "चला जरा वेगळे जगुया ...",
+    "taglineEn": "",
+    "defaultCampaignLanguage": "mr",
+    "notificationsEnabled": false,
+    "notificationDigestTime": "09:00"
+  },
+  "knownMachines": {
+    "machine_sat_fixture": {
+      "name": "Field Satellite (fixture)",
+      "lastSeen": "2026-06-01T10:00:00.000Z"
+    }
+  },
+  "syncLog": [
+    {
+      "id": "sync_fixture_001",
+      "direction": "import",
+      "machineId": "machine_sat_fixture",
+      "machineName": "Field Satellite (fixture)",
+      "at": "2026-06-01T10:00:00.000Z",
+      "visitorsAdded": 1
+    }
+  ]
+}

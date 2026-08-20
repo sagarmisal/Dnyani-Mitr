@@ -208,6 +208,17 @@
 
 *(See git commit 5f45b5e for full details)*
 
+### Iteration 11 — The Day Release: Calendar Landing + Inbound Visit Intake (2026-08-20)
+**Status:** CODE COMPLETE & code-verified (**314 tests**, 21 files, incl. happy-dom render smoke + self-review) — **pending real-device pass**. Ships as **v3.2.0 / versionCode 11**. Detailed plan + append-only log: `ITERATION_11_PLAN.md`. Resume guide: `RESUME.md`.
+
+**What it adds:** the **calendar becomes the landing screen**, and **inbound visits lead the day** — a supporter phoning to say they are coming is the primary flow, not a volunteer planning to go out. Phone-first intake resolves identity as it is typed (phone is already the natural key), captures the occasion with **its own date, separate from the visit date**, and creates the supporter *and* the third-party contact from the call, so the existing reminder engine carries that relationship forward every year unattended. Completion is one tap and asks *"did they come?"* first, because thanking someone for a visit they never made is worse than staying silent. My Day is retained at `#/dashboard` and the landing screen is a user-flippable setting.
+
+**Also ships:** `CalendarService` (year-aware derivation — `Reminder` normalises to the current/next year and cannot represent 2027; `getRemindersForMonth` is year-blind); **selective plan export** over the WhatsApp text channel (measured: a week of plans is 1 message where a full backup is 5); **movable-festival dates** via a per-year table that never guesses; native file share + open-a-backup-by-tapping-it-in-WhatsApp; a what's-new card carrying the daily-digest opt-in.
+
+**Seven pre-existing defects repaired**, none caused by the calendar, all found by auditing how the release would actually reach three remote NGOs: the "full" backup omitted `occasions`/`campaigns`; a backup **file** could not be restored at all (the file path always merged, dropping six collections while reporting success); `saveFile()` failed on all three Android paths **and reported success anyway**, so the app claimed backups it had never written; movable festivals could not be represented while comments claimed they could; the signing key controlling every future upgrade was un-backed-up; CI published APKs signed with a per-run throwaway key; and "visit" meant the wrong thing.
+
+**Known limits, stated not hidden:** Phase F (native files) is unit-tested but **no test proves anything about MIUI/ColorOS** — verified on the pilot phone or shipped off via `FEATURES.nativeFiles`. A 29-Feb event renders on 28 Feb in the calendar and 1 Mar in the Reminders tab (a pre-existing divergence between `resolveAnnualDate` and `normalizeEventDate`, both pinned; alignment deferred). Bundle is ~441 kB against a 420 kB ceiling set when this was a one-workstream release — raise recommended. Adversarial review was a **self-review**; independent `/code-review ultra` is owner-triggered and has not been run.
+
 ### Iteration 10 — The Reach Release: Bulk Occasion Campaigns + Local Notifications (2026-06-02)
 **Status:** CODE COMPLETE & code-verified (146 tests incl. happy-dom render smoke + adversarial review) — pending real-device pass. Ships as v3.1.0 / versionCode 10. Detailed plan + append-only log: `ITERATION_10_PLAN.md`.
 

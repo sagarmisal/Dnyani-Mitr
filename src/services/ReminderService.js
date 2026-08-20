@@ -4,7 +4,7 @@ import StateManager from '../core/state.js';
 import VisitorService from './VisitorService.js';
 import { Reminder } from '../models/Reminder.js';
 import { generateId } from '../utils/helpers.js';
-import { getCurrentDate } from '../utils/formatters.js';
+import { getCurrentDate, toLocalISODate } from '../utils/formatters.js';
 import { REMINDER_ACTIONS } from '../utils/constants.js';
 import EventBus, { EVENTS } from '../core/events.js';
 
@@ -68,7 +68,7 @@ class ReminderService {
 
             // Frequency-based reminder (A3) — same expansion: include items
             // that became due in the past `back` days, not just upcoming.
-            const freqReminder = this._generateFrequencyReminder(visitor);
+            const freqReminder = this.generateFrequencyReminder(visitor);
             if (freqReminder && freqReminder.daysUntil >= -back && freqReminder.daysUntil <= ahead) {
                 if (!this.isSnoozed(freqReminder.id, reminderActions)) {
                     if (!this._isAlreadyContactedThisCycle(freqReminder.id, reminderActions, back + ahead)) {
@@ -105,7 +105,7 @@ class ReminderService {
      * Returns null if no target is set or not yet due (target date > today + lookahead).
      * Due date = (lastInteractionDate OR visitor.createdAt) + contactFrequencyDays.
      */
-    _generateFrequencyReminder(visitor) {
+    generateFrequencyReminder(visitor) {
         if (!visitor.contactFrequencyDays || visitor.contactFrequencyDays <= 0) return null;
 
         const interactions = StateManager.getInteractions()
@@ -131,8 +131,13 @@ class ReminderService {
         const selfContact = visitor.contacts?.find(c => c.relationType === 'SELF');
         if (!selfContact) return null;
 
-        // Use ISO date (YYYY-MM-DD) as rawDate so reminder ID is stable across year boundaries
-        const isoDue = dueDate.toISOString().split('T')[0];
+        // Use ISO date (YYYY-MM-DD) as rawDate so reminder ID is stable across year boundaries.
+        // Iter 11 (A3): keyed off the LOCAL calendar day, not the UTC one. `toISOString()`
+        // reports the UTC date, so in IST a due instant falling between 00:00 and 05:30 local
+        // was reported as the previous day — and disagreed with `daysUntil` below, which has
+        // always been computed from local midnight. The record was internally inconsistent by
+        // one day and the reminder surfaced a day early.
+        const isoDue = toLocalISODate(dueDate);
 
         const reminder = new Reminder(
             visitor,
@@ -248,7 +253,7 @@ class ReminderService {
                             event.date,
                             event.monthOnly
                         );
-                        this._annotateHandled(reminder, reminderActions, cycleWindow);
+                        this.annotateHandled(reminder, reminderActions, cycleWindow);
                         reminders.push(reminder);
                     }
                 });
@@ -269,7 +274,7 @@ class ReminderService {
      * - contacted this cycle: handledReason='contacted', handledAt=most recent actionAt
      * - neither: handled=false
      */
-    _annotateHandled(reminder, reminderActions, cycleWindow) {
+    annotateHandled(reminder, reminderActions, cycleWindow) {
         if (this.isSnoozed(reminder.id, reminderActions)) {
             const snoozeAction = reminderActions.find(a =>
                 a.reminderId === reminder.id &&
@@ -293,6 +298,20 @@ class ReminderService {
             return;
         }
         reminder.handled = false;
+    }
+
+    /**
+     * Iter 11 (B2/B4): `annotateHandled` and `generateFrequencyReminder` were promoted
+     * from private to public so CalendarService can reuse them instead of forking the
+     * logic (plan G6). These aliases keep the original names working for any caller or
+     * test that still uses them — the behaviour is identical, there is one implementation.
+     */
+    _annotateHandled(reminder, reminderActions, cycleWindow) {
+        return this.annotateHandled(reminder, reminderActions, cycleWindow);
+    }
+
+    _generateFrequencyReminder(visitor) {
+        return this.generateFrequencyReminder(visitor);
     }
 
     /**

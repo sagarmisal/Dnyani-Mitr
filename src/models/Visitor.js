@@ -29,6 +29,10 @@ export class Visitor {
         this.contactFrequencyDays = data.contactFrequencyDays || null;
         this.engagementScore = data.engagementScore || 0;
         this.engagementUpdatedAt = data.engagementUpdatedAt || null;
+        // Iter 11 (V10): how this record came to exist. A name heard over a
+        // phone in Marathi is a name at risk of being misspelt, so intake
+        // records must be findable for review later. Null for everything else.
+        this.source = data.source || null;
     }
 
     /**
@@ -116,6 +120,7 @@ export class Visitor {
             updatedAt: this.updatedAt,
             deletedAt: this.deletedAt,
             createdBy: this.createdBy,
+            source: this.source,
             updatedBy: this.updatedBy,
             consentGiven: this.consentGiven,
             consentDate: this.consentDate,

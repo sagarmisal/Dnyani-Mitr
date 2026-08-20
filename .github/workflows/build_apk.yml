@@ -58,8 +58,24 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Warn that CI APKs are not distributable
+        run: |
+          {
+            echo "### ⚠ CI APK — TESTING ONLY, DO NOT SEND TO VOLUNTEERS"
+            echo ""
+            echo "This runner generates a **fresh throwaway debug keystore on every run**"
+            echo "(nothing restores \`~/.android\`), so this APK is signed with a different"
+            echo "key each time and **cannot install over the app on the NGO devices**."
+            echo ""
+            echo "A volunteer given this APK sees \"App not installed\", and the usual advice"
+            echo "for that error — uninstall first — destroys their visitor data."
+            echo ""
+            echo "Release APKs are built on the maintainer's machine and checked with"
+            echo "\`./scripts/verify-apk.sh\` before distribution."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v5
         with:
-          name: app-debug.apk
+          name: app-debug-CI-TESTING-ONLY.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk

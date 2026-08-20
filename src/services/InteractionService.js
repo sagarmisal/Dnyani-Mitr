@@ -31,6 +31,15 @@ class InteractionService {
             params = { visitorId: visitorIdOrParams, interactionType, notes, contactId, interactionDate };
         }
 
+        // Iter 11 (A8): visitorId has always been documented as required, but was
+        // never enforced. A null one produced an orphan interaction that renders as
+        // "Unknown Visitor" with a dead link in History and then syncs to every
+        // machine. Fail loudly instead — all callers already pass a real id, and a
+        // scheduled item with no visitor must not log at all (plan G3).
+        if (!params.visitorId) {
+            throw new Error('Cannot log an interaction without a visitorId');
+        }
+
         const interaction = new Interaction({
             visitorId: params.visitorId,
             contactId: params.contactId || null,

@@ -1,6 +1,19 @@
-// Occasion Model — a fixed-date (month/day) occasion that owns bilingual
-// greeting + invitation templates. Built-ins are seeded from DEFAULT_OCCASIONS;
-// users add/edit their own (Foundation Day, movable festivals) via the manager.
+// Occasion Model — an occasion that owns bilingual greeting + invitation
+// templates, and knows when it falls.
+//
+// TWO kinds, because India has both (Iter 11, Phase O):
+//   FIXED    — same Gregorian month/day every year. Independence Day, Republic
+//              Day, a foundation day, Christmas. Uses `month` + `day`.
+//   MOVABLE  — lunar / luni-solar, so the Gregorian date moves every year.
+//              Diwali, Ganesh Chaturthi, Gudi Padwa, Holi, Eid. Uses `dates`,
+//              a per-year table: { "2026": "11-08", "2027": "10-29" }.
+//
+// Until Phase O, only month/day existed, and two comments here and in
+// constants.js told users they could add "movable festivals" — which was false
+// and is how a wrong-day Diwali greeting reaches hundreds of supporters in the
+// NGO's name. A movable occasion with no entry for a year does NOT fire and does
+// NOT extrapolate: it reports that it needs a date. A missing greeting is a
+// small loss; a greeting on the wrong day is a public one.
 
 import { generateId } from '../utils/helpers.js';
 import { getCurrentDate } from '../utils/formatters.js';
@@ -18,6 +31,9 @@ export class Occasion {
         this.month = Number.isInteger(m) ? m : null; // 1-12
         this.day = Number.isInteger(d) ? d : null;   // 1-31
         this.builtin = data.builtin === true;
+        // { "YYYY": "MM-DD" } for movable festivals. Empty for fixed occasions.
+        this.dates = (data.dates && typeof data.dates === 'object') ? { ...data.dates } : {};
+        this.movable = data.movable === true || Object.keys(this.dates).length > 0;
         const t = data.templates || {};
         this.templates = {
             greeting: { en: (t.greeting && t.greeting.en) || '', mr: (t.greeting && t.greeting.mr) || '' },
@@ -42,6 +58,8 @@ export class Occasion {
             month: this.month,
             day: this.day,
             builtin: this.builtin,
+            movable: this.movable,
+            dates: this.dates,
             templates: this.templates,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt
@@ -50,6 +68,31 @@ export class Occasion {
 
     static fromJSON(data) {
         return new Occasion(data);
+    }
+
+    /**
+     * Month/day this occasion falls on in a given year, or null when unknown.
+     * A movable occasion with no entry for that year returns null — deliberately,
+     * so callers omit it rather than guessing.
+     */
+    resolveFor(year) {
+        if (this.movable) {
+            const entry = this.dates ? this.dates[String(year)] : null;
+            if (typeof entry !== 'string') return null;
+            const m = /^(\d{2})-(\d{2})$/.exec(entry);
+            if (!m) return null;
+            const month = parseInt(m[1], 10);
+            const day = parseInt(m[2], 10);
+            if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+            return { month, day };
+        }
+        if (!this.month || !this.day) return null;
+        return { month: this.month, day: this.day };
+    }
+
+    /** True when this is movable and nobody has set a date for that year yet. */
+    needsDateFor(year) {
+        return this.movable && !this.resolveFor(year);
     }
 
     /**

@@ -30,6 +30,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- F3 (Iter 11): appear in Android's "Open with" list for a backup
+                 file, so a volunteer can tap the attachment in WhatsApp and pick
+                 Dnyani Mitr. This replaces hunting for the file in a picker,
+                 which on MIUI/ColorOS means navigating scoped storage to a
+                 folder WhatsApp does not advertise. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/json" />
+                <data android:scheme="file" android:mimeType="application/json" />
+            </intent-filter>
+
+            <!-- Shared TO the app from another app's share sheet. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
         </activity>
 
         <provider

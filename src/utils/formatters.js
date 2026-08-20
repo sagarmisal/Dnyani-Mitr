@@ -72,11 +72,54 @@ export function getDaysUntil(isoDate) {
 /**
  * Helper to get Local YYYY-MM-DD string
  */
-function toLocalISOString(date) {
+export function toLocalISODate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+/**
+ * Local calendar day of an instant, as YYYY-MM-DD.
+ *
+ * Interaction/action timestamps are stored as UTC (`getCurrentDate()` returns
+ * `toISOString()`), so in IST anything recorded between 00:00 and 05:30 local
+ * carries the PREVIOUS UTC date. Splitting such a timestamp on 'T' therefore
+ * files it on the wrong day. Everything that groups records by day must key
+ * through here instead.
+ *
+ * @param {string|Date} value - ISO timestamp or Date
+ * @returns {string|null} local YYYY-MM-DD, or null if unusable
+ */
+export function localDayKey(value) {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (isNaN(date.getTime())) return null;
+    return toLocalISODate(date);
+}
+
+/**
+ * Resolve an annually-recurring month/day onto a specific year, at local midnight.
+ *
+ * The day is CLAMPED to the real length of that month, so 29 Feb resolves to
+ * 28 Feb in a non-leap year rather than overflowing into March (which is what
+ * `new Date(year, 1, 29)` does on its own).
+ *
+ * @param {number} year - full year, e.g. 2026
+ * @param {number} month - 1-12
+ * @param {number} day - 1-31
+ * @returns {Date|null} local-midnight Date, or null if the input is unusable
+ */
+export function resolveAnnualDate(year, month, day) {
+    const y = parseInt(year, 10);
+    const m = parseInt(month, 10);
+    const d = parseInt(day, 10);
+    if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return null;
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+
+    const monthIndex = m - 1;
+    const lastDayOfMonth = new Date(y, monthIndex + 1, 0).getDate();
+    return new Date(y, monthIndex, Math.min(d, lastDayOfMonth));
 }
 
 /**
@@ -106,7 +149,7 @@ export function normalizeEventDate(rawDate, monthOnly = false) {
         );
     }
 
-    return toLocalISOString(normalized);
+    return toLocalISODate(normalized);
 }
 
 /**
@@ -129,7 +172,7 @@ export function getCurrentDate() {
  * Get current date (date only, no time, LOCAL)
  */
 export function getCurrentDateOnly() {
-    return toLocalISOString(new Date());
+    return toLocalISODate(new Date());
 }
 
 /**

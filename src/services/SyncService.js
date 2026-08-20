@@ -2,6 +2,8 @@
 
 import StateManager from '../core/state.js';
 import ActivationManager from '../core/activation.js';
+import StorageManager from '../core/storage.js';
+import { ScheduledItem } from '../models/ScheduledItem.js';
 import EventBus, { EVENTS } from '../core/events.js';
 import { STORAGE_KEYS, APP_VERSION } from '../utils/constants.js';
 import { normalizePhone, namesSimilar } from '../utils/formatters.js';
@@ -293,6 +295,304 @@ class SyncService {
             },
             data: exportData
         };
+    }
+
+    // ─── Full backup / restore (Iter 11, R0) ───────────────────────────────
+    //
+    // Before this existed, `SyncManager` assembled its own payload inline and
+    // stamped it `backupType: 'full'` while omitting `occasions`, `campaigns`
+    // and `scheduledItems` — so a restore after a reinstall silently lost every
+    // custom occasion and every campaign the NGO had ever built. And a backup
+    // FILE could not be restored at all: the file path always ran through
+    // merge(), which reads three collections and drops the rest while reporting
+    // success. Both are fixed here, in one authoritative place.
+
+    /**
+     * Every persisted collection, in one package.
+     *
+     * `metadata.collections` lists what is inside, so a future collection that
+     * someone forgets to add here is DETECTABLE rather than silently missing.
+     * The guard test asserts it against StorageManager.getDefaultState().
+     */
+    prepareFullBackup() {
+        const state = StateManager.getState();
+        const machineInfo = ActivationManager.getMachineInfo();
+
+        const data = {
+            visitors: state.visitors || [],
+            interactions: state.interactions || [],
+            reminderActions: state.reminderActions || [],
+            occasions: state.occasions || [],
+            campaigns: state.campaigns || [],
+            scheduledItems: state.scheduledItems || [],
+            settings: state.settings || {},
+            syncLog: state.syncLog || [],
+            knownMachines: state.knownMachines || {}
+        };
+
+        return {
+            metadata: {
+                app: 'NGO_Visitor_Manager',
+                version: APP_VERSION,
+                dataVersion: APP_VERSION,
+                backupType: 'full',
+                collections: Object.keys(data),
+                exportedAt: new Date().toISOString(),
+                machineId: machineInfo?.machineId || null,
+                machineName: machineInfo?.machineName || null,
+                machineRole: machineInfo?.machineRole || null
+            },
+            data
+        };
+    }
+
+    /** True when a package is a full backup rather than a sync/merge package. */
+    isFullBackup(pkg) {
+        return !!(pkg && pkg.metadata && pkg.metadata.backupType === 'full' && pkg.data);
+    }
+
+    /**
+     * REPLACE this device's data with a full backup. Not a merge — the caller
+     * must have said so explicitly, because everything currently here is
+     * discarded. A pre-restore snapshot is taken first.
+     *
+     * Version-tolerant in both directions: the restored state is passed through
+     * StorageManager.ensureForwardFields(), so a v3.1.0 backup (no
+     * scheduledItems, no followUpCompletedAt) lands cleanly in v3.2.0.
+     */
+    restoreFullBackup(pkg) {
+        if (!this.isFullBackup(pkg)) {
+            throw new Error('This is not a full backup. Use Import to merge a sync file instead.');
+        }
+        const data = pkg.data;
+        if (!Array.isArray(data.visitors)) {
+            throw new Error('This backup is damaged: the visitor list is missing.');
+        }
+
+        const backupCreatedAt = this.createBackup();
+
+        const restored = {
+            visitors: data.visitors || [],
+            interactions: data.interactions || [],
+            reminderActions: data.reminderActions || []
+        };
+
+        // ABSENT is not the same as EMPTY, and conflating them loses data.
+        // A genuine v3.1.0 backup carries NO `occasions` key at all (that is
+        // R-DEFECT-1: the old builder omitted it) — yet those devices had
+        // occasions. Writing [] here would tell ensureForwardFields "the user
+        // deleted them all, do not reseed", leaving the device with none.
+        // So a key that is absent is left untouched: the built-ins get seeded on
+        // a fresh install, and an existing device keeps what it already had.
+        // A key that IS present, even as [], is an instruction and is honoured.
+        ['occasions', 'campaigns', 'scheduledItems'].forEach(key => {
+            if (Array.isArray(data[key])) restored[key] = data[key];
+        });
+        if (data.knownMachines && typeof data.knownMachines === 'object') {
+            restored.knownMachines = data.knownMachines;
+        }
+        if (Array.isArray(data.syncLog)) restored.syncLog = data.syncLog;
+        if (data.settings && typeof data.settings === 'object') {
+            restored.settings = data.settings;
+        }
+
+        // Bring an older backup up to the current shape before it is stored, so
+        // no consumer has to cope with fields that release did not have.
+        StorageManager.ensureForwardFields(restored);
+
+        StateManager.setState(restored);
+
+        StateManager.addSyncLogEntry({
+            timestamp: new Date().toISOString(),
+            direction: 'restore',
+            machineId: pkg.metadata.machineId || null,
+            machineName: pkg.metadata.machineName || 'Unknown',
+            dataVersion: pkg.metadata.dataVersion || pkg.metadata.version || null,
+            visitorsRestored: restored.visitors.length,
+            interactionsRestored: restored.interactions.length
+        });
+
+        EventBus.emit(EVENTS.IMPORT_COMPLETED);
+
+        return {
+            backupCreated: backupCreatedAt !== null,
+            counts: {
+                visitors: restored.visitors.length,
+                interactions: restored.interactions.length,
+                reminderActions: restored.reminderActions.length,
+                occasions: restored.occasions.length,
+                campaigns: restored.campaigns.length,
+                scheduledItems: restored.scheduledItems.length
+            }
+        };
+    }
+
+    // ─── Shareable plans (Iter 11, Phase S) ────────────────────────────────
+    //
+    // Measured against the real channel (gzip -> base64 -> 3500-char chunks):
+    // a full backup of 25 visitors + 200 interactions is ~5 WhatsApp messages,
+    // a week of plans is 1 — and the gap only widens as history accumulates.
+    // Plan-sharing is a DAILY act, so it must cost one message.
+
+    /**
+     * Plans from `fromKey` forward, plus the people they point at.
+     *
+     * Cancellations travel too (S4). Sync has no delete propagation, which is
+     * fine for visitors and fatal for plans: if the office cancels Tuesday and
+     * the cancellation never arrives, the volunteer makes the trip anyway.
+     */
+    preparePlansExport({ fromKey = null, onlyDate = null } = {}) {
+        const state = StateManager.getState();
+        const machineInfo = ActivationManager.getMachineInfo();
+        const today = fromKey || new Date().toISOString().slice(0, 10);
+
+        const cancelledFloor = new Date(today + 'T00:00:00');
+        cancelledFloor.setDate(cancelledFloor.getDate() - 30);
+        const floorKey = cancelledFloor.toISOString().slice(0, 10);
+
+        const all = state.scheduledItems || [];
+        const items = all.filter(i => {
+            if (!i || !i.date) return false;
+            if (onlyDate) return i.date === onlyDate;
+            if (i.status === 'cancelled') return i.date >= floorKey;   // tombstone window
+            return i.date >= today;
+        });
+
+        // S3: carry a stub for every referenced visitor so an item never renders
+        // as "Unknown" on a device that has not met that person yet. Deliberately
+        // a stub and not a full record — the receiver must NOT create visitors
+        // from it, or the master list fills with half-people.
+        const byId = new Map((state.visitors || []).map(v => [v.id, v]));
+        const refs = [];
+        const seen = new Set();
+        items.forEach(i => {
+            if (!i.visitorId || seen.has(i.visitorId)) return;
+            seen.add(i.visitorId);
+            const v = byId.get(i.visitorId);
+            if (!v) return;
+            const self = (v.contacts || []).find(c => c.relationType === 'SELF');
+            refs.push({ id: v.id, name: self?.name || '', phone: (self?.phones || [])[0] || null });
+        });
+
+        return {
+            metadata: {
+                app: 'NGO_Visitor_Manager',
+                version: APP_VERSION,
+                dataVersion: APP_VERSION,
+                backupType: 'plans',
+                exportedAt: new Date().toISOString(),
+                machineId: machineInfo?.machineId || null,
+                machineName: machineInfo?.machineName || null,
+                fromDate: onlyDate || today,
+                count: items.length
+            },
+            data: { scheduledItems: items, visitorRefs: refs }
+        };
+    }
+
+    isPlansPackage(pkg) {
+        return !!(pkg && pkg.metadata && pkg.metadata.backupType === 'plans' && pkg.data);
+    }
+
+    /**
+     * S10 — a plain line above the data block. `parseChunks` scans with a regex,
+     * so surrounding text is ignored by the parser but READ BY THE PERSON before
+     * they paste. Without it, a not-yet-upgraded device answers a plans message
+     * with "Invalid sync package: No visitor data found", and the volunteer
+     * concludes the feature is broken.
+     */
+    plansMessageHeader(pkg) {
+        const n = pkg?.metadata?.count ?? 0;
+        const when = pkg?.metadata?.fromDate || '';
+        return `📅 Dnyani Mitr — ${n} plan${n === 1 ? '' : 's'} from ${when}.`
+            + `\nNeeds app version ${APP_VERSION} or later. Paste the whole message into Sync.`;
+    }
+
+    /**
+     * Merge incoming plans. Last-write-wins by `updatedAt`, with three rules the
+     * naive version gets wrong:
+     *   S5 — `done` is TERMINAL on this device. A plan is an intention, a
+     *        completion is a fact; an incoming edit may change the title, never
+     *        un-complete work already recorded here.
+     *   S6 — re-importing the same message, or an older one after a newer one,
+     *        must be a no-op. Forwarding twice is normal behaviour here.
+     *   S7 — no authority exists in an all-satellite NGO, so an incoming item
+     *        matching an existing one on (visitorId, date, type) is flagged as a
+     *        duplicate rather than silently added twice.
+     */
+    mergePlans(pkg) {
+        if (!this.isPlansPackage(pkg)) {
+            throw new Error('This is not a plans message.');
+        }
+        const incoming = Array.isArray(pkg.data.scheduledItems) ? pkg.data.scheduledItems : [];
+        const refs = Array.isArray(pkg.data.visitorRefs) ? pkg.data.visitorRefs : [];
+        const refById = new Map(refs.map(r => [r.id, r]));
+
+        const current = StateManager.getScheduledItems();
+        const byId = new Map(current.map(i => [i.id, i]));
+
+        let added = 0, updated = 0, skipped = 0, cancelled = 0;
+        const duplicates = [];
+
+        const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+
+        incoming.forEach(item => {
+            if (!item || !item.id || !DAY_KEY.test(item.date || '')) { skipped++; return; }
+
+            // SEC: normalise through the model before anything is stored. This
+            // is a NEW ingestion path from a file a volunteer received over
+            // WhatsApp, so it must not write unvetted objects into state: the
+            // constructor coerces type/status/direction to known values and
+            // drops unknown fields, which stops junk being stored AND re-exported
+            // onwards to the next device.
+            const ref = item.visitorId ? refById.get(item.visitorId) : null;
+            const incomingItem = new ScheduledItem(item).toJSON();
+            incomingItem.createdAt = item.createdAt || incomingItem.createdAt;
+            incomingItem.updatedAt = item.updatedAt || incomingItem.updatedAt;
+            if (!incomingItem.visitorName && ref?.name) incomingItem.visitorName = ref.name;
+
+            const existing = byId.get(item.id);
+
+            if (!existing) {
+                const clash = current.find(c =>
+                    c.visitorId && c.visitorId === item.visitorId &&
+                    c.date === item.date && c.type === item.type && c.id !== item.id);
+                if (clash) {
+                    duplicates.push({ incoming: item.title, existing: clash.title, date: item.date });
+                    skipped++;
+                    return;
+                }
+                StateManager.addScheduledItem(incomingItem);
+                added++;
+                if (item.status === 'cancelled') cancelled++;
+                return;
+            }
+
+            if (existing.status === 'done') { skipped++; return; }              // S5
+            const a = new Date(existing.updatedAt || 0).getTime();
+            const b = new Date(item.updatedAt || 0).getTime();
+            if (!(b > a)) { skipped++; return; }                                 // S6
+
+            // preserveUpdatedAt: keep the sender's edit time. Re-stamping here
+            // would make this device claim authorship of someone else's edit.
+            StateManager.updateScheduledItem(item.id, {
+                ...incomingItem,
+                updatedAt: item.updatedAt
+            }, true);
+            updated++;
+            if (item.status === 'cancelled') cancelled++;
+        });
+
+        StateManager.addSyncLogEntry({
+            timestamp: new Date().toISOString(),
+            direction: 'plans-import',
+            machineId: pkg.metadata.machineId || null,
+            machineName: pkg.metadata.machineName || 'Unknown',
+            plansAdded: added,
+            plansUpdated: updated
+        });
+
+        return { added, updated, skipped, cancelled, duplicates };
     }
 }
 
