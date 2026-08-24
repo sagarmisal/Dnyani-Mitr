@@ -8,7 +8,7 @@
  * Rules:
  *   - A refactor must keep every test below green WITHOUT editing it (S3).
  *     Editing one to accommodate a refactor is a behaviour change and requires
- *     a written reason in ITERATION_11_PLAN.md's progress log.
+ *     a written reason in INITIATIVE.md §14 (progress log).
  *   - Tests tagged PINS-A-BUG deliberately record behaviour we intend to CHANGE
  *     (findings F5 / G4). They are replaced by the corrected expectation in the
  *     same commit as the fix, with the reason logged. They exist so the change
@@ -222,7 +222,7 @@ describe('CHARACTERIZATION: StorageManager round-trip on a real v3.1.0 state', (
     });
 
     /**
-     * S3 EXCEPTION #2 — reason recorded in ITERATION_11_PLAN.md's progress log.
+     * S3 EXCEPTION #2 — reason recorded in INITIATIVE.md §14 (progress log).
      *
      * These two started life as BASELINE GAP tests asserting that a v3.1.0 state
      * has neither `scheduledItems` nor `followUpCompletedAt`. Tasks A6/A7 close
