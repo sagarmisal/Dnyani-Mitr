@@ -1,6 +1,7 @@
 // Visitor Service - CRUD operations and business logic
 
 import StateManager from '../core/state.js';
+import { normalizeText, foldKey } from '../utils/devanagari.js';
 import EventBus, { EVENTS } from '../core/events.js';
 import { Visitor } from '../models/Visitor.js';
 import { Contact } from '../models/Contact.js';
@@ -68,7 +69,23 @@ class VisitorService {
 
         // Search query
         if (query && query.trim()) {
-            const q = query.toLowerCase().trim();
+            // P1.2 — NFC the query so it can match names stored in either form.
+            const q = normalizeText(query).toLowerCase().trim();
+
+            // P1.1 — the fold key, so a Latin query finds a Devanagari record.
+            // Volunteers type with a transliteration keyboard and think in
+            // Latin, so "sunita" must find सुनीता. This is strictly ADDITIVE:
+            // it can only widen the result set, never narrow it, so no existing
+            // search stops working. Whether it holds up on real Maharashtrian
+            // surnames is Q-05, and needs a real name list to tune against.
+            // Only fold-match once the key is long enough to mean something.
+            // foldKey('a') is 'a' and foldKey('zzzzz') collapses to 'j' — a one
+            // or two character key is a substring of almost every name, so
+            // below this threshold the fold would match the entire register.
+            const rawFold = foldKey(q);
+            const qFold = rawFold.length >= 3 ? rawFold : '';
+            const qDigits = q.replace(/[^0-9]/g, '');
+
             visitors = visitors.filter(v => {
                 // Search in visitor fields
                 if (v.category && v.category.toLowerCase().includes(q)) return true;
@@ -78,8 +95,14 @@ class VisitorService {
 
                 // Search in contacts
                 return v.contacts.some(c => {
-                    if (c.name.toLowerCase().includes(q)) return true;
+                    const name = normalizeText(c.name || '');
+                    if (name.toLowerCase().includes(q)) return true;
+                    // Fold both sides; substring so a first name finds a full name.
+                    if (qFold && foldKey(name).includes(qFold)) return true;
                     if (c.phones.some(p => p.includes(q))) return true;
+                    // Digits only, so "98220 12345" matches a stored "9822012345".
+                    if (qDigits.length >= 4 &&
+                        c.phones.some(p => String(p).replace(/[^0-9]/g, '').includes(qDigits))) return true;
                     if (c.emails.some(e => e.toLowerCase().includes(q))) return true;
                     if (c.notes && c.notes.toLowerCase().includes(q)) return true;
                     return false;
