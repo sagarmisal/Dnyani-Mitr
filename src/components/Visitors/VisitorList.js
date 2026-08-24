@@ -1,6 +1,7 @@
 // Visitor List Component
 
 import VisitorService from '../../services/VisitorService.js';
+import { visitorDisplayName } from '../../utils/formatters.js';
 import SearchService from '../../services/SearchService.js';
 import EngagementService from '../../services/EngagementService.js';
 import Router, { ROUTES } from '../../core/router.js';
@@ -262,7 +263,7 @@ export class VisitorList {
     return `
       <div class="visitor-card tile-card" data-visitor-id="${visitor.id}">
         <div class="tile-header">
-           <h3 class="tile-title" title="${this.escapeHtml(self?.name)}">${this.escapeHtml(self?.name || 'Unknown')}</h3>
+           <h3 class="tile-title" title="${this.escapeHtml(visitorDisplayName(visitor))}">${this.escapeHtml(visitorDisplayName(visitor))}</h3>
            <div style="display:flex; gap:0.25rem; align-items:center;">
              <span class="badge ${scoreClass}" style="font-size:0.65rem;" title="Engagement: ${score}">${score}</span>
              <span class="badge ${visitor.category === 'Donor' ? 'badge-success' : 'badge-primary'}">${visitor.category || 'General'}</span>

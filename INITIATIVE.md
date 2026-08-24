@@ -448,10 +448,10 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify | Who |
 |---|---|---|---|
-| **P1.12** | Capture sheet rebuilt on the kit — phone-first, chips, bottom sheet, org name in header (**UC-01, UC-02**) | records a visit with phone only | AUTO |
-| **P1.13** | Wire in; **remove the old form in the same commit** so no half-converted state ships | one capture path exists in the tree | AUTO |
-| **P1.14** | Importer round-trip (D-14): export from current build → import into rebuild | analyzer counts match on both sides | AUTO |
-| **P1.15** | Nameless-visitor audit — every list, detail, search, export, sync surface | no blank rows anywhere | AUTO |
+| ✅ **P1.12** | Capture sheet rebuilt on the kit — phone-first, chips, bottom sheet, org name in header (**UC-01, UC-02**) | records a visit with phone only | AUTO |
+| ✅ **P1.13** | Wire in; **remove the old form in the same commit** so no half-converted state ships | one capture path exists in the tree | AUTO |
+| ✅ **P1.14** | Importer round-trip (D-14): export from current build → import into rebuild | analyzer counts match on both sides | AUTO |
+| ✅ **P1.15** | Nameless-visitor audit — every list, detail, search, export, sync surface | no blank rows anywhere | AUTO |
 
 **Batch D — close out**
 

@@ -137,6 +137,7 @@
   --lg-marigold-i: #8a5f10;   /* readable ink on that wash */
   --lg-leaf:       #456a4f;   /* quiet positive */
   --lg-danger:     #a4443c;
+  --lg-danger-w:   #fdecea;   /* error wash */
   --lg-wash:       #efe8d8;   /* warm fill — chips, tiles */
 
   /* Geometry. One set, applied to everything — the coherence is the point. */

@@ -204,3 +204,69 @@
   .lg-sheet { transition: none; }
   .lg-sheet { transform: none; }
 }
+
+/* ==========================================================================
+   Capture sheet — P1.12. Uses the kit; adds only what a form needs.
+   ========================================================================== */
+.si-form > div + div { margin-top: 16px; }
+
+.si-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lg-ink-soft);
+  margin: 12px 0 6px;
+}
+.si-input {
+  width: 100%;
+  padding: var(--lg-pad);
+  font: inherit;
+  font-size: var(--lg-font);
+  border: 1px solid var(--lg-rule);
+  border-radius: var(--lg-r-ctl);
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  min-height: var(--lg-tap);
+}
+.si-input:disabled { background: var(--lg-wash); color: var(--lg-ink-soft); }
+textarea.si-input { min-height: 64px; resize: vertical; }
+
+.si-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Explanation at the point of confusion (PR-4). */
+.si-hint { margin: 6px 0 0; font-size: 11.5px; color: var(--lg-ink-soft); line-height: 1.45; }
+.si-hint--warn { color: var(--lg-danger); font-weight: 600; }
+
+.si-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: var(--lg-tap);
+  cursor: pointer;
+}
+.si-check input { width: 20px; height: 20px; flex: none; }
+
+/* Identity resolution feedback — the payoff for typing the number first. */
+.si-match { min-height: 20px; margin-top: 6px; }
+.si-match-hit,
+.si-match-new { font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.si-match-hit { color: var(--lg-leaf); }
+.si-match-hit span { display: block; font-weight: 400; color: var(--lg-ink-soft); }
+.si-match-new { color: var(--lg-ink-soft); }
+
+.si-occasion { border-top: 1px solid var(--lg-rule-faint); padding-top: 14px; }
+.si-occ-detail { margin-top: 12px; }
+
+.si-errors {
+  background: var(--lg-danger-w);
+  color: var(--lg-danger);
+  border-radius: var(--lg-r-ctl);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.si-errors > div + div { margin-top: 4px; }
+
+.si-form .hidden { display: none !important; }

@@ -17,7 +17,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const CSS = ['src/styles/main.css', 'src/styles/variables.css']
+const CSS = ['src/styles/main.css', 'src/styles/variables.css', 'src/styles/kit.css']
     .map(p => readFileSync(p, 'utf8'))
     .join('\n');
 

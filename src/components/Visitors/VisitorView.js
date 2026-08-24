@@ -1,6 +1,7 @@
 // Visitor View Component - Read-only display of visitor details
 
 import VisitorService from '../../services/VisitorService.js';
+import { visitorDisplayName } from '../../utils/formatters.js';
 import InteractionService from '../../services/InteractionService.js';
 import EngagementService from '../../services/EngagementService.js';
 import StateManager from '../../core/state.js';
@@ -294,7 +295,7 @@ export class VisitorView {
       const self = this.visitor.contacts.find(c => c.relationType === 'SELF');
       InteractionLogger.showFull({
         visitorId: this.visitorId,
-        visitorName: self?.name || 'Unknown',
+        visitorName: visitorDisplayName(this.visitor),
         onDone: () => {
           this.loadData();
           this.renderTimelineContainer();

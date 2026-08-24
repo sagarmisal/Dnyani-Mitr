@@ -142,10 +142,23 @@ describe('ScheduledItemForm', () => {
     });
 
     it('offers occasion capture with its own separate date', () => {
-        const el = new ScheduledItemForm({ date: TODAY, direction: 'inbound' }).render();
-        expect(el.querySelector('#si-occ-type')).toBeTruthy();
+        // The controls are chips now (D-08), but the contract is unchanged:
+        // an occasion type, a relation, and a date of its OWN — because people
+        // come on the nearest Sunday, not on the birthday itself.
+        const form = new ScheduledItemForm({ date: TODAY, direction: 'inbound' });
+        const el = form.render();
+        expect(el.querySelectorAll('.lg-chips--occasion .lg-chip').length).toBeGreaterThan(0);
         expect(el.querySelector('#si-occ-date')).toBeTruthy();
-        expect(el.querySelector('#si-occ-rel')).toBeTruthy();
+        expect(form.occRel.options.map(o => o.value)).toContain('CHILD');
+    });
+
+    it('keeps the occasion detail hidden until an occasion is chosen', () => {
+        // Nothing to fill in until there is something to fill it in about.
+        const form = new ScheduledItemForm({ date: TODAY, direction: 'inbound' });
+        const el = form.render();
+        expect(el.querySelector('.si-occ-detail').className).toContain('hidden');
+        el.querySelector('.lg-chips--occasion .lg-chip').click();
+        expect(el.querySelector('.si-occ-detail').className).not.toContain('hidden');
     });
 
     it('recognises a known supporter from their phone number', () => {
@@ -167,15 +180,35 @@ describe('ScheduledItemForm', () => {
         phone.dispatchEvent(new Event('input'));
 
         expect(form.matchedVisitor).toBeNull();
-        expect(el.querySelector('#si-match').textContent).toContain('New supporter');
+        expect(el.querySelector('#si-match').textContent).toContain('नवीन');
     });
 
-    it('refuses to save an inbound visit with no name, without throwing', () => {
+    it('refuses an inbound visit with neither phone nor name (D-20)', () => {
+        // Previously this refused whenever the NAME was missing, which is the
+        // inversion D-07 corrects. Now it refuses only when there is nothing
+        // at all to find them by.
         const form = new ScheduledItemForm({ date: TODAY, direction: 'inbound' });
         const el = form.render();
         el.querySelector('#si-title').value = 'x';
         expect(() => form.save()).not.toThrow();
-        expect(el.querySelector('#si-errors').textContent).toContain('Enter their name');
+        expect(el.querySelector('.si-errors').className).not.toContain('hidden');
+        expect(StateManager.getScheduledItems()).toHaveLength(0);
+    });
+
+    it('saves an inbound visit with a phone and NO name (D-07/PR-2)', () => {
+        // The caller rang off before saying their name. That is a complete
+        // record, not a degraded one — the number is what finds them later.
+        const form = new ScheduledItemForm({ date: TODAY, direction: 'inbound' });
+        const el = form.render();
+        document.body.appendChild(el);
+        el.querySelector('#si-phone').value = '9000000123';
+        el.querySelector('#si-phone').dispatchEvent(new Event('input'));
+        el.querySelector('#si-title').value = 'कुणीतरी येणार';
+        form.save();
+
+        const items = StateManager.getScheduledItems();
+        expect(items).toHaveLength(1);
+        expect(items[0].phone).toBe('9000000123');
     });
 
     it('saves an inbound visit and creates the supporter from the call (V4)', () => {
@@ -188,9 +221,10 @@ describe('ScheduledItemForm', () => {
         el.querySelector('#si-phone').dispatchEvent(new Event('input'));
         el.querySelector('#si-name').value = 'रमेश जाधव';
         el.querySelector('#si-title').value = 'रमेश जाधव यांची भेट';
-        el.querySelector('#si-occ-type').value = 'Birthday';
+        // Chips instead of dropdowns — same data, one tap each.
+        el.querySelector('.lg-chips--occasion .lg-chip[data-value="Birthday"]').click();
         el.querySelector('#si-occ-date').value = '2020-08-18';
-        el.querySelector('#si-occ-rel').value = 'CHILD';
+        el.querySelector('.si-occ-detail .lg-chip[data-value="CHILD"]').click();
         el.querySelector('#si-occ-whose').value = 'मुलगी';
         form.save();
 
