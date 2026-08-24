@@ -362,6 +362,7 @@ Status: **SETTLED** · **PROVISIONAL** (holds until evidence arrives) · **REOPE
 | **D-25** | 2026-08-24 | **Campaigns: demoted from the nav, code retained.** Not deleted. | D-16 asked whether the evidence justified ~1,000 lines. The evidence is that *nothing* is used, which answers a different question. Deleting on no-usage-of-anything would be deleting on noise; keeping it in primary nav costs one of five slots we cannot spare. Demote is the reversible move. | SETTLED — supersedes D-16 |
 | **D-26** | 2026-08-24 | **D-11 confirmed: the ledger design language ships.** P1.8b is unblocked. | Owner reviewed `docs/design-preview-v3.3.html` and confirmed the proposed phone reads as an app. Answers Q-03. | SETTLED |
 | **D-27** | 2026-08-24 | **Success is measured by second use, not by retention.** | Adoption from zero is a different problem from retention, with a different test: does someone open it again without being asked. Anything measuring "engagement" over a base of zero is measuring nothing. | SETTLED |
+| **D-28** | 2026-08-24 | **The master-key activation gate is removed.** Every device provisions itself silently: a generated `machineId`, role **satellite**, no questions. `KEYS.md` and `ActivationScreen` deleted. | Answers Q-01. The key protected nothing — the valid keys shipped in `KEYS.md` inside the repository, so anyone with the file could type one. What it did do was stand in the doorway: the first screen was a code obtained from us, then "Root or Satellite?" — an architecture question asked of someone with no basis to answer it, before the app had shown them anything worth having. With adoption from zero as the real problem (D-27), a wall at the front door is the most expensive thing in the app. Provenance is now carried properly by D-22: the Seva Sankalp mark is on every screen and cannot be edited, which is a better claim of authorship than a shared code. Satellite is the safe default — a satellite can be promoted, whereas a device wrongly believing it is root claims authority over deletions and propagates it through sync. | SETTLED |
 
 ---
 
@@ -497,10 +498,10 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | ✅ **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
 | ✅ **P2.12** | Pending-thanks count, **age-bounded** so it cannot become an accusation | test: old items drop off | AUTO |
 | ✅ **P2.13** | `Interaction.contribution` — chips (meal/donation/books/clothes/educational/grocery) + free-text item line, on the capture sheet | migration test; chips optional | AUTO |
-| **P2.14** | First run asks nothing about machines — silent satellite; promotion moves to Settings | fresh install reaches Today with no architecture question | AUTO |
-| **P2.15** | Act on Q-01: keep the activation gate with a stated reason, or remove it and `KEYS.md` | matches the §5 decision | AUTO |
+| ✅ **P2.14** | First run asks nothing about machines — silent satellite; promotion moves to Settings | fresh install reaches Today with no architecture question | AUTO |
+| ✅ **P2.15** | Act on Q-01: keep the activation gate with a stated reason, or remove it and `KEYS.md` | matches the §5 decision | AUTO |
 | **P2.16** | Never-blank defaults on every screen (dates pre-filled, filters pre-set) | no screen opens empty-and-blocking | AUTO |
-| **P2.17** | Delete the Data Quality screen and its routes/tests | gone; nav still five | AUTO |
+| ✅ **P2.17** | Delete the Data Quality screen and its routes/tests | gone; nav still five | AUTO |
 | **P2.18** | Build, sign, verify, ship to pilot; **48-hour soak** | analyzer shows records were created during the soak | NGO |
 
 **Gate:** 48 hours of real use, and the analyzer proves records were actually created — not just that the app was installed.
@@ -605,7 +606,7 @@ Answer these into §5. **Never let them be decided silently by whoever implement
 
 | ID | Question | Blocks |
 |---|---|---|
-| **Q-01** | What does the master-key activation gate protect? If licensing or provenance — keep and say so. If it exists because it seemed proper — delete it. | Phase 1 |
+| **Q-01** | **ANSWERED → removed (D-28).** What does the master-key activation gate protect? If licensing or provenance — keep and say so. If it exists because it seemed proper — delete it. | — |
 | **Q-02** | **ANSWERED → Marathi first, with a visible English toggle.** Marathi-first or English-first? Ask field volunteers and coordinators **separately** — they will not agree. | — |
 | **Q-03** | **ANSWERED → Confirmed — the ledger language ships.** Does binding red (D-11) read correctly to them, or does it carry the wrong meaning? | — |
 | **Q-04** | Is the Marathi language pack actually enabled in Gboard on their phones? It is off by default, and transliteration is how they type. | Phase 1 |

@@ -30,7 +30,6 @@ export class MyDayDashboard {
         const followUps = this._getFollowUpsDue();
         const lapsedData = EngagementService.getLapsedVisitors();
         const weekStats = this._getWeekStats();
-        const dataQuality = EngagementService.getDataQualityMetrics();
 
         container.innerHTML = `
             <div class="dashboard-header">
@@ -51,7 +50,6 @@ export class MyDayDashboard {
 
             ${this._renderNeedsAttentionSection(lapsedData)}
 
-            ${this._renderDataQualitySection(dataQuality)}
 
             ${this._renderReportsSection()}
         `;
@@ -374,21 +372,11 @@ export class MyDayDashboard {
             </div>`;
     }
 
-    _renderDataQualitySection(metrics) {
-        if (metrics.totalVisitors === 0) return '';
+    // P2.17 — the Data Quality section is gone. It counted missing phone
+    // numbers and empty fields: a maintainer's concern wearing a user's
+    // clothing, serving none of the six jobs. The metrics themselves survive in
+    // EngagementService, where WE can read them via the backup analyzer.
 
-        return `
-            <div class="dashboard-card dashboard-card-quality">
-                <div class="dashboard-card-header">
-                    <h3>Data Quality</h3>
-                </div>
-                <div class="dashboard-quality-bars">
-                    ${this._renderQualityBar('With Phone', metrics.phonePercent)}
-                    ${this._renderQualityBar('With Events', metrics.eventsPercent)}
-                    ${metrics.totalInteractions > 0 ? this._renderQualityBar('With Outcome', metrics.outcomePercent) : ''}
-                </div>
-            </div>`;
-    }
 
     _renderReportsSection() {
         return `

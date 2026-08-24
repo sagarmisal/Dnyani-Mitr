@@ -5,7 +5,6 @@ import { t, getLang, setLang, initLang } from './utils/i18n.js';
 import { escapeHTML } from './utils/helpers.js';
 import Router, { ROUTES } from './core/router.js';
 import ActivationManager from './core/activation.js';
-import { ActivationScreen } from './components/Activation/ActivationScreen.js';
 import { VisitorList } from './components/Visitors/VisitorList.js';
 import { VisitorForm } from './components/Visitors/VisitorForm.js';
 import { VisitorView } from './components/Visitors/VisitorView.js';
@@ -43,26 +42,12 @@ class App {
     // Get app container
     this.appContainer = document.getElementById('app');
 
-    // Check activation status
-    if (!ActivationManager.isActivated()) {
-      this.showActivationScreen();
-    } else {
-      this.initializeMainApp();
-    }
-  }
-
-  /**
-   * Show activation screen
-   */
-  showActivationScreen() {
-    console.log('App not activated - showing activation screen');
-
-    const activationScreen = new ActivationScreen();
-    const view = activationScreen.render();
-
-    this.appContainer.innerHTML = '';
-    this.appContainer.appendChild(view);
-    this.currentView = activationScreen;
+    // D-28 — no gate. Give the device an identity and get out of the way.
+    // The master key never protected anything (the valid keys shipped in
+    // KEYS.md); it only stood in the doorway, and adoption from zero is the
+    // problem we actually have.
+    ActivationManager.ensureActivated();
+    this.initializeMainApp();
   }
 
   /**
@@ -179,9 +164,10 @@ class App {
    * Register application routes
    */
   registerRoutes() {
-    // Activation route
+    // The activation route survives only so an old bookmark or a deep link
+    // does not dead-end. There is no screen behind it any more.
     Router.register(ROUTES.ACTIVATION, () => {
-      this.showActivationScreen();
+      Router.navigate(this.landingRoute());
     });
 
     // Calendar route (Iter 11) — the landing screen.
