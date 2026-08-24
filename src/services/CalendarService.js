@@ -12,6 +12,7 @@
 // reimplementing any of it (plan G6: no forked logic).
 
 import StateManager from '../core/state.js';
+import { visitorDisplayName } from '../utils/formatters.js';
 import VisitorService from './VisitorService.js';
 import ReminderService from './ReminderService.js';
 import { Reminder } from '../models/Reminder.js';
@@ -217,6 +218,10 @@ class CalendarService {
     }
 
     _visitorName(visitor) {
+        return visitorDisplayName(visitor);   // D-07 fallback to the number
+    }
+
+    _visitorNameLegacy(visitor) {
         const self = visitor.contacts?.find(c => c.relationType === 'SELF');
         return self?.name || visitor.contacts?.[0]?.name || 'Unknown';
     }

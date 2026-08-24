@@ -258,3 +258,29 @@ export function pluralize(count, singular, plural = null) {
     if (count === 1) return singular;
     return plural || `${singular}s`;
 }
+
+/**
+ * What to show for a visitor in a list, a heading, or a day pane (D-07).
+ *
+ * A nameless visitor is ordinary now, not an error — someone rang, gave a
+ * number, and hung up. Showing a blank row would make the record look broken;
+ * showing the number makes it useful, because the number is what the next
+ * person will search for anyway.
+ *
+ * DISPLAY ONLY. Never use this to address someone in a message: "Dear
+ * 98220 12345 ji" is worse than sending nothing. Message composition reads the
+ * real name and skips the recipient when there is none.
+ */
+export function visitorDisplayName(visitor) {
+    if (!visitor) return 'Unknown';
+    const contacts = Array.isArray(visitor.contacts) ? visitor.contacts : [];
+    const self = contacts.find(c => c && c.relationType === 'SELF') || contacts[0];
+
+    const name = self && self.name ? String(self.name).trim() : '';
+    if (name) return name;
+
+    const phone = normalizePhone((self && self.phones && self.phones[0]) || '');
+    if (phone) return phone.slice(0, 5) + ' ' + phone.slice(5);   // 98220 12345
+
+    return 'Unknown';
+}

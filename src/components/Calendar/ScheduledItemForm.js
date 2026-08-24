@@ -20,7 +20,7 @@ import { Visitor } from '../../models/Visitor.js';
 import { Contact } from '../../models/Contact.js';
 import { Toast } from '../UI/Toast.js';
 import { escapeHTML } from '../../utils/helpers.js';
-import { normalizePhone } from '../../utils/formatters.js';
+import { normalizePhone, visitorDisplayName } from '../../utils/formatters.js';
 import {
     SCHEDULED_ITEM_TYPES, SCHEDULED_ITEM_DIRECTION, SCHEDULED_ITEM_STATUS,
     RELATIONSHIP_TYPES, EVENT_TYPES
@@ -192,18 +192,25 @@ export class ScheduledItemForm {
             this.matchedVisitor = null;
             return;
         }
-        const match = VisitorService.getAll().find(v => {
-            const self = v.contacts?.find(c => c.relationType === RELATIONSHIP_TYPES.SELF);
-            return (self?.phones || []).some(p => normalizePhone(p) === digits);
-        });
+        // P1.7 — search every contact's number, not just the SELF one. A
+        // supporter who gives their spouse's or son's number is the same
+        // household we already know, and offering to create a duplicate mid
+        // phone call is the worst possible moment to get this wrong.
+        const hit = VisitorService.findByPhone(digits);
+        const match = hit ? hit.visitor : null;
         this.matchedVisitor = match || null;
 
         if (match) {
-            const self = match.contacts.find(c => c.relationType === RELATIONSHIP_TYPES.SELF);
             const visits = StateManager.getInteractions().filter(i => i.visitorId === match.id).length;
-            box.innerHTML = `<div class="form-match-hit">✓ ${escapeHTML(self?.name || 'Known supporter')}
+            // Say WHOSE number it is when it is not the supporter's own, so the
+            // staffer can see why this person came up and correct it if wrong.
+            const via = hit && !hit.isSelf && hit.contact?.name
+                ? ` <span>(${escapeHTML(hit.contact.name)}'s number)</span>`
+                : '';
+            box.innerHTML = `<div class="form-match-hit">✓ ${escapeHTML(visitorDisplayName(match))}${via}
                 <span>${visits} previous interaction${visits === 1 ? '' : 's'}</span></div>`;
             const name = this.root.querySelector('#si-name');
+            const self = match.contacts.find(c => c.relationType === RELATIONSHIP_TYPES.SELF);
             if (name && !name.value) name.value = self?.name || '';
         } else {
             box.innerHTML = '<div class="form-match-new">New supporter — they will be added to your list.</div>';

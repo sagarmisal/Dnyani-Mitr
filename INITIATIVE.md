@@ -346,6 +346,8 @@ Status: **SETTLED** · **PROVISIONAL** (holds until evidence arrives) · **REOPE
 | **D-17** | 2026-08-24 | **Devanagari data-layer hardening lands before any Marathi UI.** | The moment the UI speaks Marathi, people type Marathi. Verified today: `normalizePhone('९८२२०१२३४५') → null`; nukta forms don't match without NFC; `namesSimilar('सुनीता','सुनिता') → false`; `localeCompare` has no locale; CSV has no BOM. Shipping the UI first manufactures bad data. | SETTLED |
 | **D-18** | 2026-08-24 | **Fuzzy name matching is a *suggestion*, never an auto-merge.** | A fold key that tolerates IME spelling variance is deliberately aggressive (collapses श/ष/स and aspirates) and will occasionally match different people. Follows the existing rule: a phone match with different names flags a duplicate rather than merging it. | SETTLED |
 | **D-19** | 2026-08-24 | **Work continues on a branch off `iter-11-day-release`, not from `main`.** | Iteration 11's contribution is overwhelmingly *service layer* and *defect fixes* — `CalendarService`, the backup/restore repairs, `FileService`, `followUpCompletedAt` — all of which D-03 keeps. Only its view layer is being replaced, and that was being replaced anyway. Discarding it would throw away work we have already decided to keep. Run B still matters, because it verifies migration against real data and migration is service layer. | SETTLED |
+| **D-20** | 2026-08-24 | **D-07 refined: the SELF contact needs a phone *or* a name — never neither.** | A hard phone requirement would lose the real case of a caller who rings off before giving a number, and UC-01 already warns that a hard-required field makes staff type `0000000000`, which under last-ten-digit dedup merges unrelated supporters. Requiring *something* still prevents an anonymous empty record that can never be found, thanked or deduplicated. | SETTLED |
+| **D-21** | 2026-08-24 | **Lookup searches every contact's phone; sync identity still matches on the SELF contact's first number only.** | Answers P1.7 / the DF-2 gap. A supporter phoning from their spouse's number appeared as a stranger, and intake offered to create a duplicate mid-call. Widening *lookup* helps a human find someone; widening *merge* would fuse two households sharing a landline. Different jobs, different rules — the same principle as D-18. | SETTLED |
 
 ---
 
@@ -404,7 +406,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify / gate | Who |
 |---|---|---|---|
-| **P0.1** | Commit the baseline — INITIATIVE.md, analyzer, design preview, nine doc deletions, repointed source refs | clean `git status`; 323 tests | AUTO |
+| ✅ **P0.1** | Commit the baseline — INITIATIVE.md, analyzer, design preview, nine doc deletions, repointed source refs | clean `git status`; 323 tests | AUTO |
 | **P0.2** | Run B — upgrade rehearsal against **real NGO data** (`docs/LOCAL_TEST_v3.2.0.md`) | visitor count, Marathi renders, history intact, no console errors | OWNER |
 | **P0.3** | Collect one current backup per NGO, with the D-12 disclosure said first | 3 files in hand | OWNER |
 | **P0.4** | Run `scripts/analyze-backup.js` on all three; append findings to §14 | report produced; counts recorded | AUTO |
@@ -424,13 +426,13 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify | Who |
 |---|---|---|---|
-| **P1.1** | `src/utils/devanagari.js` — fold key (D-18): NFC → irregular conjuncts (ज्ञ/क्ष/त्र/श्र) → schwa rule → matra/sibilant/aspirate collapse → Latin equivalences | new test file, ≥20 realistic pairs **including must-NOT-match** cases | AUTO |
-| **P1.2** | NFC normalisation on every name write and every search query | test: precomposed क़ (U+0958) matches decomposed क+़ | AUTO |
-| **P1.3** | `localeCompare(a, b, 'mr-IN')` at all three sort sites | test pinning ज्ञ last, per Marathi वर्णमाला | AUTO |
-| **P1.4** | UTF-8 BOM on CSV export (`helpers.js`) | test asserts blob starts `\ufeff` | AUTO |
-| **P1.5** | Devanagari + Arabic-Indic digit folding in `normalizePhone`; widen `PHONE_PATTERN` | `normalizePhone('९८२२०१२३४५') === '9822012345'` | AUTO |
-| **P1.6** | **D-07** — phone required, name optional; nameless visitor renders as its number | validator tests inverted | AUTO |
-| **P1.7** | **DF-2 gap** — decide and implement whether lookup searches family-member phones, not only SELF | new decision in §5; test either way | AUTO |
+| ✅ **P1.1** | `src/utils/devanagari.js` — fold key (D-18): NFC → irregular conjuncts (ज्ञ/क्ष/त्र/श्र) → schwa rule → matra/sibilant/aspirate collapse → Latin equivalences | new test file, ≥20 realistic pairs **including must-NOT-match** cases | AUTO |
+| ✅ **P1.2** | NFC normalisation on every name write and every search query | test: precomposed क़ (U+0958) matches decomposed क+़ | AUTO |
+| ✅ **P1.3** | `localeCompare(a, b, 'mr-IN')` at all three sort sites | test pinning ज्ञ last, per Marathi वर्णमाला | AUTO |
+| ✅ **P1.4** | UTF-8 BOM on CSV export (`helpers.js`) | test asserts blob starts `\ufeff` | AUTO |
+| ✅ **P1.5** | Devanagari + Arabic-Indic digit folding in `normalizePhone`; widen `PHONE_PATTERN` | `normalizePhone('९८२२०१२३४५') === '9822012345'` | AUTO |
+| ✅ **P1.6** | **D-07** — phone required, name optional; nameless visitor renders as its number | validator tests inverted | AUTO |
+| ✅ **P1.7** | **DF-2 gap** — decide and implement whether lookup searches family-member phones, not only SELF | new decision in §5; test either way | AUTO |
 
 **Batch B — the component kit** *(foundation; still no screen changes)*
 

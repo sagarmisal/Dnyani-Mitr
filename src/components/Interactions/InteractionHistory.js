@@ -1,6 +1,7 @@
 // Interaction History View - Global chronological list of all interactions
 
 import StateManager from '../../core/state.js';
+import { visitorDisplayName } from '../../utils/formatters.js';
 import VisitorService from '../../services/VisitorService.js';
 import Router, { ROUTES } from '../../core/router.js';
 import { formatDate, formatRelativeTime } from '../../utils/formatters.js';
@@ -216,6 +217,11 @@ export class InteractionHistory {
     }
 
     _getVisitorName(visitorId) {
+        const v = VisitorService.getById(visitorId);
+        return v ? visitorDisplayName(v) : 'Unknown';
+    }
+
+    _getVisitorNameLegacy(visitorId) {
         if (!visitorId) return 'Unknown Visitor';
         if (this._visitorCache.has(visitorId)) return this._visitorCache.get(visitorId);
         try {
