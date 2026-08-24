@@ -14,8 +14,8 @@
 > `git show 9af1a1f:ngo-visitor-manager/<file>`. **Do not recreate them.**
 >
 > What still exists alongside this file, and why: `README.md` (repo entry point) ·
-> `KEYS.md` (activation keys — operational, irreplaceable) · `docs/LOCAL_TEST_v3.2.0.md`
-> (Run B, which gates Phase 0) · `docs/design-preview-v3.3.html` (design direction, D-11).
+> `KEYS.md` (activation keys — operational, irreplaceable) · `docs/DEVICE_TEST_phase1.md`
+> (the Phase 1 device gate) · `docs/design-preview-v3.3.html` (design direction, D-11).
 
 ---
 
@@ -407,7 +407,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | | Task | Verify / gate | Who |
 |---|---|---|---|
 | ✅ **P0.1** | Commit the baseline — INITIATIVE.md, analyzer, design preview, nine doc deletions, repointed source refs | clean `git status`; 323 tests | AUTO |
-| **P0.2** | Run B — upgrade rehearsal against **real NGO data** (`docs/LOCAL_TEST_v3.2.0.md`) | visitor count, Marathi renders, history intact, no console errors | OWNER |
+| **P0.2** | Run B — upgrade rehearsal against **real NGO data** (`docs/DEVICE_TEST_phase1.md` §1) | visitor count, Marathi renders, history intact, no console errors | OWNER |
 | **P0.3** | Collect one current backup per NGO, with the D-12 disclosure said first | 3 files in hand | OWNER |
 | **P0.4** | Run `scripts/analyze-backup.js` on all three; append findings to §14 | report produced; counts recorded | AUTO |
 | **P0.5** | **Resolve D-16** — campaigns live or die, on P0.4 evidence | decision status changed in §5 | OWNER |
@@ -457,9 +457,9 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify | Who |
 |---|---|---|---|
-| **P1.16** | Update §13; append §14 lines for what was learned | doc matches reality | AUTO |
-| **P1.17** | `vite build` → `cap sync android` → `assembleDebug` → `./scripts/verify-apk.sh` | prints **Signature matches** | AUTO |
-| **P1.18** | Write the device checklist for the capture sheet, replacing `LOCAL_TEST_v3.2.0.md` | checklist exists | AUTO |
+| ✅ **P1.16** | Update §13; append §14 lines for what was learned | doc matches reality | AUTO |
+| ✅ **P1.17** | `vite build` → `cap sync android` → `assembleDebug` → `./scripts/verify-apk.sh` | prints **Signature matches** | AUTO |
+| ✅ **P1.18** | Write the device checklist for the capture sheet, replacing `LOCAL_TEST_v3.2.0.md` | checklist exists | AUTO |
 | **P1.19** | Install on the pilot phone; a volunteer records a real visit **unaided** | they succeed without being told how | NGO |
 
 **Gate:** P1.19 passes. If they need to be told how, the screen is wrong — fix it before Phase 2.
@@ -617,14 +617,14 @@ Answer these into §5. **Never let them be decided silently by whoever implement
 
 | | |
 |---|---|
-| Version | v3.2.0 / versionCode 11 |
-| Branch | `iter-11-day-release` — **2 commits ahead, not merged** |
+| Version | v3.2.0 / versionCode 11 (unbumped — Phase 1 ships as a rebuild, not a release) |
+| Branch | `initiative-phase-1` — Phase 1 batches A–D complete |
 | Commits | `e5c00f6` (Iteration 11, 54 files, +14,456/−5,386), `9af1a1f` (docs) |
-| Tests | 323 passing, 22 files |
-| Build | ~442 kB, ~153 kB gzip |
+| Tests | **444 passing**, 29 files |
+| Build | ~449 kB, ~154 kB gzip · APK signature **verified** |
 | Untracked | `docs/design-preview-v3.3.html`, `scripts/analyze-backup.js` |
 | Keystore | **Backed up** (owner-confirmed 2026-08-24) |
-| Blocking | `docs/LOCAL_TEST_v3.2.0.md` **Run B** unrun — decides Iteration 11's fate |
+| Blocking | **P1.19** — a volunteer must record a real visit unaided (`docs/DEVICE_TEST_phase1.md`) |
 
 **Build gotchas that cost an hour each if forgotten:**
 - `./gradlew` needs **Java 21**: `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`
