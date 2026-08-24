@@ -1,0 +1,206 @@
+/* ==========================================================================
+   Component kit — INITIATIVE.md D-05 / D-11, P1.9
+   ==========================================================================
+   Every rule reads a --lg-* token from variables.css. Nothing here hardcodes a
+   colour, so when Q-03 answers, one file changes and the kit follows.
+
+   Namespaced `lg-` so it cannot collide with the 2,392 lines of existing
+   component CSS. Existing screens are untouched until P1.8b.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ Sheet */
+/* A bottom sheet: it rises from the thumb rather than floating in the middle
+   of the screen. `align-items: flex-end` is the whole difference between a
+   phone idiom and a desktop one. */
+.lg-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 43, 54, 0.46);
+  display: flex;
+  align-items: flex-end;      /* NOT center — this is the point */
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.lg-sheet-overlay.is-open { opacity: 1; }
+
+.lg-sheet {
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  width: 100%;
+  max-width: 640px;
+  max-height: 86vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--lg-r-sheet) var(--lg-r-sheet) 0 0;
+  padding: 8px 16px 20px;
+  transform: translateY(100%);
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 -8px 32px rgba(35, 43, 54, 0.18);
+}
+.lg-sheet-overlay.is-open .lg-sheet { transform: translateY(0); }
+
+.lg-sheet-grab {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lg-rule);
+  margin: 6px auto 14px;
+}
+.lg-sheet-title { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+/* Explanation at the point of confusion, not in a help page. */
+.lg-sheet-hint { margin: 0 0 14px; font-size: 12.5px; color: var(--lg-ink-soft); }
+.lg-sheet-body > * + * { margin-top: 14px; }
+.lg-sheet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+/* ----------------------------------------------------------------- Button */
+.lg-btn {
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: var(--lg-pad) 16px;
+  border-radius: var(--lg-r-ctl);
+  min-height: var(--lg-tap);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.lg-btn--primary { background: var(--lg-bind); color: #fff; }
+.lg-btn--primary:active { background: var(--lg-bind-dark); }
+.lg-btn--quiet   { background: var(--lg-wash); color: var(--lg-ink); }
+.lg-btn--danger  { background: var(--lg-danger); color: #fff; }
+.lg-btn--sm      { padding: 7px 13px; font-size: 12.5px; min-height: 36px; }
+
+/* ------------------------------------------------------------------ Chips */
+.lg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.lg-chip {
+  border: 1.5px solid var(--lg-rule);
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: var(--lg-r-chip);
+  min-height: var(--lg-tap);   /* the floor for a target on a cheap handset */
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+.lg-chip[aria-pressed="true"] {
+  background: var(--lg-bind);
+  border-color: var(--lg-bind);
+  color: #fff;
+}
+/* Marigold is reserved for occasions. It never appears in chrome. */
+.lg-chips--occasion .lg-chip[aria-pressed="true"] {
+  background: var(--lg-marigold);
+  border-color: var(--lg-marigold);
+  color: #3d2a06;
+}
+
+/* ------------------------------------------------------------------- Tile */
+.lg-tile {
+  border: 0;
+  background: var(--lg-wash);
+  color: var(--lg-ink);
+  font: inherit;
+  text-align: left;
+  padding: 14px;
+  border-radius: var(--lg-r-card);
+  min-height: 64px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.25;
+}
+.lg-tile--primary { background: var(--lg-bind); color: #fff; }
+.lg-tile-icon  { font-size: 18px; }
+.lg-tile-label { font-weight: 700; font-size: 13.5px; }
+.lg-tile-sub   { font-size: 11.5px; opacity: 0.85; }
+
+/* -------------------------------------------------------------------- Row */
+.lg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--lg-rule-faint);
+}
+.lg-row:last-child { border-bottom: 0; }
+.lg-row-main    { min-width: 0; }
+.lg-row-title   { display: block; font-size: 14px; }
+.lg-row-meta    { display: block; font-size: 12px; color: var(--lg-ink-soft); margin-top: 2px; }
+.lg-row-chips   { margin-top: 5px; }
+.lg-row-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
+.lg-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--lg-r-chip);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--lg-marigold-w);
+  color: var(--lg-marigold-i);
+  margin: 3px 3px 0 0;
+}
+
+/* ---------------------------------------------------------------- Section */
+/* The signature: the label hangs from a rule, the way a ledger heads a column
+   and the way Devanagari hangs from the शिरोरेखा. */
+.lg-section {
+  display: flex;
+  align-items: baseline;
+  border-top: 1.5px solid var(--lg-ink);
+  margin: 18px 0 8px;
+}
+.lg-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: var(--lg-page);
+  padding-right: 10px;
+  transform: translateY(-50%);
+}
+.lg-section-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--lg-ink-soft);
+  background: var(--lg-page);
+  padding: 0 8px;
+  transform: translateY(-50%);
+}
+
+/* ------------------------------------------------------------------ Empty */
+/* An invitation to act, never a blank. Most days have nothing scheduled, so
+   this is a screen people see often. */
+.lg-empty {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--lg-ink-soft);
+}
+.lg-empty-message { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
+
+/* ------------------------------------------------------------- a11y basics */
+.lg-chip:focus-visible,
+.lg-btn:focus-visible,
+.lg-tile:focus-visible {
+  outline: 3px solid var(--lg-marigold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-sheet-overlay,
+  .lg-sheet { transition: none; }
+  .lg-sheet { transform: none; }
+}

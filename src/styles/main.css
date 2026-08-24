@@ -1,6 +1,7 @@
 /* Main Styles */
 
 @import './variables.css';
+@import './kit.css';   /* component kit — D-05 / P1.9, namespaced lg- */
 
 /* Reset & Base */
 *,

@@ -438,10 +438,11 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify | Who |
 |---|---|---|---|
-| **P1.8** | Design tokens (D-11) into `variables.css`, replacing the Tailwind defaults. Values provisional — one file changes them after Q-03 | build clean; no hardcoded hex left in `main.css` | AUTO |
-| **P1.9** | Component kit (D-05): `Sheet` (bottom), `Chips`, `Tile`, `Row`, `Section`, `Empty` | render test per component | AUTO |
-| **P1.10** | Extend `tests/styles-exist.test.js` to every class the kit uses | missing-class list empty | AUTO |
-| **P1.11** | **Visibility** assertions, not just render — position, z-index, off-screen checks | a deliberately unstyled component fails the suite | AUTO |
+| ✅ **P1.8a** | Ledger tokens (D-11) **added** to `variables.css` alongside the existing `--color-*` set. Used only by the kit; every existing screen unchanged | build clean; kit hardcodes no colour | AUTO |
+| **P1.8b** | **Repoint the app** onto the ledger tokens — 2,392 lines of `main.css` with hardcoded hex on every screen. This *is* rolling the palette across the whole app | no hardcoded hex in `main.css`; device check | **HELD — Q-03** |
+| ✅ **P1.9** | Component kit (D-05): `Sheet` (bottom), `Chips`, `Tile`, `Row`, `Section`, `Empty` | render test per component | AUTO |
+| ✅ **P1.10** | Extend `tests/styles-exist.test.js` to every class the kit uses | missing-class list empty | AUTO |
+| ✅ **P1.11** | **Visibility** assertions, not just render — position, z-index, off-screen checks | a deliberately unstyled component fails the suite | AUTO |
 
 **Batch C — the first screen** *(owner review expected at the end)*
 
