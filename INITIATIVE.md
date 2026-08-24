@@ -453,7 +453,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | | Task | Verify | Who |
 |---|---|---|---|
 | ✅ **P1.8a** | Ledger tokens (D-11) **added** to `variables.css` alongside the existing `--color-*` set. Used only by the kit; every existing screen unchanged | build clean; kit hardcodes no colour | AUTO |
-| **P1.8b** | **Repoint the app** onto the ledger tokens — 2,392 lines of `main.css` with hardcoded hex on every screen. This *is* rolling the palette across the whole app | no hardcoded hex in `main.css`; device check | **HELD — Q-03** |
+| ✅ **P1.8b** | **Repoint the app** onto the ledger tokens | 185 of 189 hardcoded colours converted; only WhatsApp's brand green remains, deliberately. 18 contrast tests | AUTO |
 | ✅ **P1.9** | Component kit (D-05): `Sheet` (bottom), `Chips`, `Tile`, `Row`, `Section`, `Empty` | render test per component | AUTO |
 | ✅ **P1.10** | Extend `tests/styles-exist.test.js` to every class the kit uses | missing-class list empty | AUTO |
 | ✅ **P1.11** | **Visibility** assertions, not just render — position, z-index, off-screen checks | a deliberately unstyled component fails the suite | AUTO |

@@ -195,7 +195,7 @@
 .lg-chip:focus-visible,
 .lg-btn:focus-visible,
 .lg-tile:focus-visible {
-  outline: 3px solid var(--lg-marigold);
+  outline: 3px solid var(--lg-marigold-l);
   outline-offset: 2px;
 }
 
