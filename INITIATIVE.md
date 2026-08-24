@@ -315,9 +315,17 @@ needed, make it physical — a laminated card by the office phone, not a manual.
 Currently exactly one: **take a text backup before you upgrade.** Nothing is added until that
 one is habitual. Ten asks is zero asks.
 
-**PR-6 · Learn from what they already send us.**
-The backup carries, in aggregate, everything we need to know about what is used. No telemetry,
-no network, no new burden — and **we tell them we do it** (see D-12).
+**PR-6 · Learn from what they already send us.** — *dormant, see D-24.*
+The mechanism is right and the tool is built, but it assumed backups arriving from NGOs who
+are using the app. **None of the three currently are.** Until that changes, the analyzer is
+turned inward: it verifies our own dogfooding runs. The principle reactivates the day a real
+backup arrives.
+
+**PR-7 · We are the last line. There is no one downstream.**
+The NGOs will not test, so every defect we fail to catch reaches a volunteer as a broken app —
+and a second failed adoption is much harder to come back from than the first. Verification is
+adversarial and ours: a scripted persona doing a volunteer's day, then the analyzer proving the
+app recorded what we believe it did.
 
 ---
 
@@ -342,12 +350,18 @@ Status: **SETTLED** · **PROVISIONAL** (holds until evidence arrives) · **REOPE
 | **D-13** | 2026-08-24 | **Ship under the same `org.sewasankalp.ngomitr` and the same signing key.** | A new appId or key forces every device to uninstall. Data is now recoverable (D-14), but a forced uninstall across three remote NGOs is still a support event we get for free by not causing it. | SETTLED |
 | **D-14** | 2026-08-24 | **Target zero re-entry; treat re-entry as the safety net.** | Owner confirms the keystore is backed up and re-entry is acceptable in the worst case. But we control both formats, so an importer is ~100 lines. Making volunteers retype two years of work reads as the app having failed them. | SETTLED |
 | **D-15** | 2026-08-24 | **Definition of done replaces "tests pass"** — see §9. | The `styles-exist` guard exists because a render test passed on a button that did nothing. Green tests are the entry fee, not the finish line. | SETTLED |
-| **D-16** | 2026-08-24 | **Campaigns / Occasions / GreetingQueue / SmsBatchQueue: fate decided by evidence.** | ~1,000 lines serving J3 in bulk, built in Iteration 10, never validated. The analyzer answers this in one afternoon. Deleting on suspicion is worse than keeping on evidence. | PROVISIONAL — gate at Phase 0 |
+| **D-16** | 2026-08-24 | ~~Campaigns fate decided by evidence~~ — **SUPERSEDED by D-25.** | ~1,000 lines serving J3 in bulk, built in Iteration 10, never validated. The analyzer answers this in one afternoon. Deleting on suspicion is worse than keeping on evidence. | PROVISIONAL — gate at Phase 0 |
 | **D-17** | 2026-08-24 | **Devanagari data-layer hardening lands before any Marathi UI.** | The moment the UI speaks Marathi, people type Marathi. Verified today: `normalizePhone('९८२२०१२३४५') → null`; nukta forms don't match without NFC; `namesSimilar('सुनीता','सुनिता') → false`; `localeCompare` has no locale; CSV has no BOM. Shipping the UI first manufactures bad data. | SETTLED |
 | **D-18** | 2026-08-24 | **Fuzzy name matching is a *suggestion*, never an auto-merge.** | A fold key that tolerates IME spelling variance is deliberately aggressive (collapses श/ष/स and aspirates) and will occasionally match different people. Follows the existing rule: a phone match with different names flags a duplicate rather than merging it. | SETTLED |
 | **D-19** | 2026-08-24 | **Work continues on a branch off `iter-11-day-release`, not from `main`.** | Iteration 11's contribution is overwhelmingly *service layer* and *defect fixes* — `CalendarService`, the backup/restore repairs, `FileService`, `followUpCompletedAt` — all of which D-03 keeps. Only its view layer is being replaced, and that was being replaced anyway. Discarding it would throw away work we have already decided to keep. Run B still matters, because it verifies migration against real data and migration is service layer. | SETTLED |
 | **D-20** | 2026-08-24 | **D-07 refined: the SELF contact needs a phone *or* a name — never neither.** | A hard phone requirement would lose the real case of a caller who rings off before giving a number, and UC-01 already warns that a hard-required field makes staff type `0000000000`, which under last-ten-digit dedup merges unrelated supporters. Requiring *something* still prevents an anonymous empty record that can never be found, thanked or deduplicated. | SETTLED |
 | **D-21** | 2026-08-24 | **Lookup searches every contact's phone; sync identity still matches on the SELF contact's first number only.** | Answers P1.7 / the DF-2 gap. A supporter phoning from their spouse's number appeared as a stranger, and intake offered to create a duplicate mid-call. Widening *lookup* helps a human find someone; widening *merge* would fuse two households sharing a landline. Different jobs, different rules — the same principle as D-18. | SETTLED |
+| **D-22** | 2026-08-24 | **Branding is fixed at the product level, configurable at the NGO level.** The app is always called **ज्ञानी मित्र / Dnyani Mitr** and always carries the Seva Sankalp mark — neither is editable. Above them sits a **larger, configurable NGO name**. | The NGO's own name is what makes the app feel like theirs, which is exactly what "uncomfort" was about; the product name and mark are provenance and never move. The NGO's label is bigger because the NGO is the user's identity and the app is only the tool. | SETTLED |
+| **D-23** | 2026-08-24 | **Marathi first, with a visible toggle to English.** Needs a real string layer — every user-facing string is hardcoded English today. | Answers Q-02. Field volunteers read Marathi first; the toggle protects the coordinators on laptops without making them the default. | SETTLED |
+| **D-24** | 2026-08-24 | **We are the pilot. The NGOs will never test.** Verification is entirely ours, and the analyzer's job changes from reading their backups to checking our own dogfooding runs. | Owner confirms none of the three NGOs is currently using the app. There is no downstream check, so every defect we do not catch ships. A scripted persona doing a volunteer's actual day, then the analyzer run against that backup, replaces the pilot we cannot have. | SETTLED |
+| **D-25** | 2026-08-24 | **Campaigns: demoted from the nav, code retained.** Not deleted. | D-16 asked whether the evidence justified ~1,000 lines. The evidence is that *nothing* is used, which answers a different question. Deleting on no-usage-of-anything would be deleting on noise; keeping it in primary nav costs one of five slots we cannot spare. Demote is the reversible move. | SETTLED — supersedes D-16 |
+| **D-26** | 2026-08-24 | **D-11 confirmed: the ledger design language ships.** P1.8b is unblocked. | Owner reviewed `docs/design-preview-v3.3.html` and confirmed the proposed phone reads as an app. Answers Q-03. | SETTLED |
+| **D-27** | 2026-08-24 | **Success is measured by second use, not by retention.** | Adoption from zero is a different problem from retention, with a different test: does someone open it again without being asked. Anything measuring "engagement" over a base of zero is measuring nothing. | SETTLED |
 
 ---
 
@@ -470,7 +484,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 
 | | Task | Verify | Who |
 |---|---|---|---|
-| **P2.1** | Shell: **five** destinations, sticky header, NGO identity in it | nav fits a 360px screen without scrolling | AUTO |
+| ✅ **P2.1** | Shell: **five** destinations, brand header (D-22), visible language toggle (D-23) | nav fits a 360px screen; org name wraps rather than truncating | AUTO |
 | **P2.2** | **Today** — stat row answering *"how is today?"* (**UC-05**) | counts correct against fixture | AUTO |
 | **P2.3** | Today — four large action tiles | targets ≥44px | AUTO |
 | **P2.4** | Today — calendar inline **plus** the day's list, one scroll. Merges My Day and Calendar (see §6) | one screen, no navigation to see today | AUTO |
@@ -478,7 +492,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | **P2.6** | **"A year ago today"** — month+day matching for interactions in `CalendarService` (**UC-06**) | test across year boundaries and leap days | AUTO |
 | **P2.7** | UC-06's three guards: never render empty (widen ±3 days) · no *"we miss you"* under ~6 months · no gift claim before contributions exist | one test per guard | AUTO |
 | **P2.8** | Reminders screen rebuilt, host vocabulary (**UC-07**, D-10) | no accusatory string remains | AUTO |
-| **P2.9** | **Vocabulary sweep** — every user-facing string; delete "Machine Role", "Overdue", "Never contacted", "Data Quality" | grep finds none | AUTO |
+| 🔶 **P2.9** | **Vocabulary sweep** — string layer built (`i18n.js` + `strings.js`, Marathi-first with toggle); header done. Remaining: sweep the other screens onto `t()` | a test forbids the banned vocabulary; every key has both languages | AUTO |
 | **P2.10** | J3 single-message send with mark-as-sent (**UC-08, UC-09**) | Interaction + `thankedAt` written | AUTO |
 | **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
 | **P2.12** | Pending-thanks count, **age-bounded** so it cannot become an accusation | test: old items drop off | AUTO |
@@ -592,8 +606,8 @@ Answer these into §5. **Never let them be decided silently by whoever implement
 | ID | Question | Blocks |
 |---|---|---|
 | **Q-01** | What does the master-key activation gate protect? If licensing or provenance — keep and say so. If it exists because it seemed proper — delete it. | Phase 1 |
-| **Q-02** | Marathi-first or English-first? Ask field volunteers and coordinators **separately** — they will not agree. | Phase 1 |
-| **Q-03** | Does binding red (D-11) read correctly to them, or does it carry the wrong meaning? | Phase 1 |
+| **Q-02** | **ANSWERED → Marathi first, with a visible English toggle.** Marathi-first or English-first? Ask field volunteers and coordinators **separately** — they will not agree. | — |
+| **Q-03** | **ANSWERED → Confirmed — the ledger language ships.** Does binding red (D-11) read correctly to them, or does it carry the wrong meaning? | — |
 | **Q-04** | Is the Marathi language pack actually enabled in Gboard on their phones? It is off by default, and transliteration is how they type. | Phase 1 |
 | **Q-05** | P1.1 builds the fold key, so the mechanism will exist. What is still open: does **search** use it, and does it hold up on real Maharashtrian surnames? Needs ~50 real names per NGO to tune against — names only, no other fields. | Phase 2 |
 | **Q-06** | Do any laptop users depend on the current CSV columns being what they are? | Phase 3 |
