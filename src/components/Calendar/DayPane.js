@@ -2,6 +2,7 @@
 // matches how these NGOs actually work (G10-R): inbound first.
 
 import CalendarService, { CALENDAR_ITEM_KINDS } from '../../services/CalendarService.js';
+import ThanksService, { MESSAGE_KINDS } from '../../services/ThanksService.js';
 import { CONTRIBUTION_TYPES } from '../../utils/constants.js';
 import { t, getLang } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
@@ -172,6 +173,27 @@ export class DayPane {
      *   - "we miss you" appears only when it is honest (guard 2)
      *   - the gift is named only when one was actually recorded (guard 3)
      */
+    /**
+     * Say what actually happened, never what we hope happened (PR-3).
+     *
+     * We opened WhatsApp. We do not know whether the person pressed send, and
+     * the message says so — "WhatsApp उघडलं", not "पाठवलं".
+     */
+    reportSend(res) {
+        if (res.ok) {
+            Toast.show(getLang() === 'mr'
+                ? 'WhatsApp उघडलं. पाठवा आणि परत या.'
+                : 'WhatsApp opened. Send it, then come back.', 'success');
+            this.onChange?.();
+            return;
+        }
+        Toast.show(
+            res.reason === 'no-phone'
+                ? (getLang() === 'mr' ? 'त्यांचा नंबर नाही, त्यामुळे पाठवता येत नाही.' : 'No number saved, so this cannot be sent.')
+                : (getLang() === 'mr' ? 'हा संदेश पाठवता येत नाही.' : 'This message cannot be sent.'),
+            'warning', 4000);
+    }
+
     renderMemories() {
         const { items, widened, windowDays } = CalendarService.getMemories(this.date);
         if (!items.length) return '';          // guard 1 — never an empty section
@@ -276,6 +298,21 @@ export class DayPane {
         }));
 
         q('[data-done]').forEach(b => b.addEventListener('click', () => this.markDone(b.dataset.done)));
+
+        // The memory card's two buttons (P2.10). Thanks is always offered;
+        // "we miss you" only appears when getMemories judged it honest.
+        q('[data-thank]').forEach(b => b.addEventListener('click', () => {
+            const gift = (b.dataset.gift || '').split(',').filter(Boolean);
+            const res = ThanksService.send(b.dataset.thank, {
+                kind: gift.length ? MESSAGE_KINDS.THANKS_GIFT : MESSAGE_KINDS.THANKS,
+                contribution: gift
+            });
+            this.reportSend(res);
+        }));
+        q('[data-miss]').forEach(b => b.addEventListener('click', () => {
+            const res = ThanksService.send(b.dataset.miss, { kind: MESSAGE_KINDS.MISS });
+            this.reportSend(res);
+        }));
 
         const backfill = this.container.querySelector('#backfill');
         if (backfill) backfill.addEventListener('click', () => this.openBackfill());
