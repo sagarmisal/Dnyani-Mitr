@@ -347,3 +347,83 @@ textarea.si-input { min-height: 64px; resize: vertical; }
   .lg-brand { flex-wrap: wrap; }
   .lg-lang { margin-left: 52px; }
 }
+
+/* ==========================================================================
+   Today — the landing screen answers "how is today?" (P2.2–P2.4)
+   ==========================================================================
+   It used to open on a month grid, which answers "what date is it?" — a
+   question nobody had.
+   ========================================================================== */
+.lg-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.lg-stat {
+  background: var(--lg-page);
+  border: 1px solid var(--lg-rule-faint);
+  border-radius: var(--lg-r-ctl);
+  padding: 10px 6px;
+  text-align: center;
+}
+.lg-stat b {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.lg-stat span {
+  display: block;
+  font-size: 10px;
+  color: var(--lg-ink-soft);
+  line-height: 1.25;
+  margin-top: 3px;
+}
+/* A count that needs doing today, not a count that is wrong. */
+.lg-stat--now b { color: var(--lg-bind); }
+
+.lg-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.lg-tiles .lg-tile { text-decoration: none; }
+
+@media (min-width: 700px) {
+  .lg-stats { grid-template-columns: repeat(4, 1fr); }
+  .lg-tiles { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- "a year ago today" (UC-06) ---------- */
+.lg-memories { margin-top: 20px; }
+
+/* Warmer than the rest of the pane: this is the one section that is a pleasure
+   rather than a task. It renders last, always — a memory is never more
+   important than someone arriving today. */
+.lg-memory {
+  background: linear-gradient(180deg, var(--lg-marigold-w), var(--lg-wash));
+  border: 1px solid var(--lg-rule-faint);
+  border-radius: var(--lg-r-card);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.lg-memory-when {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lg-marigold-i);
+  margin-bottom: 5px;
+}
+.lg-memory b { display: block; font-size: 14px; }
+.lg-memory-note {
+  display: block;
+  font-size: 12px;
+  color: var(--lg-ink-soft);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+.lg-memory-actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }

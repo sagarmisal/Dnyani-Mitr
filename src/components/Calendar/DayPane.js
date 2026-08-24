@@ -2,6 +2,8 @@
 // matches how these NGOs actually work (G10-R): inbound first.
 
 import CalendarService, { CALENDAR_ITEM_KINDS } from '../../services/CalendarService.js';
+import { CONTRIBUTION_TYPES } from '../../utils/constants.js';
+import { t, getLang } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import InteractionService from '../../services/InteractionService.js';
 import { Toast } from '../UI/Toast.js';
@@ -58,6 +60,7 @@ export class DayPane {
             ${isToday ? this.renderBacklog() : ''}
             ${this.section('We are going · आपण जाणार', outbound, 'outbound')}
             ${this.renderRest(rest)}
+            ${this.renderMemories()}
             ${isPast ? this.renderBackfill() : ''}
 
             <div class="day-pane-actions">
@@ -154,6 +157,68 @@ export class DayPane {
                 </ul>
             </div>
         `;
+    }
+
+
+    /**
+     * "A year ago today" (UC-06, P2.6/P2.7) — the section the NGO asked for.
+     *
+     * Renders LAST in the day pane, always. A memory is pleasant; it is not
+     * more important than someone arriving today, and Iteration 11 deliberately
+     * put "coming to us" first.
+     *
+     * The three guards from getMemories() surface here as three rules:
+     *   - the section is not rendered at all when there is nothing (guard 1)
+     *   - "we miss you" appears only when it is honest (guard 2)
+     *   - the gift is named only when one was actually recorded (guard 3)
+     */
+    renderMemories() {
+        const { items, widened, windowDays } = CalendarService.getMemories(this.date);
+        if (!items.length) return '';          // guard 1 — never an empty section
+
+        const label = (n) => n === 1
+            ? (getLang() === 'mr' ? 'गेल्या वर्षी' : 'a year ago')
+            : (getLang() === 'mr' ? `${n} वर्षांपूर्वी` : `${n} years ago`);
+
+        return `
+            <div class="day-section lg-memories">
+                <div class="lg-section">
+                    <span class="lg-section-label">${escapeHTML(t('today.yearAgo'))}</span>
+                    <span class="lg-section-count">${items.length}</span>
+                </div>
+                ${widened ? `<p class="si-hint">${escapeHTML(getLang() === 'mr'
+                    ? `याच सुमारास (±${windowDays} दिवस)`
+                    : `around this time (±${windowDays} days)`)}</p>` : ''}
+                ${items.map(m => this.renderMemory(m, label(m.yearsAgo))).join('')}
+            </div>`;
+    }
+
+    renderMemory(m, when) {
+        const gift = m.contribution.length
+            ? CONTRIBUTION_TYPES
+                .filter(c => m.contribution.includes(c.value))
+                .map(c => `${c.icon} ${getLang() === 'mr' ? c.mr : c.en}`)
+                .join(' · ')
+            : '';
+
+        return `
+            <div class="lg-memory">
+                <div class="lg-memory-when">${escapeHTML(m.date)} · ${escapeHTML(when)}</div>
+                <b>${escapeHTML(m.visitorName)}</b>
+                ${gift ? `<span class="lg-tag">${escapeHTML(gift)}</span>` : ''}
+                ${m.notes ? `<span class="lg-memory-note">${escapeHTML(m.notes)}</span>` : ''}
+                <div class="lg-memory-actions">
+                    <button class="lg-btn lg-btn--sm lg-btn--primary"
+                            data-thank="${escapeHTML(m.visitorId)}"
+                            data-gift="${escapeHTML(m.contribution.join(','))}">
+                        💐 ${escapeHTML(t('action.sendThanks'))}
+                    </button>
+                    ${m.canSayMissYou ? `
+                        <button class="lg-btn lg-btn--sm" data-miss="${escapeHTML(m.visitorId)}">
+                            ${escapeHTML(getLang() === 'mr' ? 'तुमची आठवण येते' : 'We miss you')}
+                        </button>` : ''}
+                </div>
+            </div>`;
     }
 
     kindLabel(item) {

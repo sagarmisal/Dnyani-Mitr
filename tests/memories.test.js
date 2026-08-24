@@ -207,3 +207,52 @@ describe('bad input does not throw', () => {
         expect(CalendarService.getMemories('2026-08-24').items).toEqual([]);
     });
 });
+
+describe('the day pane renders it — and renders it LAST', () => {
+    it('shows a memory card when there is one', async () => {
+        seed({
+            visitors: [visitor('v1', 'सुनीता पाटील')],
+            interactions: [visit('i1', 'v1', '2025-08-24T12:00:00.000Z', { contribution: ['meal'] })]
+        });
+        const { default: DayPane } = await import('../src/components/Calendar/DayPane.js');
+        const el = new DayPane({ date: '2026-08-24', backlog: { items: [], total: 0 } }).render();
+
+        expect(el.querySelector('.lg-memory')).toBeTruthy();
+        expect(el.textContent).toContain('सुनीता पाटील');
+        expect(el.textContent).toContain('जेवण');      // guard 3: the gift WAS recorded
+    });
+
+    it('renders no section at all when there is nothing (guard 1)', async () => {
+        seed({ visitors: [], interactions: [] });
+        const { default: DayPane } = await import('../src/components/Calendar/DayPane.js');
+        const el = new DayPane({ date: '2026-08-24', backlog: { items: [], total: 0 } }).render();
+        expect(el.querySelector('.lg-memories')).toBeNull();
+    });
+
+    it('offers thanks always, and "we miss you" only when honest (guard 2)', async () => {
+        seed({
+            visitors: [visitor('v1', 'सुनीता')],
+            interactions: [visit('i1', 'v1', '2025-08-24T12:00:00.000Z'), visit('i2', 'v1', ago(20))]
+        });
+        const { default: DayPane } = await import('../src/components/Calendar/DayPane.js');
+        const el = new DayPane({ date: '2026-08-24', backlog: { items: [], total: 0 } }).render();
+        expect(el.querySelector('[data-thank]')).toBeTruthy();
+        expect(el.querySelector('[data-miss]'), 'must not offer to miss someone seen 20 days ago').toBeNull();
+    });
+
+    it('comes after the sections a person still has to act on', async () => {
+        // Iteration 11 decided "coming to us" leads the day. A memory is
+        // pleasant; it is not more important than someone arriving today.
+        seed({
+            visitors: [visitor('v1', 'सुनीता')],
+            interactions: [visit('i1', 'v1', '2025-08-24T12:00:00.000Z')]
+        });
+        const { default: DayPane } = await import('../src/components/Calendar/DayPane.js');
+        const el = new DayPane({ date: '2026-08-24', backlog: { items: [], total: 0 } }).render();
+        const html = el.innerHTML;
+        const memoriesAt = html.indexOf('lg-memories');
+        expect(memoriesAt).toBeGreaterThan(-1);
+        // nothing that needs acting on may appear after it
+        expect(html.slice(memoriesAt)).not.toContain('data-done');
+    });
+});

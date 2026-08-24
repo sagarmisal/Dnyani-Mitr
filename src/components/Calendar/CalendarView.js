@@ -9,6 +9,8 @@
 // Renders through CalendarService only; it derives nothing itself.
 
 import CalendarService, { CALENDAR_ITEM_KINDS } from '../../services/CalendarService.js';
+import StateManager from '../../core/state.js';
+import { t } from '../../utils/i18n.js';
 import { ROUTES } from '../../core/router.js';
 import { Toast } from '../UI/Toast.js';
 import { toLocalISODate } from '../../utils/formatters.js';
@@ -51,6 +53,8 @@ export class CalendarView {
         const dow = matrix.weekStart === 1 ? DOW_MON : DOW_SUN;
 
         this.container.innerHTML = `
+            ${this.renderTodayBar()}
+            ${this.renderTiles()}
             <div class="card calendar-card">
                 <div class="calendar-header">
                     <button class="btn btn-icon" id="cal-prev" aria-label="Previous month">‹</button>
@@ -62,9 +66,7 @@ export class CalendarView {
                 </div>
 
                 <div class="calendar-actions">
-                    <button class="btn btn-sm" id="cal-today">Today · आज</button>
-                    <button class="btn btn-sm btn-primary" id="cal-inbound">＋ Someone is coming</button>
-                    <a class="btn btn-sm btn-link" href="#${ROUTES.DASHBOARD}">📋 Today's summary</a>
+                    <button class="btn btn-sm" id="cal-today">${escapeHTML(t('action.today'))}</button>
                 </div>
 
                 ${matrix.monthWide.length ? this.renderMonthWide(matrix.monthWide) : ''}
@@ -87,6 +89,99 @@ export class CalendarView {
         this.container.querySelector('#calendar-day-pane').appendChild(pane.render());
 
         this.attach();
+        this.container.querySelector('#tile-inbound')?.addEventListener('click', () => this.openIntake(SCHEDULED_ITEM_DIRECTION.INBOUND));
+        this.container.querySelector('#tile-outbound')?.addEventListener('click', () => this.openIntake(SCHEDULED_ITEM_DIRECTION.OUTBOUND));
+        this.container.querySelector('#tile-thanks')?.addEventListener('click', () => {
+            window.location.hash = ROUTES.REMINDERS;
+        });
+    }
+
+
+    /**
+     * The row that answers "how is today?" (P2.2, UC-05).
+     *
+     * The app used to open on a month grid, which answers "what date is it?" —
+     * a question nobody had. These four counts are what a coordinator actually
+     * wants to know before they have touched anything.
+     *
+     * Only ever facts. No count here is framed as a failing (D-10): "आभार बाकी"
+     * is work outstanding, not a reproach.
+     */
+    renderTodayBar() {
+        const c = CalendarService.getTodayCounts
+            ? CalendarService.getTodayCounts()
+            : this.computeTodayCounts();
+        const stat = (n, key, emphasise = false) => `
+            <div class="lg-stat${emphasise && n > 0 ? ' lg-stat--now' : ''}">
+                <b>${n}</b><span>${escapeHTML(t(key))}</span>
+            </div>`;
+        return `
+            <div class="lg-stats">
+                ${stat(c.comingToday, 'stat.comingToday', true)}
+                ${stat(c.occasions, 'stat.occasions')}
+                ${stat(c.thanksDue, 'stat.thanksDue', true)}
+                ${stat(c.notSeen, 'stat.notSeen')}
+            </div>`;
+    }
+
+    /** Four large targets, easier to hit and — more to the point — to see. */
+    renderTiles() {
+        return `
+            <div class="lg-tiles">
+                <button class="lg-tile lg-tile--primary" id="tile-inbound">
+                    <span class="lg-tile-icon">➕</span>
+                    <span class="lg-tile-label">${escapeHTML(t('action.someoneComing'))}</span>
+                </button>
+                <button class="lg-tile" id="tile-thanks">
+                    <span class="lg-tile-icon">💐</span>
+                    <span class="lg-tile-label">${escapeHTML(t('action.sendThanks'))}</span>
+                </button>
+                <button class="lg-tile" id="tile-outbound">
+                    <span class="lg-tile-icon">🗓️</span>
+                    <span class="lg-tile-label">${escapeHTML(t('action.planVisit'))}</span>
+                </button>
+                <a class="lg-tile" href="#${ROUTES.DASHBOARD}">
+                    <span class="lg-tile-icon">📄</span>
+                    <span class="lg-tile-label">${escapeHTML(t('action.report'))}</span>
+                </a>
+            </div>`;
+    }
+
+    /** Derived on the spot — nothing here is stored, so nothing can go stale. */
+    computeTodayCounts() {
+        const today = toLocalISODate(new Date());
+        const items = CalendarService.getItemsForRange(today, today).days[today] || [];
+        const scheduled = items.filter(i => i.kind === 'scheduled');
+        const interactions = StateManager.getInteractions() || [];
+
+        // Thanks outstanding: a visit that happened, is not yet thanked, and is
+        // recent enough to still be worth thanking. Unbounded, this becomes an
+        // ever-growing accusation, which is the thing D-10 exists to prevent.
+        const cutoff = Date.now() - 30 * 86400000;
+        const thanksDue = interactions.filter(i =>
+            !i.thankedAt &&
+            i.interactionType === 'visit' &&
+            new Date(i.interactionDate).getTime() >= cutoff
+        ).length;
+
+        const lastSeen = new Map();
+        interactions.forEach(i => {
+            const tms = new Date(i.interactionDate).getTime();
+            if (!isNaN(tms) && (!lastSeen.has(i.visitorId) || tms > lastSeen.get(i.visitorId))) {
+                lastSeen.set(i.visitorId, tms);
+            }
+        });
+        const stale = Date.now() - 180 * 86400000;
+        const notSeen = (StateManager.getVisitors() || [])
+            .filter(v => !v.isDeleted && !v.doNotContact)
+            .filter(v => (lastSeen.get(v.id) || 0) < stale).length;
+
+        return {
+            comingToday: scheduled.filter(i => i.direction !== 'outbound').length,
+            occasions: items.filter(i => i.kind === 'event' || i.kind === 'occasion').length,
+            thanksDue,
+            notSeen
+        };
     }
 
     renderMonthWide(items) {
@@ -136,8 +231,6 @@ export class CalendarView {
             this.selectedDate = today;
             this.refresh();
         });
-        this.container.querySelector('#cal-inbound').addEventListener('click', () => this.openIntake());
-
         this.container.querySelectorAll('.calendar-cell').forEach(btn => {
             btn.addEventListener('click', () => this.selectDate(btn.dataset.date));
         });
@@ -162,11 +255,11 @@ export class CalendarView {
         this.refresh();
     }
 
-    openIntake() {
+    openIntake(direction = SCHEDULED_ITEM_DIRECTION.INBOUND) {
         const form = new ScheduledItemForm({
             date: this.selectedDate,
-            direction: SCHEDULED_ITEM_DIRECTION.INBOUND,
-            onSaved: () => { this.refresh(); Toast.show('Visit added to the calendar.', 'success'); }
+            direction,
+            onSaved: () => { this.refresh(); Toast.show(t('toast.saved'), 'success'); }
         });
         document.body.appendChild(form.render());
     }
