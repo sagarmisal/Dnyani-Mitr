@@ -176,4 +176,31 @@ export function scriptOf(s) {
     return 'other';
 }
 
-export default { foldKey, namesLikelySame, normalizeText, scriptOf };
+/**
+ * Compare two names for display order (P1.3).
+ *
+ * `localeCompare` with no locale uses the device's, so the same list sorted on
+ * two NGO phones can come out in two different orders. Pinning 'mr-IN' also
+ * gets the Marathi convention right: क्ष and ज्ञ close the वर्णमाला after ह and
+ * ळ, so ज्ञानेश्वर sorts last, not between कमल and मंगल.
+ *
+ * If a WebView ships without Marathi collation data the browser falls back to
+ * its default rather than throwing, so this degrades to today's behaviour
+ * rather than breaking. Verified on a device is the only way to know which.
+ */
+export function compareNames(a, b) {
+    const x = normalizeText(a || '');
+    const y = normalizeText(b || '');
+    // Empty names sort last — under D-07 they are ordinary, not errors, but a
+    // run of blanks at the top of a list is not what anyone is looking for.
+    if (!x && !y) return 0;
+    if (!x) return 1;
+    if (!y) return -1;
+    try {
+        return x.localeCompare(y, 'mr-IN');
+    } catch {
+        return x.localeCompare(y);
+    }
+}
+
+export default { foldKey, namesLikelySame, normalizeText, scriptOf, compareNames };

@@ -513,7 +513,7 @@ export class MyDayDashboard {
             const csv = ReportService.generateVisitorCSV();
             const filename = `Visitors_${new Date().toISOString().split('T')[0]}.csv`;
             // Prepend BOM so Excel handles UTF-8 correctly
-            downloadFile('\ufeff' + csv, filename);
+            downloadFile(csv, filename, 'text/csv;charset=utf-8;');   // BOM added in saveFile (P1.4)
             Toast.show('CSV downloaded.', 'success');
         });
     }

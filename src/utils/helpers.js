@@ -147,7 +147,20 @@ export function getSyncCapabilities() {
  * @returns {Promise<{method: 'share'|'download'|'datauri', cancelled?: boolean, error?: string}>}
  */
 export async function saveFile(content, filename, mimeType = 'application/json') {
-    const blob = new Blob([content], { type: mimeType });
+    // P1.4 — a CSV of Marathi names opens as mojibake in Excel on Windows
+    // unless it starts with a UTF-8 BOM. Excel is exactly where a coordinator
+    // opens a trustee report, so the BOM belongs here, in the one place every
+    // export passes through, not at each call site where it can be forgotten.
+    // Idempotent: a caller that already added one does not get two.
+    const isCsv = /csv/i.test(mimeType) || /\.csv$/i.test(filename || '');
+    const body = (isCsv && !String(content).startsWith('\ufeff'))
+        ? '\ufeff' + content
+        : content;
+    const type = isCsv && !/charset/i.test(mimeType)
+        ? 'text/csv;charset=utf-8;'
+        : mimeType;
+
+    const blob = new Blob([body], { type });
     const caps = getSyncCapabilities();
 
     // Path 1: Web Share API with files — best path on Capacitor + mobile browsers.
@@ -199,7 +212,7 @@ export async function saveFile(content, filename, mimeType = 'application/json')
     } catch (err) {
         // Final fallback: data URI in new tab. Last resort for very old WebViews.
         try {
-            const dataUri = 'data:' + mimeType + ';charset=utf-8,' + encodeURIComponent(content);
+            const dataUri = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(body);
             window.open(dataUri, '_blank');
             return { method: 'datauri', cancelled: false };
         } catch (err2) {

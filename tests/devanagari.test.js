@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { foldKey, namesLikelySame, normalizeText, scriptOf } from '../src/utils/devanagari.js';
+import { foldKey, namesLikelySame, normalizeText, scriptOf, compareNames } from '../src/utils/devanagari.js';
 
 describe('foldKey — the same person, typed differently', () => {
     const same = [
@@ -132,5 +132,34 @@ describe('scriptOf', () => {
         expect(scriptOf('सुनीता Patil')).toBe('mixed');
         expect(scriptOf('')).toBe('empty');
         expect(scriptOf('12345')).toBe('other');
+    });
+});
+
+describe('compareNames — Marathi collation (P1.3)', () => {
+    it('sorts क्ष and ज्ञ at the end, per the Marathi वर्णमाला', () => {
+        // Code-point order puts ज्ञानेश्वर between कमल and मंगल, because ज sits
+        // there in the Unicode block. Marathi convention closes the alphabet
+        // with ळ, क्ष, ज्ञ after ह.
+        const sorted = ['ज्ञानेश्वर', 'मंगल', 'अनिल', 'कमल', 'सुनीता']
+            .sort(compareNames);
+        expect(sorted[0]).toBe('अनिल');
+        expect(sorted[sorted.length - 1]).toBe('ज्ञानेश्वर');
+    });
+
+    it('is a valid comparator — antisymmetric and reflexive', () => {
+        expect(compareNames('अनिल', 'अनिल')).toBe(0);
+        expect(Math.sign(compareNames('अनिल', 'कमल')))
+            .toBe(-Math.sign(compareNames('कमल', 'अनिल')));
+    });
+
+    it('sorts nameless records last rather than first', () => {
+        // D-07 makes a nameless visitor ordinary, but a run of blanks at the
+        // top of the list is not what anyone is scanning for.
+        const sorted = ['सुनीता', '', 'अनिल', null].sort(compareNames);
+        expect(sorted.slice(0, 2)).toEqual(['अनिल', 'सुनीता']);
+    });
+
+    it('does not throw when a locale is unavailable', () => {
+        expect(() => compareNames('अनिल', 'Ramesh')).not.toThrow();
     });
 });

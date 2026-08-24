@@ -189,9 +189,34 @@ export function formatPhone(phone) {
  * Strips non-digits, takes last 10 digits.
  * Returns null if result is less than 10 digits.
  */
+/**
+ * Fold non-ASCII digits to ASCII (P1.5).
+ *
+ * `\D` in JavaScript is ASCII-only, so a number typed on a Devanagari layout
+ * (९८२२०१२३४५) is stripped to nothing and normalizePhone returns null. The
+ * phone number is this app's identity key (PR-1), so that silently costs a
+ * visitor their identity — dedup misses them, sync will not match them, and
+ * next year's reminder never finds them.
+ *
+ * Transliteration keyboards, which is how these volunteers actually type, keep
+ * the number row ASCII — so this is uncommon rather than routine. It is cheap
+ * insurance on the one field we ask people to get right.
+ */
+function foldDigits(str) {
+    let out = '';
+    for (const ch of String(str)) {
+        const c = ch.codePointAt(0);
+        if (c >= 0x0966 && c <= 0x096F) out += String(c - 0x0966);        // Devanagari ०-९
+        else if (c >= 0x0660 && c <= 0x0669) out += String(c - 0x0660);   // Arabic-Indic ٠-٩
+        else if (c >= 0x06F0 && c <= 0x06F9) out += String(c - 0x06F0);   // Extended Arabic-Indic ۰-۹
+        else out += ch;
+    }
+    return out;
+}
+
 export function normalizePhone(phone) {
     if (!phone) return null;
-    const digits = phone.replace(/\D/g, '');
+    const digits = foldDigits(phone).replace(/\D/g, '');
     if (digits.length < 10) return null;
     return digits.slice(-10);
 }

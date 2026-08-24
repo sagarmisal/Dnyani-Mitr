@@ -17,6 +17,7 @@ import ReminderService from './ReminderService.js';
 import { Reminder } from '../models/Reminder.js';
 import { Occasion } from '../models/Occasion.js';
 import { resolveAnnualDate, toLocalISODate, localDayKey } from '../utils/formatters.js';
+import { compareNames } from '../utils/devanagari.js';
 import { SCHEDULED_ITEM_STATUS, SCHEDULED_ITEM_DIRECTION } from '../utils/constants.js';
 
 const DEFAULT_LOOKBACK_DAYS = 30;
@@ -458,7 +459,7 @@ function compareItems(a, b) {
     const ak = KIND_ORDER.indexOf(a.kind);
     const bk = KIND_ORDER.indexOf(b.kind);
     if (ak !== bk) return ak - bk;
-    return (a.title || '').localeCompare(b.title || '');
+    return compareNames(a.title, b.title);   // P1.3 — locale-pinned, not device-dependent
 }
 
 function countByKind(items) {

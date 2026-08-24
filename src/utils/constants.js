@@ -368,7 +368,10 @@ export const VALIDATION = {
     MIN_NAME_LENGTH: 2,
     MAX_NAME_LENGTH: 100,
     MAX_NOTES_LENGTH: 5000,
-    PHONE_PATTERN: /^[\d\s\-\+\(\)]+$/,
+    // P1.5 — \d is ASCII-only, so a number typed on a Devanagari or Arabic-Indic
+    // layout failed validation with a message the user cannot act on. Accept the
+    // digits; normalizePhone folds them to ASCII before they are stored.
+    PHONE_PATTERN: /^[\d\s\-\+\(\)\u0966-\u096F\u0660-\u0669\u06F0-\u06F9]+$/,
     EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 };
 
