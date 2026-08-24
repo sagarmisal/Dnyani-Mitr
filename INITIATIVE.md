@@ -474,7 +474,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | ✅ **P1.16** | Update §13; append §14 lines for what was learned | doc matches reality | AUTO |
 | ✅ **P1.17** | `vite build` → `cap sync android` → `assembleDebug` → `./scripts/verify-apk.sh` | prints **Signature matches** | AUTO |
 | ✅ **P1.18** | Write the device checklist for the capture sheet, replacing `LOCAL_TEST_v3.2.0.md` | checklist exists | AUTO |
-| **P1.19** | Install on the pilot phone; a volunteer records a real visit **unaided** | they succeed without being told how | NGO |
+| 🔶 **P1.19** | ~~a volunteer records a real visit unaided~~ → **D-24: we are the pilot.** Replaced by `tests/dogfood-week.test.js` — one volunteer's week through the real screens — plus an owner run on a real device | 12 dogfood tests green; owner device run outstanding | OWNER |
 
 **Gate:** P1.19 passes. If they need to be told how, the screen is wrong — fix it before Phase 2.
 
