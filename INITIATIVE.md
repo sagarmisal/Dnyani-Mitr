@@ -489,14 +489,14 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | **P2.3** | Today — four large action tiles | targets ≥44px | AUTO |
 | **P2.4** | Today — calendar inline **plus** the day's list, one scroll. Merges My Day and Calendar (see §6) | one screen, no navigation to see today | AUTO |
 | **P2.5** | Day pane order: coming to us → needs catching up → we are going → on this day | order test | AUTO |
-| **P2.6** | **"A year ago today"** — month+day matching for interactions in `CalendarService` (**UC-06**) | test across year boundaries and leap days | AUTO |
-| **P2.7** | UC-06's three guards: never render empty (widen ±3 days) · no *"we miss you"* under ~6 months · no gift claim before contributions exist | one test per guard | AUTO |
+| ✅ **P2.6** | **"A year ago today"** — month+day matching for interactions in `CalendarService` (**UC-06**) | test across year boundaries and leap days | AUTO |
+| ✅ **P2.7** | UC-06's three guards: never render empty (widen ±3 days) · no *"we miss you"* under ~6 months · no gift claim before contributions exist | one test per guard | AUTO |
 | **P2.8** | Reminders screen rebuilt, host vocabulary (**UC-07**, D-10) | no accusatory string remains | AUTO |
 | 🔶 **P2.9** | **Vocabulary sweep** — string layer built (`i18n.js` + `strings.js`, Marathi-first with toggle); header done. Remaining: sweep the other screens onto `t()` | a test forbids the banned vocabulary; every key has both languages | AUTO |
 | **P2.10** | J3 single-message send with mark-as-sent (**UC-08, UC-09**) | Interaction + `thankedAt` written | AUTO |
-| **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
+| ✅ **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
 | **P2.12** | Pending-thanks count, **age-bounded** so it cannot become an accusation | test: old items drop off | AUTO |
-| **P2.13** | `Interaction.contribution` — chips (meal/donation/books/clothes/educational/grocery) + free-text item line, on the capture sheet | migration test; chips optional | AUTO |
+| ✅ **P2.13** | `Interaction.contribution` — chips (meal/donation/books/clothes/educational/grocery) + free-text item line, on the capture sheet | migration test; chips optional | AUTO |
 | **P2.14** | First run asks nothing about machines — silent satellite; promotion moves to Settings | fresh install reaches Today with no architecture question | AUTO |
 | **P2.15** | Act on Q-01: keep the activation gate with a stated reason, or remove it and `KEYS.md` | matches the §5 decision | AUTO |
 | **P2.16** | Never-blank defaults on every screen (dates pre-filled, filters pre-set) | no screen opens empty-and-blocking | AUTO |

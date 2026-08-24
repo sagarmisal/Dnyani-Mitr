@@ -143,6 +143,20 @@ class StorageManager {
                     i.followUpCompletedAt = null;
                     changed = true;
                 }
+                // Phase 2: thanked-state and contribution. Same caveat as above —
+                // records arriving through sync bypass the constructor, so every
+                // consumer must also treat a missing value as null/[] rather than
+                // trusting this pass. Note contribution CANNOT be backfilled with
+                // real data: nobody recorded what past visitors brought, and
+                // guessing would be inventing history.
+                if (i && i.thankedAt === undefined) {
+                    i.thankedAt = null;
+                    changed = true;
+                }
+                if (i && !Array.isArray(i.contribution)) {
+                    i.contribution = [];
+                    changed = true;
+                }
             });
         }
         // Iter 10: new settings fields

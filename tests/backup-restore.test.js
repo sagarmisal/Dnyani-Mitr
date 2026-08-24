@@ -94,7 +94,24 @@ afterAll(() => { process.env.TZ = ORIGINAL_TZ; });
 beforeEach(() => { wipe(); });
 
 describe('R0.4 — the round trip', () => {
-    it('carries every collection through backup -> wipe -> restore, byte for byte', () => {
+    /**
+     * Nothing may be LOST in a round trip. Forward migration adding a new field
+     * with a null default is correct and expected, so deep equality is the
+     * wrong assertion here — it would fail every time a field is added, which
+     * trains people to edit the test instead of reading it. What must hold is
+     * that every value that went in comes back unchanged.
+     */
+    function expectNothingLost(after, before, collection) {
+        expect(after[collection], `${collection}: count changed`).toHaveLength(before[collection].length);
+        before[collection].forEach((original, i) => {
+            const restored = after[collection][i];
+            Object.entries(original).forEach(([k, v]) => {
+                expect(restored[k], `${collection}[${i}].${k} did not survive`).toEqual(v);
+            });
+        });
+    }
+
+    it('carries every collection through backup -> wipe -> restore, losing nothing', () => {
         populate();
         const before = StateManager.getState();
         const pkg = SyncService.prepareFullBackup();
@@ -106,13 +123,16 @@ describe('R0.4 — the round trip', () => {
         SyncService.restoreFullBackup(wire);
         const after = StateManager.getState();
 
-        expect(after.visitors).toEqual(before.visitors);
-        expect(after.interactions).toEqual(before.interactions);
-        expect(after.reminderActions).toEqual(before.reminderActions);
-        expect(after.occasions).toEqual(before.occasions);
-        expect(after.campaigns).toEqual(before.campaigns);
-        expect(after.scheduledItems).toEqual(before.scheduledItems);
+        ['visitors', 'interactions', 'reminderActions', 'occasions',
+         'campaigns', 'scheduledItems'].forEach(c => expectNothingLost(after, before, c));
         expect(after.knownMachines).toEqual(before.knownMachines);
+
+        // And the new fields arrived with safe defaults rather than undefined,
+        // so no consumer has to guess (P2.11, P2.13).
+        after.interactions.forEach(i => {
+            expect(i.thankedAt === null || typeof i.thankedAt === 'string').toBe(true);
+            expect(Array.isArray(i.contribution)).toBe(true);
+        });
         expect(after.settings.calendarStartsOn).toBe('mon');
         expect(after.settings.landingScreen).toBe('dashboard');
     });

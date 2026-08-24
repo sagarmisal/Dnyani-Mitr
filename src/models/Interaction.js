@@ -23,6 +23,24 @@ export class Interaction {
         // model must declare AND serialise it — otherwise a round-trip through
         // fromJSON/toJSON silently drops a completed follow-up and it reappears forever.
         this.followUpCompletedAt = data.followUpCompletedAt || null;
+
+        // P2.11 (J3) — when we sent them a thank-you or a greeting.
+        //
+        // OPTIMISTIC BY NATURE. We hand off to WhatsApp or the SMS app and
+        // never learn whether it arrived, so this records our INTENT to thank
+        // someone, not delivery. No screen may claim more than that (PR-3):
+        // "आभार पाठवले" is honest, "they received it" would not be.
+        this.thankedAt = data.thankedAt || null;
+
+        // P2.13 (J1/J4) — what they brought with them.
+        //
+        // Tally marks, deliberately NOT donation accounting: no amounts, no
+        // receipts, no reconciliation. This is what a balikashram's day
+        // actually consists of and what someone will actually fill in while
+        // the visitor is still standing there.
+        this.contribution = Array.isArray(data.contribution) ? data.contribution : [];
+        this.contributionNote = data.contributionNote || '';   // "डाळ, भात, पोळी"
+
     }
 
     /**

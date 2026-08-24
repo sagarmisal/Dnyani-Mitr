@@ -431,6 +431,113 @@ class CalendarService {
             });
         });
     }
+
+    /**
+     * Who visited on this date in previous years (UC-06, P2.6).
+     *
+     * Requested by the NGO, and it needs no new data: every visit is already
+     * written down, shown once on its own day, then never surfaced again. It is
+     * the highest-value unused asset in the register.
+     *
+     * It also answers a real problem. Most days have nothing scheduled — with
+     * 300 visitors over two years there is less than one visit per calendar
+     * date — so the app opens empty and gives no reason to come back. A memory
+     * gives a quiet day something to show.
+     *
+     * THE THREE GUARDS (P2.7), each stopping the feature from doing harm:
+     *
+     *   1. Never render empty. If the exact day has nothing, widen a few days
+     *      either side and SAY so, rather than showing a blank section that
+     *      reads as broken.
+     *   2. Never offer "we miss you" to someone seen recently. Saying it to a
+     *      supporter who came last month is absurd and costs trust. Thanks is
+     *      always safe; missing them is not.
+     *   3. Never claim thanks for a gift unless one was recorded. Contributions
+     *      exist only from P2.13 onward; history has none, and inventing it
+     *      would be a lie told in the NGO's name.
+     *
+     * @param {string} dayKey  'YYYY-MM-DD'
+     * @param {Object} [opts]
+     * @param {number} [opts.windowDays=3]  how far to widen when exact is empty
+     * @param {number} [opts.missMonths=6]  silence before "we miss you" is fair
+     * @returns {{items: Array, widened: boolean, windowDays: number}}
+     */
+    getMemories(dayKey, { windowDays = 3, missMonths = 6 } = {}) {
+        const m = DAY_KEY.exec(String(dayKey || ''));
+        if (!m) return { items: [], widened: false, windowDays: 0 };
+
+        const year = parseInt(m[1], 10);
+        const month = parseInt(m[2], 10);
+        const day = parseInt(m[3], 10);
+
+        const interactions = StateManager.getInteractions() || [];
+        const visitors = StateManager.getVisitors() || [];
+        const byId = new Map(visitors.map(v => [v.id, v]));
+
+        // When we last heard from each person at all — guard 2 rests on this.
+        const lastSeen = new Map();
+        interactions.forEach(i => {
+            const t = new Date(i.interactionDate).getTime();
+            if (isNaN(t)) return;
+            const prev = lastSeen.get(i.visitorId);
+            if (prev === undefined || t > prev) lastSeen.set(i.visitorId, t);
+        });
+
+        const anchor = Date.UTC(year, month - 1, day);
+        const now = Date.now();
+
+        const build = (spread) => {
+            const out = [];
+            interactions.forEach(i => {
+                const key = localDayKey(i.interactionDate);
+                const km = DAY_KEY.exec(String(key || ''));
+                if (!km) return;
+
+                const iy = parseInt(km[1], 10);
+                if (iy >= year) return;                       // previous years only
+
+                // Month+day compared with the year ignored — the same matcher
+                // the birthday reminders already use, finally pointed at visits.
+                const gap = Math.round(
+                    (Date.UTC(year, parseInt(km[2], 10) - 1, parseInt(km[3], 10)) - anchor) / 86400000
+                );
+                if (Math.abs(gap) > spread) return;
+
+                const visitor = byId.get(i.visitorId);
+                if (!visitor || visitor.isDeleted) return;
+                if (visitor.doNotContact) return;             // never resurface them
+
+                const last = lastSeen.get(i.visitorId);
+                const monthsSince = last ? (now - last) / 2629800000 : Infinity;
+
+                out.push({
+                    kind: CALENDAR_ITEM_KINDS.INTERACTION,
+                    memory: true,
+                    date: key,
+                    yearsAgo: year - iy,
+                    dayOffset: gap,
+                    visitorId: i.visitorId,
+                    visitorName: this._visitorName(visitor),
+                    interactionId: i.id,
+                    interactionType: i.interactionType,
+                    notes: i.notes || '',
+                    contribution: Array.isArray(i.contribution) ? i.contribution : [],
+                    canSayMissYou: monthsSince >= missMonths,
+                    monthsSinceLastSeen: Number.isFinite(monthsSince) ? Math.floor(monthsSince) : null
+                });
+            });
+            out.sort((a, b) =>
+                a.yearsAgo - b.yearsAgo || Math.abs(a.dayOffset) - Math.abs(b.dayOffset));
+            return out;
+        };
+
+        // Guard 1 — exact day first; widen only if it would otherwise be blank.
+        const exact = build(0);
+        if (exact.length) return { items: exact, widened: false, windowDays: 0 };
+
+        const near = build(windowDays);
+        return { items: near, widened: near.length > 0, windowDays };
+    }
 }
 
 // ─── Module helpers ────────────────────────────────────────────────────────
