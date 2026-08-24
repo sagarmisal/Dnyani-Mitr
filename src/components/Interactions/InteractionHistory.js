@@ -1,6 +1,7 @@
 // Interaction History View - Global chronological list of all interactions
 
 import StateManager from '../../core/state.js';
+import { t } from '../../utils/i18n.js';
 import { visitorDisplayName } from '../../utils/formatters.js';
 import VisitorService from '../../services/VisitorService.js';
 import Router, { ROUTES } from '../../core/router.js';
@@ -154,8 +155,8 @@ export class InteractionHistory {
             return `
                 <div class="empty-state" style="padding:2rem;">
                     <div class="empty-state-icon">📋</div>
-                    <p class="empty-state-text">No interactions found</p>
-                    <p class="empty-state-hint">Interactions are logged when you contact visitors via the dashboard or visitor view.</p>
+                    <p class="empty-state-text">${t('empty.history')}</p>
+                    <p class="empty-state-hint">${t('empty.historyHint')}</p>
                 </div>`;
         }
 

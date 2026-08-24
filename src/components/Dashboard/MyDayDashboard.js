@@ -1,6 +1,7 @@
 // My Day Dashboard - Default home screen for daily planning
 
 import ReminderService from '../../services/ReminderService.js';
+import { t } from '../../utils/i18n.js';
 import OccasionService from '../../services/OccasionService.js';
 import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
@@ -253,12 +254,12 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-overdue">
                 <div class="dashboard-card-header">
-                    <h3>Overdue</h3>
+                    <h3>${t('status.waitingSince')}</h3>
                     <span class="badge badge-danger">${reminders.length}</span>
                 </div>
                 <div class="dashboard-card-body">
                     ${reminders.slice(0, 10).map(r => this._renderReminderRow(r, true)).join('')}
-                    ${reminders.length > 10 ? `<div class="dashboard-more-link"><a href="#${ROUTES.REMINDERS}">View all ${reminders.length} overdue...</a></div>` : ''}
+                    ${reminders.length > 10 ? `<div class="dashboard-more-link"><a href="#${ROUTES.REMINDERS}">${t('status.viewAll', { n: reminders.length })}</a></div>` : ''}
                 </div>
             </div>`;
     }
@@ -298,7 +299,7 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-followups">
                 <div class="dashboard-card-header">
-                    <h3>Follow-ups Due</h3>
+                    <h3>${t('status.worthACall')}</h3>
                     <span class="badge badge-warning">${followUps.length}</span>
                 </div>
                 <div class="dashboard-card-body">
@@ -357,7 +358,7 @@ export class MyDayDashboard {
                             <div class="dashboard-lapsed-row never-contacted">
                                 <div class="lapsed-info">
                                     <span class="lapsed-name">${this._escapeHtml(name)}</span>
-                                    <span class="lapsed-detail">Never contacted</span>
+                                    <span class="lapsed-detail">${t('status.neverVisited')}</span>
                                 </div>
                                 <div class="lapsed-actions">
                                     <button class="btn btn-sm btn-primary log-interaction-btn" data-vid="${item.visitor.id}" data-name="${this._escapeHtml(name)}">Contact</button>

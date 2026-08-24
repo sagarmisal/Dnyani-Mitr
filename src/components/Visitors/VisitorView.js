@@ -1,6 +1,7 @@
 // Visitor View Component - Read-only display of visitor details
 
 import VisitorService from '../../services/VisitorService.js';
+import { t } from '../../utils/i18n.js';
 import { visitorDisplayName } from '../../utils/formatters.js';
 import InteractionService from '../../services/InteractionService.js';
 import EngagementService from '../../services/EngagementService.js';
@@ -475,7 +476,8 @@ export class VisitorView {
 
     if (nextFollowUp && (!nextEvent || nextFollowUp <= nextEvent)) {
       const days = Math.round((nextFollowUp - today) / 86400000);
-      const when = days <= 0 ? 'today (overdue)' : days === 1 ? 'tomorrow' : `in ${days} days`;
+      // "today (overdue)" scolded someone for a thing due today.
+      const when = days <= 0 ? t('status.dueToday') : days === 1 ? 'tomorrow' : `in ${days} days`;
       return `Next: follow-up ${when}`;
     }
     if (nextEvent) {
@@ -491,7 +493,9 @@ export class VisitorView {
    */
   renderLastContactInfo() {
     const daysSince = EngagementService.getDaysSinceLastInteraction(this.visitorId);
-    if (daysSince === Infinity) return ' | <span style="color:#ef4444;">Never contacted</span>';
+    // A brand-new supporter was greeted with a red "Never contacted" — a
+    // reproach for a person who had just arrived (D-10).
+    if (daysSince === Infinity) return ` | <span class="text-secondary">${t('status.neverVisited')}</span>`;
     if (daysSince === 0) return ' | Last contact: <span style="color:#22c55e;">Today</span>';
     const color = daysSince <= 30 ? '#22c55e' : daysSince <= 60 ? '#f59e0b' : '#ef4444';
     return ` | Last contact: <span style="color:${color};">${daysSince} days ago</span>`;

@@ -1,6 +1,7 @@
 // Visitor List Component
 
 import VisitorService from '../../services/VisitorService.js';
+import { t } from '../../utils/i18n.js';
 import { visitorDisplayName } from '../../utils/formatters.js';
 import SearchService from '../../services/SearchService.js';
 import EngagementService from '../../services/EngagementService.js';
@@ -231,9 +232,9 @@ export class VisitorList {
       listContent.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">${hasFilters ? '🔍' : '👋'}</div>
-          <p class="empty-state-text">${hasFilters ? 'No visitors match your search' : 'No visitors yet!'}</p>
-          <p class="empty-state-hint">${hasFilters ? 'Try broadening your search or clearing filters.' : 'Start by adding your first visitor to build your community network.'}</p>
-          ${!hasFilters ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">Add Your First Visitor</button>` : ''}
+          <p class="empty-state-text">${hasFilters ? t('empty.search') : t('empty.people')}</p>
+          <p class="empty-state-hint">${hasFilters ? t('empty.searchHint') : t('empty.peopleHint')}</p>
+          ${!hasFilters ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">${t('action.addFirst')}</button>` : ''}
         </div>
       `;
       return;

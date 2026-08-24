@@ -102,6 +102,11 @@ export const STRINGS = {
     'status.worthACall':    { mr: 'फोन करायला हवा',      en: 'Worth a call' },
     'status.thanked':       { mr: 'आभार पाठवले',         en: 'Thanked' },
     'status.noTimeSet':     { mr: 'वेळ ठरली नाही',        en: 'No time set' },
+    // These three replace "Overdue", "Never contacted" and "today (overdue)".
+    // Same rows, same urgency, stated as facts instead of verdicts.
+    'status.waitingSince':  { mr: 'वाट पाहत आहेत',        en: 'Still waiting' },
+    'status.dueToday':      { mr: 'आजच करायचं',           en: 'For today' },
+    'status.viewAll':       { mr: 'सगळे {n} पाहा',         en: 'See all {n}' },
 
     /* ---------------------------------------------------- empty states */
     // An invitation to act, with the one action that would fill the screen.
@@ -109,6 +114,13 @@ export const STRINGS = {
     'empty.people':         { mr: 'अजून कुणी नाही.',          en: 'No one here yet.' },
     'empty.search':         { mr: 'असं कुणी सापडलं नाही.',     en: 'No one matches that.' },
     'empty.history':        { mr: 'अजून कोणतीही नोंद नाही.',   en: 'Nothing recorded yet.' },
+    'empty.peopleHint':     { mr: 'पहिलं नाव जोडून सुरुवात करा — फोन नंबर पुरेसा आहे.',
+                              en: 'Start with one person. A phone number is enough.' },
+    'empty.searchHint':     { mr: 'कमी अक्षरं टाकून पाहा, किंवा फिल्टर काढा.',
+                              en: 'Try fewer letters, or clear the filters.' },
+    'empty.historyHint':    { mr: 'कुणी भेट दिली की इथे नोंद दिसेल.',
+                              en: 'Records appear here once someone visits.' },
+    'action.addFirst':      { mr: 'पहिली व्यक्ती जोडा',        en: 'Add the first person' },
 
     /* --------------------------------------------------------- toasts */
     'toast.saved':          { mr: 'जतन झालं',              en: 'Saved' },

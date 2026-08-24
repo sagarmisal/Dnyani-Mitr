@@ -166,3 +166,36 @@ describe('identity strings are fixed (D-22)', () => {
         expect(STRINGS['app.by'].en).toContain('Seva Sankalp');
     });
 });
+
+describe('the vocabulary sweep actually reached the screens (P2.8/P2.9)', () => {
+    it('no component still hardcodes the administrator vocabulary', async () => {
+        const { readdirSync, readFileSync, statSync } = await import('node:fs');
+        const { join } = await import('node:path');
+
+        const files = [];
+        (function walk(dir) {
+            readdirSync(dir).forEach(f => {
+                const p = join(dir, f);
+                if (statSync(p).isDirectory()) walk(p);
+                else if (f.endsWith('.js')) files.push(p);
+            });
+        })('src/components');
+
+        // Only what a USER can see. Class names like `is-overdue` and internal
+        // methods like _getOverdueReminders are our vocabulary, not theirs, and
+        // renaming them would be churn without benefit.
+        const banned = /(>|["'`])\s*(Overdue|Never contacted|Follow-ups Due|Data Quality|Root Machine|Satellite Machine)\b/;
+        // Line by line, NOT on the joined file: `\s*` spans newlines, so a `>`
+        // ending one line would match a word beginning the next — which it did,
+        // and reported two innocent files.
+        const offenders = [];
+        files.forEach(f => {
+            readFileSync(f, 'utf8').split('\n').forEach((line, n) => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('//') || trimmed.startsWith('*')) return;
+                if (banned.test(line)) offenders.push(`${f}:${n + 1}  ${trimmed.slice(0, 60)}`);
+            });
+        });
+        expect(offenders, 'components still showing administrator vocabulary').toEqual([]);
+    });
+});
