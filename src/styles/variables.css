@@ -39,13 +39,13 @@
   --color-info-light: #a35049;
   
   /* Neutral Colors - Light Mode */
-  --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f3f4f6;
-  --color-border: #e5e7eb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #6b7280;
+  --color-bg: var(--lg-paper);
+  --color-surface: var(--lg-page);
+  --color-surface-hover: var(--lg-wash);
+  --color-border: var(--lg-rule-faint);
+  --color-text-primary: var(--lg-ink);
+  --color-text-secondary: var(--lg-ink-soft);
+  --color-text-tertiary: var(--lg-ink-faint);
   
   /* Spacing */
   --space-xs: 0.25rem;

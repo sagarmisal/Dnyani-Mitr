@@ -94,7 +94,7 @@ class App {
     // the user is; the app is only the tool they picked up. Making that
     // hierarchy visible is the cheapest available answer to "it felt like
     // somebody else's app".
-    const settings = StateManager.getSettings?.() || {};
+    const settings = StateManager.getSettings() || {};
     const orgName = (settings.organizationName || '').trim();
     const lang = getLang();
 

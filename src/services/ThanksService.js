@@ -89,7 +89,7 @@ class ThanksService {
         if (visitor.doNotContact) return null;      // never, under any kind
 
         const lang = TEMPLATES[getLang()] ? getLang() : 'mr';
-        const settings = StateManager.getSettings?.() || {};
+        const settings = StateManager.getSettings() || {};
         const org = (settings.organizationName || '').trim() ||
                     (lang === 'mr' ? 'आमची संस्था' : 'our organisation');
 

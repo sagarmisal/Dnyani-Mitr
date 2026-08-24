@@ -133,3 +133,70 @@ describe('no Tailwind default survives in the token set', () => {
         expect(survivors, 'Tailwind defaults still defined').toEqual([]);
     });
 });
+
+describe('the LEGACY --color-* tokens, which most of the app still uses', () => {
+    // Found in review: P1.8b repointed the semantic tokens (primary, success,
+    // error, warning) and missed the NEUTRALS — bg, surface, border, and all
+    // three text levels. Those carry more of the app's surface than every
+    // accent combined, so the result was warm accents floating on a cool-grey
+    // Tailwind ground, which is most of what D-11 set out to change.
+    //
+    // The original test only looked at --lg-* tokens. That blind spot is why
+    // it passed, so the fix is this block, not just the values.
+
+    it('the load-bearing tokens alias the ledger set rather than holding a hex', () => {
+        // Only these are required to alias. The -light/-dark tints hold explicit
+        // ledger-family values because there is no named token for a tint, and
+        // demanding an alias for its own sake would be ceremony, not safety.
+        const mustAlias = [
+            'bg', 'surface', 'surface-hover', 'border',
+            'text-primary', 'text-secondary', 'text-tertiary',
+            'primary', 'success', 'warning', 'error', 'info', 'saffron'
+        ];
+        const notAliased = mustAlias.filter(name => {
+            const m = new RegExp(`--color-${name}:\\s*([^;]+);`).exec(CSS);
+            return !m || !m[1].includes('var(--lg-');
+        });
+        expect(notAliased, '--color-* tokens that should follow the ledger set').toEqual([]);
+    });
+
+    it('no --color-* token holds a Tailwind value, aliased or not', () => {
+        // This is the assertion that would have caught the review finding:
+        // --color-bg was still #f9fafb (slate-50), so the page ground stayed
+        // cool grey while every accent went warm.
+        const tailwind = new Set(['#f9fafb', '#f3f4f6', '#e5e7eb', '#111827', '#4b5563',
+                                  '#6b7280', '#2563eb', '#10b981', '#ef4444', '#f59e0b',
+                                  '#1d4ed8', '#3b82f6', '#9ca3af', '#d1d5db']);
+        const offenders = [...CSS.matchAll(/--color-([\w-]+):\s*(#[0-9a-fA-F]{3,8})\s*;/g)]
+            .filter(m => tailwind.has(m[2].toLowerCase()))
+            .map(m => `--color-${m[1]} = ${m[2]}`);
+        expect(offenders, 'Tailwind values still in the token set').toEqual([]);
+    });
+
+    it('text is readable on the surfaces the app actually paints', () => {
+        const pairs = [
+            ['color-text-primary', 'color-bg'],
+            ['color-text-primary', 'color-surface'],
+            ['color-text-secondary', 'color-bg'],
+            ['color-text-secondary', 'color-surface']
+        ];
+        pairs.forEach(([ink, bg]) => {
+            expect(contrast(token(ink), token(bg)), `--${ink} on --${bg}`)
+                .toBeGreaterThanOrEqual(AA_TEXT);
+        });
+    });
+
+    it('the page ground is the warm paper, not a cool grey', () => {
+        // The specific regression: #f9fafb is Tailwind slate-50 and reads blue.
+        expect(token('color-bg')).toBe(token('lg-paper'));
+        expect(token('color-surface')).toBe(token('lg-page'));
+    });
+
+    it('borders are visible without being loud', () => {
+        expect(contrast(token('color-border'), token('color-surface'))).toBeGreaterThan(1.1);
+    });
+
+    it('white text still works on the primary action colour', () => {
+        expect(contrast('#ffffff', token('color-primary'))).toBeGreaterThanOrEqual(AA_TEXT);
+    });
+});
