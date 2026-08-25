@@ -239,7 +239,7 @@ there — except one, which is recorded below as a finding.
 
 Fixed order per screen: **characterize → redesign → translate.**
 
-✅ `SyncManager` (906) → ✅ `VisitorForm` (689) → `VisitorView` (521) →
+✅ `SyncManager` (906) → ✅ `VisitorForm` (689) → ✅ `VisitorView` (521) →
 ✅ `ReminderDashboard` (B2) → `SettingsPage` (571) → batch `MyDayDashboard`,
 `InteractionHistory`, `GreetingQueue`, `SmsBatchQueue`.
 
@@ -285,6 +285,17 @@ inverted — this is those failures turned into a procedure.
 | 8 | **Run `vite build` immediately after any bulk source edit**, before moving to the next file | a parse error entering a file nothing imports |
 | 9 | Suite · build · reachability · ratchet — all green | |
 
+> **Stop using pattern replacement on source.** The single-quote interpolation
+> bug happened five times, and the last round proved the tooling is the problem
+> rather than my attention: a regex written to *fix* it converted
+> `onclick="...hash='${ROUTES.VISITORS}'"` — which was correct — into a broken
+> template, and then converted the *inner* quote of `${t('key')}` instead of the
+> outer delimiters. Each attempt to automate the fix created new breakage.
+>
+> From here: translate by exact string replacement only, one pair at a time, and
+> **build after every file** (step 8). That combination caught every instance
+> within seconds instead of at the end of a batch.
+>
 > **On the single-quote interpolation bug.** I made it three times — `VisitorList`,
 > `ReminderDashboard`, `SyncManager` — always from a replacement script that did
 > not know what kind of quote it landed inside. I tried to build a guard for it
@@ -330,6 +341,16 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage C.3 done (`VisitorView`).** Characterization found four defects
+  before a line was redesigned: a visitor whose `contacts` array is missing **crashed the
+  screen** (and such records arrive through merge as plain objects), a contact without
+  phones or emails crashed it, a nameless visitor rendered "Unknown Visitor" against D-07,
+  and unparseable dates printed **"Invalid Date"** to a volunteer. `formatDate` now returns
+  an em dash rather than "N/A" or "Invalid Date" — both are developer words that say
+  *broken* when the truth is *we do not have this*. That fix reaches every screen.
+  Also confirmed by mutation: **`modules-load` does not catch a duplicate import; the build
+  does.** The suite and the build catch different classes of error and neither subsumes the
+  other, which is why step 8 is not optional. 775 tests; i18n 142 → 122.
 - **2026-08-25** — **Stage C.1–C.2 done.** `SyncManager`: characterization found that a
   malformed `syncLog` entry — which arrives through merge from *other machines* — crashed
   the one screen that recovers a register, plus three undefined CSS classes on its action

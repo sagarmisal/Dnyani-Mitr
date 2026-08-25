@@ -54,7 +54,7 @@ function untranslated() {
 // moved this number by zero, because all of them were of the kind it cannot
 // see. So the real untranslated surface is LARGER than this number, and Stage D
 // finishes against a manual read of each file, not against this reaching zero.
-const CEILING = 142;
+const CEILING = 122;
 
 describe('untranslated strings can only decrease', () => {
     it(`is at or below the ratchet of ${CEILING}`, () => {

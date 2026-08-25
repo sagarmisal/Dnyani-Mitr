@@ -4,10 +4,14 @@
  * Format ISO date to display format
  */
 export function formatDate(isoDate, monthOnly = false) {
-    if (!isoDate) return 'N/A';
+    // '—' rather than 'N/A' or 'Invalid Date'. Both of those are developer
+    // words: they tell a volunteer that something is broken when the truthful
+    // message is simply that we do not have this date. An em dash says that in
+    // any language, and a record arriving through merge can carry anything.
+    if (!isoDate) return '—';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'Invalid Date';
+    if (isNaN(date.getTime())) return '—';
 
     const options = monthOnly
         ? { month: 'long', year: 'numeric' }
@@ -20,10 +24,10 @@ export function formatDate(isoDate, monthOnly = false) {
  * Format date for display (short format)
  */
 export function formatDateShort(isoDate) {
-    if (!isoDate) return 'N/A';
+    if (!isoDate) return '—';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'Invalid Date';
+    if (isNaN(date.getTime())) return '—';
 
     return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -38,7 +42,7 @@ export function formatRelativeTime(isoDate) {
     if (!isoDate) return 'Never';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'N/A';
+    if (isNaN(date.getTime())) return '—';
 
     const now = new Date();
     const diffMs = now - date;

@@ -315,7 +315,35 @@ export const STRINGS = {
     'form.keepEditing':     { mr: 'इथेच राहा',              en: 'Keep editing' },
     'form.consentNeeded':   { mr: 'पुढे जाण्याआधी संमती द्या.', en: 'Please confirm consent to continue.' },
     'form.saved':           { mr: 'जतन झालं',              en: 'Saved' },
-    'form.every':           { mr: 'दर',                   en: 'Every' }
+    'form.every':           { mr: 'दर',                   en: 'Every' },
+
+    /* ------------------------------------------------- one person's page */
+    'view.notFound':        { mr: 'ही व्यक्ती सापडली नाही.',  en: 'This person was not found.' },
+    'view.back':            { mr: 'यादीकडे परत',            en: 'Back to the list' },
+    'view.doNotContact':    { mr: 'संपर्क करू नका',          en: 'Do not contact' },
+    'view.allowContact':    { mr: 'संपर्क करू शकता',         en: 'Contact allowed' },
+    'view.markDnc':         { mr: 'संपर्क थांबवा',           en: 'Stop contacting' },
+    'view.consent':         { mr: 'संमती',                  en: 'Consent' },
+    'view.consentRecorded': { mr: 'संमती नोंदवली आहे',       en: 'Consent recorded' },
+    'view.call':            { mr: 'फोन करा',                en: 'Call' },
+    'view.email':           { mr: 'ईमेल',                   en: 'Email' },
+    'view.logInteraction':  { mr: 'नोंद करा',               en: 'Add a record' },
+    'view.primaryContact':  { mr: 'मुख्य व्यक्ती',           en: 'The person' },
+    'view.family':          { mr: 'कुटुंब',                 en: 'Family' },
+    'view.generalNotes':    { mr: 'नोंदी',                  en: 'Notes' },
+    'view.timeline':        { mr: 'आजवरच्या भेटी',           en: 'Everything so far' },
+    'view.tags':            { mr: 'खुणा',                   en: 'Tags' },
+    'view.noTags':          { mr: 'खुणा नाहीत',             en: 'No tags' },
+    'view.phones':          { mr: 'फोन',                   en: 'Phones' },
+    'view.emails':          { mr: 'ईमेल',                   en: 'Emails' },
+    'view.dates':           { mr: 'तारखा',                  en: 'Dates' },
+    'view.noneLogged':      { mr: 'काही नाही',              en: 'None' },
+    'view.specificNotes':   { mr: 'खास नोंदी',              en: 'Notes about them' },
+    'view.noInteractions':  { mr: 'अजून कोणतीही भेट नाही.',  en: 'No visits recorded yet.' },
+    'view.deletePerson':    { mr: 'ही व्यक्ती काढून टाका',    en: 'Remove this person' },
+    'view.deleted':         { mr: 'काढून टाकलं',            en: 'Removed' },
+    'view.dncSet':          { mr: 'यापुढे संपर्क करणार नाही.', en: 'They will not be contacted.' },
+    'view.dncCleared':      { mr: 'संपर्क करू शकता.',        en: 'They can be contacted again.' }
 };
 
 export default STRINGS;
