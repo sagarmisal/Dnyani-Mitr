@@ -676,3 +676,116 @@ Append-only. Newest last. One line per event, with the date and what changed.
   paste surfaced as a raw zlib error while continuing to report counts that would be wrong.
 - **2026-08-24** — Owner confirmed keystore backed up and re-entry acceptable; constraints
   lifted. Initiative replanned end-to-end and this document opened as the source of truth.
+
+---
+
+## 15 · Root cause analysis — 2026-08-25
+
+Twenty-four defects were found during Phases 1 and 2. The suite was green at
+every commit and grew from 323 tests to 682. **Not one of the five most severe
+defects was caught by it.**
+
+| Defect | Found by | Would have cost |
+|---|---|---|
+| Backup and Sync unreachable | reading the diff | **the register**, on the day a phone died |
+| laptop → old phone sync dead-ended | a capability matrix written *because* of review | **all sharing**, on the leg used most |
+| Palette repoint missed every neutral | reading the diff | a second failed adoption |
+| Syntax error in `VisitorList.js` | `vite build` | a white screen |
+| Visitors screen still English | **the owner's screenshot** | the original complaint, unfixed |
+
+That table is the finding. Everything below explains it.
+
+### RC-1 · Guards asserted the absence of known-bad, never the presence of required
+
+Every one of these passed while the property it stood for was false:
+
+| The guard checked | What it could not see |
+|---|---|
+| no banned words ("Overdue", "Machine Role") | a screen entirely in English — P2.9 was ticked on this |
+| the component renders | it renders invisibly — the dead button, then `.lg-memories` |
+| the route is registered | nothing links to it — Sync unreachable |
+| `--lg-*` tokens contrast correctly | the app paints with `--color-*` — neutrals missed |
+
+A proxy held while the property failed. **Absence of specific bad things can
+never prove presence of good ones**, and four separate guards made that same
+mistake independently.
+
+### RC-2 · A decision lands where I am working, not at every site it governs
+
+- **D-20** (phone *or* name) landed in `validators.js`; `ScheduledItemForm.save()`
+  still hard-required a name two commits later.
+- **D-07**'s display fallback reached three call sites; `VisitorList` and
+  `VisitorView` still rendered "Unknown".
+- The nav change removed four tabs and added no entry points.
+- The palette repoint covered the semantic tokens and not the neutrals.
+
+Nothing enumerates the affected sites *before* implementation, so the sites I
+happen to be looking at get the change and the rest keep the old invariant.
+
+### RC-3 · Silent degradation is JavaScript's default
+
+`StateManager.updateInteraction?.()` on a method that did not exist did nothing,
+forever, quietly. `typeof DecompressionStream === 'undefined'` threw advice the
+user could not act on. A capability that exists **and throws** — what stale OEM
+WebViews actually do — passed the `typeof` check entirely. None of these
+announce themselves.
+
+### RC-4 · Untested surface is invisible surface
+
+**~4,500 lines of component code have no test beyond "it parses"** — including
+`SyncManager` (906 lines, the screen that saves their register), `VisitorForm`
+(689), `ReminderDashboard` (709), `SettingsPage` (571), `VisitorView` (521).
+
+The screens carrying the most untranslated English are *exactly* the untested
+ones. Both track the same thing: whether I have touched the file. A syntax error
+lived in that surface undetected through 655 green tests.
+
+### What changes
+
+**F-1 · Mutation-test every guard.** Break the thing it protects and watch it
+fail, or it is decoration. Done once — `modules-load` — and that is the only
+guard here I actually trust.
+
+**F-2 · Assert positive invariants.** "Every route has a door", "every module
+loads", "every `--color-*` follows the ledger" — not "no bad word appears".
+
+**F-3 · Enumerate sites before implementing a decision.** When a decision
+changes an invariant, grep every site first and record the list in the commit.
+The sites are the work; finding them afterwards is luck.
+
+**F-4 · No capability branch without a working fallback.** `typeof X` guards must
+degrade to something that functions, and must also survive X existing and
+throwing.
+
+**F-5 · A screen a volunteer touches gets a characterization test *before* it is
+redesigned.** Redesigning untested code has no safety net, and this is the
+largest remaining risk in the codebase.
+
+---
+
+## 16 · Phase 2.5 — the screens never touched
+
+Six screens still carry their original markup under the new colours, and none
+has a test. They are where a volunteer spends most of their time.
+
+**Order per screen is fixed: test → redesign → translate.** Characterization
+first (F-5), because a redesign with no safety net is how behaviour disappears
+silently; translation last, because the strings change during the redesign and
+translating twice is waste.
+
+| | Screen | LOC | English | Why it ranks here |
+|---|---|---|---|---|
+| **2.5.1** | `Sync/SyncManager` | 906 | 0 | It saves their register. Zero tests today, and it is the one screen whose failure is unrecoverable |
+| **2.5.2** | `Visitors/VisitorForm` | 689 | 21 | The other capture path. Fifteen fields shown where one is required (P1.5's finding, never acted on) |
+| **2.5.3** | `Visitors/VisitorView` | 521 | 24 | Where you check who someone is before you call them |
+| **2.5.4** | `Reminders/ReminderDashboard` | 709 | 23 | J2 — who to reach out to today |
+| **2.5.5** | `Settings/SettingsPage` | 571 | 37 | Backup now lives here (§15), so it must not read as a settings dump |
+| **2.5.6** | `Dashboard`, `InteractionHistory`, `GreetingQueue`, `SmsBatchQueue` | ~1,550 | 41 | Lower traffic; batch them |
+
+**Gate for each:** characterization test green before any markup changes ·
+the kit's components used, not new one-off CSS · zero English left in that file ·
+the i18n ratchet lowered · reachability still green.
+
+**Not in scope:** new features. Phase 2.5 is finishing what Phases 1 and 2
+started on the screens they never reached.
+
