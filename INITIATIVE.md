@@ -493,7 +493,7 @@ Task IDs are stable. Tick them here; a restarted session resumes from the ticks 
 | ✅ **P2.6** | **"A year ago today"** — month+day matching for interactions in `CalendarService` (**UC-06**) | test across year boundaries and leap days | AUTO |
 | ✅ **P2.7** | UC-06's three guards: never render empty (widen ±3 days) · no *"we miss you"* under ~6 months · no gift claim before contributions exist | one test per guard | AUTO |
 | ✅ **P2.8** | Reminders screen rebuilt, host vocabulary (**UC-07**, D-10) | no accusatory string remains | AUTO |
-| ✅ **P2.9** | **Vocabulary sweep** — string layer built (`i18n.js` + `strings.js`, Marathi-first with toggle); header done. Remaining: sweep the other screens onto `t()` | a test forbids the banned vocabulary; every key has both languages | AUTO |
+| 🔶 **P2.9** | **Vocabulary sweep** — string layer built (`i18n.js` + `strings.js`, Marathi-first with toggle); header done. Remaining: sweep the other screens onto `t()` | a test forbids the banned vocabulary; every key has both languages | AUTO |
 | ✅ **P2.10** | J3 single-message send with mark-as-sent (**UC-08, UC-09**) | Interaction + `thankedAt` written | AUTO |
 | ✅ **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
 | ✅ **P2.12** | Pending-thanks count, **age-bounded** so it cannot become an accusation | test: old items drop off | AUTO |

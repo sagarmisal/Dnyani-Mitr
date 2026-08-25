@@ -52,8 +52,8 @@ export class DayPane {
             <div class="day-pane-header">
                 <h3>${this.formatDate()}</h3>
                 <div class="day-pane-nav">
-                    <button class="btn btn-icon" data-shift="-1" aria-label="Previous day">‹</button>
-                    <button class="btn btn-icon" data-shift="1" aria-label="Next day">›</button>
+                    <button class="btn btn-icon" data-shift="-1" aria-label="${t('nav.prevDay')}">‹</button>
+                    <button class="btn btn-icon" data-shift="1" aria-label="${t('nav.nextDay')}">›</button>
                 </div>
             </div>
 
@@ -110,8 +110,8 @@ export class DayPane {
                 </div>
                 ${done || cancelled ? `<span class="day-item-state">${done ? '✓ done' : 'cancelled'}</span>` : `
                     <div class="day-item-actions">
-                        <button class="btn btn-xs btn-primary" data-done="${escapeHTML(item.scheduledItemId)}">Done</button>
-                        <button class="btn btn-xs" data-edit="${escapeHTML(item.scheduledItemId)}">Edit</button>
+                        <button class="btn btn-xs btn-primary" data-done="${escapeHTML(item.scheduledItemId)}">${t('action.done')}</button>
+                        <button class="btn btn-xs" data-edit="${escapeHTML(item.scheduledItemId)}">${t('action.edit')}</button>
                     </div>`}
             </li>
         `;
@@ -131,7 +131,7 @@ export class DayPane {
                                 <span class="day-item-title">${escapeHTML(i.title)}</span>
                                 <span class="day-item-meta">${escapeHTML(i.date)}</span>
                             </div>
-                            <button class="btn btn-xs" data-goto="${escapeHTML(i.date)}">Open</button>
+                            <button class="btn btn-xs" data-goto="${escapeHTML(i.date)}">${t('action.open')}</button>
                         </li>`).join('')}
                 </ul>
                 ${!this.showAllBacklog && total > BACKLOG_VISIBLE
@@ -153,7 +153,7 @@ export class DayPane {
                                 <span class="day-item-title">${escapeHTML(i.title)}</span>
                                 <span class="day-item-meta">${escapeHTML(this.kindLabel(i))}</span>
                             </div>
-                            ${i.visitorId ? `<button class="btn btn-xs" data-visitor="${escapeHTML(i.visitorId)}">Open</button>` : ''}
+                            ${i.visitorId ? `<button class="btn btn-xs" data-visitor="${escapeHTML(i.visitorId)}">${t('action.open')}</button>` : ''}
                         </li>`).join('')}
                 </ul>
             </div>
@@ -259,7 +259,7 @@ export class DayPane {
     renderBackfill() {
         return `
             <div class="day-section day-backfill">
-                <button class="btn btn-sm" id="backfill">Log what happened that day</button>
+                <button class="btn btn-sm" id="backfill">${t('action.logThatDay')}</button>
             </div>
         `;
     }

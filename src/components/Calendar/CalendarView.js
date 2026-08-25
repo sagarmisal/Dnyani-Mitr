@@ -57,12 +57,12 @@ export class CalendarView {
             ${this.renderTiles()}
             <div class="card calendar-card">
                 <div class="calendar-header">
-                    <button class="btn btn-icon" id="cal-prev" aria-label="Previous month">‹</button>
+                    <button class="btn btn-icon" id="cal-prev" aria-label="${t('nav.prevMonth')}">‹</button>
                     <div class="calendar-title">
                         <h2>${MONTHS_EN[this.month - 1]} ${this.year}</h2>
                         <span class="calendar-title-mr">${MONTHS_MR[this.month - 1]}</span>
                     </div>
-                    <button class="btn btn-icon" id="cal-next" aria-label="Next month">›</button>
+                    <button class="btn btn-icon" id="cal-next" aria-label="${t('nav.nextMonth')}">›</button>
                 </div>
 
                 <div class="calendar-actions">
@@ -187,7 +187,7 @@ export class CalendarView {
     renderMonthWide(items) {
         return `
             <div class="calendar-monthwide">
-                <span class="calendar-monthwide-label">This month (no exact date)</span>
+                <span class="calendar-monthwide-label">${t('cal.monthWide')}</span>
                 ${items.map(i => `<span class="chip">${escapeHTML(i.contactName)} — ${escapeHTML(i.eventType)}</span>`).join('')}
             </div>
         `;

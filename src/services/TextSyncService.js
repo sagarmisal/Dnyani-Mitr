@@ -13,6 +13,8 @@
 // is available; otherwise raw JSON string. The header flag `z=1` indicates gzip.
 
 const PROTOCOL_VERSION = 'v1';
+import { gunzipToString } from '../utils/inflate.js';
+
 const HEADER_TAG = 'DM-SYNC';
 const MAX_CHUNK_CHARS = 3500; // Safe for Android keyboards and WhatsApp paste
 const LARGE_BLOB_WARN = 65000; // Total chars above which we strongly chunk
@@ -71,11 +73,31 @@ async function gzipString(str) {
 }
 
 async function gunzipBytes(bytes) {
-    if (typeof DecompressionStream === 'undefined') {
-        throw new Error('Gzip decompression not supported on this device. Ask the sender to export without compression.');
+    // Decompression must NEVER fail on capability. Compressing is optional — a
+    // device without CompressionStream falls back to plain text and everyone can
+    // still read it. Decompressing is not: a device that cannot do it is locked
+    // out of every message every modern device sends, and the sender has no way
+    // to know or to help.
+    //
+    // This used to throw "Ask the sender to export without compression", which
+    // the user cannot act on: the SENDING device decides that, and the UI offers
+    // no such choice. A laptop-to-old-phone transfer simply dead-ended — and
+    // laptop-to-phone is the leg these NGOs use most.
+    //
+    // Sending uncompressed instead is not an answer either. A real register of
+    // 300 visitors in Marathi is 2 WhatsApp messages compressed and about 51
+    // uncompressed. Nobody forwards 51 messages.
+    if (typeof DecompressionStream !== 'undefined') {
+        try {
+            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+            return await new Response(stream).text();
+        } catch (e) {
+            // Fall through: some OEM WebViews expose the constructor and then
+            // fail on use, which is worse than not having it at all.
+            console.warn('DecompressionStream failed, using the built-in reader:', e);
+        }
     }
-    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    return new Response(stream).text();
+    return gunzipToString(bytes);
 }
 
 // ------- Encode (payload → text blob) -------

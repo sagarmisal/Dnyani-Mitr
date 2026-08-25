@@ -59,6 +59,13 @@ export const STRINGS = {
     'action.didTheyCome':   { mr: 'आले का?',      en: 'Did they come?' },
     'action.close':         { mr: 'बंद करा',       en: 'Close' },
     'action.today':         { mr: 'आज',           en: 'Today' },
+    'action.open':          { mr: 'उघडा',         en: 'Open' },
+    'action.logThatDay':    { mr: 'त्या दिवशी काय झालं ते नोंदवा', en: 'Log what happened that day' },
+    'nav.prevDay':          { mr: 'मागचा दिवस',    en: 'Previous day' },
+    'nav.nextDay':          { mr: 'पुढचा दिवस',    en: 'Next day' },
+    'nav.prevMonth':        { mr: 'मागचा महिना',   en: 'Previous month' },
+    'nav.nextMonth':        { mr: 'पुढचा महिना',   en: 'Next month' },
+    'cal.monthWide':        { mr: 'या महिन्यात (तारीख नक्की नाही)', en: 'This month (no exact date)' },
 
     /* ----------------------------------------------- the capture sheet */
     'capture.phone':        { mr: 'फोन नंबर',            en: 'Phone number' },
@@ -107,6 +114,19 @@ export const STRINGS = {
     'status.waitingSince':  { mr: 'वाट पाहत आहेत',        en: 'Still waiting' },
     'status.dueToday':      { mr: 'आजच करायचं',           en: 'For today' },
     'status.viewAll':       { mr: 'सगळे {n} पाहा',         en: 'See all {n}' },
+
+    /* --------------------------------------------------- people (list) */
+    'people.title':         { mr: 'माणसं',                 en: 'People' },
+    'people.add':           { mr: 'नवीन व्यक्ती',           en: 'Add person' },
+    'people.search':        { mr: 'नाव किंवा नंबर शोधा...',  en: 'Search by name or number...' },
+    'people.allCategories': { mr: 'सर्व प्रकार',            en: 'All categories' },
+    'people.allCities':     { mr: 'सर्व गावं',              en: 'All places' },
+    'people.showing':       { mr: '{n} माणसं',              en: '{n} people' },
+    'people.filtered':      { mr: 'एकूण {total} पैकी',       en: 'of {total} in all' },
+    'sort.lastUpdated':     { mr: 'अलीकडे बदललेले',         en: 'Recently changed' },
+    'sort.recentlyAdded':   { mr: 'अलीकडे जोडलेले',         en: 'Recently added' },
+    'sort.name':            { mr: 'नावाप्रमाणे',            en: 'By name' },
+    'sort.city':            { mr: 'गावाप्रमाणे',            en: 'By place' },
 
     /* ---------------------------------------------------- empty states */
     // An invitation to act, with the one action that would fill the screen.
