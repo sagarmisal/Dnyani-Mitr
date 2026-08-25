@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<title>ज्ञानी मित्र — फोनशेजारी ठेवायचं कार्ड</title>
+<style>
+/* ============================================================
+   The card that sits beside the office phone.
+   PR-4: teach in place, or not at all. These NGOs will not read a
+   manual and will not be trained, so the instruction has to live
+   where the work happens — next to the phone that rings.
+
+   Print at A5, laminate, keep by the handset. Two cards per A4 if
+   you print two-up.
+
+   THREE THINGS, and no more. A fourth would mean none get read.
+   ============================================================ */
+@page { size: A5; margin: 0; }
+
+:root{
+  --paper:#f6f2e8; --page:#fffdf7; --ink:#232b36; --ink-soft:#5f6875;
+  --rule:#c3ccdb; --bind:#8a3b36; --marigold:#dc9a2e; --marigold-w:#faedd4;
+  --marigold-i:#8a5f10; --danger:#a4443c; --wash:#efe8d8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;
+  display:flex; align-items:center; justify-content:center; min-height:100vh; padding:16px;
+}
+.card{
+  width:148mm; min-height:210mm; background:var(--page);
+  padding:14mm 12mm; display:flex; flex-direction:column;
+  border:1px solid var(--rule);
+}
+
+/* masthead — the NGO's name is written in by hand, so it is a ruled blank */
+.top{display:flex; align-items:flex-end; gap:10px; border-bottom:2px solid var(--ink); padding-bottom:8px}
+.top h1{margin:0; font-size:24px; font-weight:800; letter-spacing:-.01em; line-height:1}
+.top .en{margin:2px 0 0; font-size:11px; color:var(--ink-soft); letter-spacing:.06em; text-transform:uppercase}
+.top .by{margin-left:auto; text-align:right; font-size:9px; color:var(--ink-soft); line-height:1.4}
+
+/* the three things — numbered because they ARE a sequence in the day */
+ol{list-style:none; counter-reset:s; margin:10mm 0 0; padding:0; flex:1}
+li{counter-increment:s; position:relative; padding-left:16mm; margin-bottom:9mm}
+li::before{
+  content:counter(s); position:absolute; left:0; top:-2px;
+  width:11mm; height:11mm; border-radius:50%;
+  background:var(--bind); color:#fff;
+  display:grid; place-items:center; font-size:17px; font-weight:800;
+}
+li h2{margin:0 0 3px; font-size:17px; font-weight:800; line-height:1.25}
+li .en2{display:block; font-size:10.5px; font-weight:600; color:var(--ink-soft); margin-top:1px}
+li p{margin:5px 0 0; font-size:13px; line-height:1.55; color:var(--ink)}
+li .tap{
+  display:inline-block; background:var(--wash); border-radius:6px;
+  padding:2px 7px; font-weight:700; font-size:12.5px; white-space:nowrap;
+}
+
+/* the warning is the only thing that is allowed to shout */
+.warn{
+  margin-top:auto; background:var(--marigold-w); border:2px solid var(--danger);
+  border-radius:8px; padding:7mm 6mm;
+}
+.warn h3{margin:0 0 4px; font-size:15px; font-weight:800; color:var(--danger)}
+.warn p{margin:0; font-size:12.5px; line-height:1.55}
+.warn .en3{display:block; font-size:10.5px; color:var(--ink-soft); margin-top:4px}
+
+.foot{margin-top:6mm; border-top:1px solid var(--rule); padding-top:4mm;
+      display:flex; justify-content:space-between; font-size:10px; color:var(--ink-soft)}
+.foot .blank{border-bottom:1px solid var(--rule); min-width:38mm; display:inline-block}
+
+@media print{
+  body{background:#fff; padding:0; min-height:auto}
+  .card{border:0; width:100%; min-height:100vh}
+}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="top">
+    <div>
+      <h1>ज्ञानी मित्र</h1>
+      <p class="en">Dnyani Mitr</p>
+    </div>
+    <div class="by">सेवा संकल्प<br>प्रतिष्ठान</div>
+  </div>
+
+  <ol>
+    <li>
+      <h2>फोन आला की — आधी नंबर
+        <span class="en2">When someone phones — the number first</span></h2>
+      <p>ॲप उघडा → <span class="tap">＋ कुणीतरी येतंय</span> → <b>फोन नंबर टाका.</b>
+         नाव नंतर चालेल. नंबरावरून ते पुढच्या वर्षीही सापडतील.</p>
+    </li>
+
+    <li>
+      <h2>आठवड्यातून एकदा — बॅकअप
+        <span class="en2">Once a week — back up</span></h2>
+      <p><span class="tap">सेटिंग</span> → <span class="tap">बॅकअप आणि शेअर</span> →
+         मजकूर कॉपी करून <b>स्वतःला WhatsApp वर पाठवा.</b>
+         फोन हरवला तर यादी याच संदेशातून परत येते.</p>
+    </li>
+
+    <li>
+      <h2>नवीन आवृत्ती येण्याआधी — पुन्हा बॅकअप
+        <span class="en2">Before any update — back up again</span></h2>
+      <p>नवीन ॲप घेण्याआधी <b>नेहमी</b> बॅकअप घ्या. एका मिनिटाचं काम,
+         आणि तेच सगळी यादी वाचवतं.</p>
+    </li>
+  </ol>
+
+  <div class="warn">
+    <h3>⚠ ॲप कधीही uninstall करू नका</h3>
+    <p>काहीही अडचण आली तरी ॲप काढून टाकू नका — तसं केल्यास <b>सगळी यादी कायमची जाते.</b>
+       आधी आम्हाला कळवा.
+      <span class="en3">Never uninstall the app. It erases the whole register.
+        Tell us first — whatever the problem looks like.</span></p>
+  </div>
+
+  <div class="foot">
+    <span>अडचण आल्यास फोन करा: <span class="blank"></span></span>
+    <span>v3.3.0</span>
+  </div>
+
+</div>
+</body>
+</html>
