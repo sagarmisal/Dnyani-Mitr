@@ -293,7 +293,7 @@ export class ReminderDashboard {
         <div class="empty-state" style="padding: 2.5rem 1rem;">
           <div class="empty-state-icon">👋</div>
           <p class="empty-state-text">${t('rem.none')}</p>
-          <p class="empty-state-hint">Add your first visitor with a birthday or anniversary to start getting reminders.</p>
+          <p class="empty-state-hint">${t('p.addFirstBirthday')}</p>
           <div style="margin-top: 1.25rem;">
             <a href="#${ROUTES.VISITOR_NEW}" class="btn btn-primary btn-sm">+ Add Visitor</a>
           </div>
@@ -318,7 +318,7 @@ export class ReminderDashboard {
         <div class="empty-state" style="padding: 2rem 1rem;">
           <div class="empty-state-icon">📭</div>
           <p class="empty-state-text">No ${type} found</p>
-          <p class="empty-state-hint">Try adjusting your filters or adding more visitors with birthdays.</p>
+          <p class="empty-state-hint">${t('p.tryOtherFilters')}</p>
         </div>`;
     }
     return `
@@ -602,7 +602,7 @@ export class ReminderDashboard {
       sendBtn.addEventListener('click', () => {
         const items = collectSelected();
         if (items.length === 0) {
-          Toast.show('Pick reminders first.', 'warning');
+          Toast.show(t('p.pickFirst'), 'warning');
           return;
         }
         GreetingQueue.start(items, () => {
@@ -618,7 +618,7 @@ export class ReminderDashboard {
       smsBtn.addEventListener('click', () => {
         const items = collectSelected();
         if (items.length === 0) {
-          Toast.show('Pick reminders first.', 'warning');
+          Toast.show(t('p.pickFirst'), 'warning');
           return;
         }
         SmsBatchQueue.start(items, () => {

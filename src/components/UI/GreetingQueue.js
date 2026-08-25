@@ -24,7 +24,7 @@ export class GreetingQueue {
     const queue = items.filter(item => !!normalizePhone(item.phone));
 
     if (queue.length === 0) {
-      Toast.show('No contacts with valid phone numbers to send greetings', 'warning');
+      Toast.show(t('p.noPhonesGreet'), 'warning');
       return;
     }
 
@@ -227,7 +227,7 @@ export class GreetingQueue {
     if (!footer) return;
 
     footer.innerHTML = `
-      <button class="btn btn-secondary" id="gq-didnt-send">Didn't Send</button>
+      <button class="btn btn-secondary" id="gq-didnt-send">${t('p.didNotSend')}</button>
       <button class="btn btn-primary" id="gq-did-send" style="flex:1;">
         ${t('greet.yesSent')}
       </button>
@@ -274,7 +274,7 @@ export class GreetingQueue {
               <div class="gq-stat-label">${t('common.total')}</div>
             </div>
           </div>
-          ${s.sent.length > 0 ? `<p style="color:#16a34a; margin-top:1rem;">All sent greetings have been logged as interactions.</p>` : ''}
+          ${s.sent.length > 0 ? `<p style="color:#16a34a; margin-top:1rem;">${t('p.greetingsLogged')}</p>` : ''}
         </div>
         <div class="gq-footer" style="justify-content:center;">
           <button class="btn btn-primary" id="gq-close">${t('bulk.done')}</button>

@@ -2,6 +2,7 @@
 //
 // Render smoke test for the Iter 11 calendar (C6). The bundler proves the
 // modules import; this proves render() actually executes against a DOM and
+import { t } from '../src/utils/i18n.js';
 // produces the structure the plan specifies — including the day-pane ORDER,
 // which is a decision (G10-R), not a detail.
 
@@ -94,7 +95,10 @@ describe('DayPane ordering (G10-R)', () => {
     });
 
     it('says what you can do when nobody is coming, rather than "no items"', () => {
-        expect(pane().textContent).toContain('Nobody has told us they are coming');
+        // Asserted the English sentence until the app became Marathi-first.
+        // Going through t() tests the property — the empty state SAYS something
+        // — in whatever language is current, instead of pinning one of them.
+        expect(pane().textContent).toContain(t('p.noneComing'));
     });
 
     it('offers both creation entry points', () => {

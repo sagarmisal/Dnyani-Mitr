@@ -167,7 +167,7 @@ export class MyDayDashboard {
                     <span class="stat-label">${t('day.remindersDone')}</span>
                 </div>
                 <div class="stat-item stat-breakdown">
-                    <span class="stat-detail">${typeBreakdown || 'No activity yet'}</span>
+                    <span class="stat-detail">${typeBreakdown || `${t('p.noActivity')}`}</span>
                 </div>
             </div>
         `;
@@ -181,7 +181,7 @@ export class MyDayDashboard {
                         <h3>${t('action.today')}</h3>
                         <span class="badge badge-success">${t('day.allClear')}</span>
                     </div>
-                    <div class="empty-state-compact">No birthdays or anniversaries today.</div>
+                    <div class="empty-state-compact">${t('p.noBirthdays')}</div>
                 </div>`;
         }
 
@@ -418,7 +418,7 @@ export class MyDayDashboard {
                 const reminders = this._getTodayReminders();
                 const items = this._collectSmsItems(reminders);
                 if (items.length === 0) {
-                    Toast.show('No contacts with valid phone numbers for today.', 'warning');
+                    Toast.show(t('p.noPhonesToday'), 'warning');
                     return;
                 }
                 SmsBatchQueue.start(items, () => this._refresh());
@@ -489,7 +489,7 @@ export class MyDayDashboard {
             const text = ReportService.generateMonthlyTextReport();
             const result = await TextSyncService.shareText(text, 'Monthly Report');
             if (result.method === 'share') {
-                Toast.show('Share sheet opened.', 'success');
+                Toast.show(t('p.shareOpened'), 'success');
             } else if (result.method === 'clipboard') {
                 Toast.show('Share not available — report copied to clipboard.', 'info', 4000);
             } else if (result.method === 'none' && result.error) {

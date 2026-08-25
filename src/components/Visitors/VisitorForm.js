@@ -208,7 +208,7 @@ export class VisitorForm {
 
     return `
       <h3 style="margin: 0 0 0.25rem 0;">${t('form.primary')}</h3>
-      <p class="text-secondary" style="margin: 0 0 1.5rem 0;">The main person you're recording.</p>
+      <p class="text-secondary" style="margin: 0 0 1.5rem 0;">${t('p.mainPerson')}</p>
 
       <div class="form-row">
         <div class="form-group form-col-2">
@@ -393,7 +393,7 @@ export class VisitorForm {
         <label class="form-checkbox" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; margin-bottom: 0;">
           <input type="checkbox" id="visitor-freq-toggle" ${hasFreq ? 'checked' : ''} style="margin-top: 0.2rem; min-width: 20px; min-height: 20px; flex-shrink: 0;" />
           <span>
-            <strong>Remind me if I haven't contacted them in a while</strong>
+            <strong>${t('p.remindIfQuiet')}</strong>
             <span style="display: block; font-size: 0.9rem; color: var(--color-text-secondary); font-weight: 400; margin-top: 0.15rem;">
               They'll show up in reminders when the interval has passed.
             </span>
@@ -415,7 +415,7 @@ export class VisitorForm {
     this.container.querySelector('#cancel-btn').addEventListener('click', async () => {
       const confirmed = await ConfirmDialog.show({
         title: t('form.discard'),
-        message: 'Are you sure you want to discard your changes?',
+        message: t('p.discardQ'),
         confirmText: 'Discard',
         cancelText: t('form.keepEditing'),
         type: 'warning'

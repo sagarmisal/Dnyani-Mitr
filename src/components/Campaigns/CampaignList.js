@@ -55,7 +55,7 @@ export class CampaignList {
             <div class="card" style="margin-top:1.5rem;">
                 <div class="card-header"><h3 class="card-title">${t('camp.past')}</h3></div>
                 <div class="card-body">
-                    ${campaigns.length ? campaigns.map(c => this._campaignRow(c)).join('') : '<p class="text-secondary">No campaigns yet.</p>'}
+                    ${campaigns.length ? campaigns.map(c => this._campaignRow(c)).join('') : `<p class="text-secondary">${t('p.noCampaigns')}</p>`}
                 </div>
             </div>
         `;

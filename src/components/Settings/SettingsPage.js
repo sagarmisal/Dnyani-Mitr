@@ -98,7 +98,7 @@ export class SettingsPage {
                   <option value="sun" ${this.settings.calendarStartsOn !== 'mon' ? 'selected' : ''}>${t('set.sunday')}</option>
                   <option value="mon" ${this.settings.calendarStartsOn === 'mon' ? 'selected' : ''}>${t('set.monday')}</option>
                 </select>
-                <div class="setting-help">Sunday matches most Indian wall calendars.</div>
+                <div class="setting-help">${t('p.sundayHint')}</div>
               </div>
 
               <div class="setting-item">
@@ -276,7 +276,7 @@ export class SettingsPage {
       const lapseThreshold = parseInt(this.container.querySelector('#lapse-threshold').value, 10);
 
       if (!orgNameVal) {
-        Toast.show('Organization name is required', 'error');
+        Toast.show(t('p.orgRequired'), 'error');
         return;
       }
       if (isNaN(lookahead) || lookahead < 1 || lookahead > 90) {
@@ -353,9 +353,9 @@ export class SettingsPage {
         }
         const res = await NotificationService.sync({ ...StateManager.getSettings() });
         if (res.reason === 'denied') {
-          Toast.show('Notification permission was denied.', 'warning');
+          Toast.show(t('p.notifDenied'), 'warning');
         } else {
-          Toast.show(enabled ? `Notifications scheduled (${res.scheduled}).` : 'Notifications turned off.', 'success');
+          Toast.show(enabled ? `Notifications scheduled (${res.scheduled}).` : t('p.notifOff'), 'success');
         }
       });
     }
@@ -379,7 +379,7 @@ export class SettingsPage {
     const lastSync = syncLog[0] || null;
     const lastSyncStr = lastSync
       ? `${lastSync.direction || 'sync'} ${lastSync.machineName ? `with ${this.escapeHtml(lastSync.machineName)}` : ''} on ${formatDateShort(lastSync.timestamp)}`
-      : 'No sync yet';
+      : `${t('p.noSyncYet')}`;
     const platform = this._detectPlatform();
 
     // 5 MB is the conservative localStorage browser cap. Warn at 80%.
@@ -531,7 +531,7 @@ export class SettingsPage {
 
       if (!isCapacitor) {
         stateEl.textContent = '🖥 Bulk SMS unavailable on this device';
-        noteEl.textContent = 'Open the Android app to enable bulk SMS sending.';
+        noteEl.textContent = t('p.openAndroid');
         btn.style.display = 'none';
         return;
       }
@@ -553,7 +553,7 @@ export class SettingsPage {
       if (res.granted) {
         Toast.show('SMS permission granted', 'success');
       } else {
-        Toast.show(res.reason ? `Not granted: ${res.reason}` : 'Permission was denied', 'warning');
+        Toast.show(res.reason ? `Not granted: ${res.reason}` : t('p.permDenied'), 'warning');
       }
       await refresh();
     });

@@ -83,7 +83,7 @@ export class DayPane {
             if (kind === 'inbound') {
                 return `<div class="day-section">
                     <h4>${title}</h4>
-                    <p class="day-empty">Nobody has told us they are coming this day.</p>
+                    <p class="day-empty">${t('p.noneComing')}</p>
                 </div>`;
             }
             return '';
@@ -190,7 +190,7 @@ export class DayPane {
         Toast.show(
             res.reason === 'no-phone'
                 ? (getLang() === 'mr' ? 'त्यांचा नंबर नाही, त्यामुळे पाठवता येत नाही.' : 'No number saved, so this cannot be sent.')
-                : (getLang() === 'mr' ? 'हा संदेश पाठवता येत नाही.' : 'This message cannot be sent.'),
+                : (getLang() === 'mr' ? 'हा संदेश पाठवता येत नाही.' : t('p.cannotSend')),
             'warning', 4000);
     }
 
@@ -237,7 +237,7 @@ export class DayPane {
                     </button>
                     ${m.canSayMissYou ? `
                         <button class="lg-btn lg-btn--sm" data-miss="${escapeHTML(m.visitorId)}">
-                            ${escapeHTML(getLang() === 'mr' ? 'तुमची आठवण येते' : 'We miss you')}
+                            ${escapeHTML(t('p.missYou'))}
                         </button>` : ''}
                 </div>
             </div>`;
@@ -333,7 +333,7 @@ export class DayPane {
         let outcome = SCHEDULED_ITEM_OUTCOME.HAPPENED;
         if (item.direction === SCHEDULED_ITEM_DIRECTION.INBOUND) {
             const came = await ConfirmDialog.show({
-                title: 'Did they come?',
+                title: t('p.didTheyCome'),
                 message: `${item.visitorName || item.title} was expected on ${item.date}.`,
                 confirmText: 'Yes, they came',
                 cancelText: 'No, they did not',
@@ -367,7 +367,7 @@ export class DayPane {
         }
 
         StateManager.updateScheduledItem(itemId, updates);
-        Toast.show(outcome === SCHEDULED_ITEM_OUTCOME.NO_SHOW ? 'Marked as did not come.' : 'Done.', 'success');
+        Toast.show(outcome === SCHEDULED_ITEM_OUTCOME.NO_SHOW ? t('p.markedNoShow') : 'Done.', 'success');
         this.onChange();
     }
 

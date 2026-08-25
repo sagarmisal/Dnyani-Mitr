@@ -401,7 +401,7 @@ export class SyncManager {
         if (undoBtn) {
             undoBtn.addEventListener('click', async () => {
                 const confirmed = await ConfirmDialog.show({
-                    title: 'Undo last import',
+                    title: `${t('p.undoImport')}`,
                     message: 'Restore your data to the snapshot from just before the last import. Are you sure?',
                     confirmText: 'Undo',
                     cancelText: 'Cancel',
@@ -555,7 +555,7 @@ export class SyncManager {
             // URI through the FileProvider, which is what OEM ROMs do not break.
             // The browser path below still serves desktop unchanged.
             if (FileService.isAvailable()) {
-                const native = await FileService.shareFile(payload, filename, 'Dnyani Mitr backup');
+                const native = await FileService.shareFile(payload, filename, `${t('p.backupName')}`);
                 if (native.ok && !native.cancelled) {
                     // F2: also drop a copy in Documents, so a backup exists even
                     // if the share sheet is dismissed or WhatsApp misbehaves.
@@ -653,7 +653,7 @@ export class SyncManager {
             try {
                 let text = e.target.result;
                 if (!text?.trim()) {
-                    Toast.show('File is empty.', 'warning');
+                    Toast.show(t('p.fileEmpty'), 'warning');
                     return;
                 }
                 if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
@@ -719,7 +719,7 @@ export class SyncManager {
         const when = meta.exportedAt ? new Date(meta.exportedAt).toLocaleDateString() : 'an unknown date';
 
         const confirmed = await ConfirmDialog.show({
-            title: 'Restore this backup?',
+            title: t('p.restoreQ'),
             message: `This REPLACES everything on this device with the backup from ${meta.machineName || 'another device'}, taken on ${when}.\n\n`
                 + `${counts.visitors?.length || 0} visitors, ${counts.interactions?.length || 0} visit notes.\n\n`
                 + 'Your current data is snapshotted first, but anything added since that backup will be gone.',
@@ -761,7 +761,7 @@ export class SyncManager {
         }
 
         const confirmed = await ConfirmDialog.show({
-            title: 'Import this data?',
+            title: t('p.importQ'),
             message: 'Merge into your current list. A safety snapshot is saved first — you can undo afterwards.',
             confirmText: 'Import',
             cancelText: 'Cancel',

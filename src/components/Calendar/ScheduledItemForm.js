@@ -21,6 +21,7 @@
 // hides what is possible until you open it.
 
 import StateManager from '../../core/state.js';
+import { t } from '../../utils/i18n.js';
 import VisitorService from '../../services/VisitorService.js';
 import { ScheduledItem } from '../../models/ScheduledItem.js';
 import { Visitor } from '../../models/Visitor.js';
@@ -109,7 +110,7 @@ export class ScheduledItemForm {
             // Explanation at the point of confusion (PR-4), not in a help page.
             hint: this.isInbound
                 ? 'फोन नंबर टाका — बाकी सगळं एका बोटाने.'
-                : 'Plan a visit your team will make.',
+                : t('p.planOutbound'),
             body,
             actions,
             onClose: () => { this.root = null; }

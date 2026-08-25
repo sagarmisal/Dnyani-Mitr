@@ -143,7 +143,7 @@ export class InteractionHistory {
     }
 
     _renderWeekSummary(stats) {
-        if (stats.total === 0) return 'No interactions this week';
+        if (stats.total === 0) return t('p.noneThisWeek');
         const parts = Object.entries(stats.byType)
             .map(([type, count]) => `${count} ${INTERACTION_TYPE_LABELS[type] || type}`)
             .join(', ');

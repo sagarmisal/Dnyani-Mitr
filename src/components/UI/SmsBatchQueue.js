@@ -26,7 +26,7 @@ export class SmsBatchQueue {
         const queue = items.filter(item => !!normalizePhone(item.phone));
 
         if (queue.length === 0) {
-            Toast.show('No contacts with valid phone numbers to send SMS', 'warning');
+            Toast.show(t('p.noPhonesSms'), 'warning');
             return;
         }
 
@@ -208,7 +208,7 @@ export class SmsBatchQueue {
                     </p>
                     <ul class="sms-disclaimer">
                         <li>${t('bulk.sentFromSim')} <strong>your number</strong> using your mobile plan.</li>
-                        <li>Standard SMS charges from your carrier apply.</li>
+                        <li>${t('p.smsCharges')}</li>
                         <li>Sending paces at ~1 message every 1.5 seconds (≈${Math.ceil(total * 1.5)}s total).</li>
                         <li>You can cancel at any time. Already-sent messages can't be unsent.</li>
                     </ul>
@@ -348,7 +348,7 @@ export class SmsBatchQueue {
                             <div class="sms-stat-label">${t('common.total')}</div>
                         </div>
                     </div>
-                    ${sent > 0 && logWarnings.length === 0 ? `<p style="color:#16a34a; margin-top:1rem; font-size:0.9rem;">Sent messages logged as interactions.</p>` : ''}
+                    ${sent > 0 && logWarnings.length === 0 ? `<p style="color:#16a34a; margin-top:1rem; font-size:0.9rem;">${t('p.smsLogged')}</p>` : ''}
                     ${logWarnings.length > 0 ? `<p style="color:#b45309; margin-top:0.75rem; font-size:0.9rem;">⚠️ ${logWarnings.length} message${logWarnings.length === 1 ? ' was' : 's were'} sent but couldn't be recorded locally. The SMS reached the recipient — the timeline entry didn't save.</p>` : ''}
                     ${permissionRevoked ? `<p style="color:#dc2626; margin-top:0.5rem; font-size:0.9rem;">SMS permission was revoked partway. Grant it again to continue.</p>` : ''}
                     ${errors.length > 0 ? `

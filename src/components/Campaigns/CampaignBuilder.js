@@ -242,8 +242,8 @@ export class CampaignBuilder {
     _send() {
         const filter = this._currentFilter();
         const { recipients } = CampaignService.buildRecipients(filter);
-        if (!recipients.length) { Toast.show('No recipients match this filter.', 'warning'); return; }
-        if (!this.state.templateText.trim()) { Toast.show('Message cannot be empty.', 'warning'); return; }
+        if (!recipients.length) { Toast.show(`${t('p.noRecipients')}`, 'warning'); return; }
+        if (!this.state.templateText.trim()) { Toast.show(`${t('p.messageEmpty')}`, 'warning'); return; }
 
         const occasion = this._selectedOccasion();
         const occasionName = occasion ? (this.state.language === 'mr' ? (occasion.nameMr || occasion.name) : (occasion.name || occasion.nameMr)) : '';

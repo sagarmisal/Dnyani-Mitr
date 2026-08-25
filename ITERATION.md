@@ -253,9 +253,20 @@ Fixed order per screen: **characterize → redesign → translate.**
   used, no new one-off CSS · zero English in that file · ratchet lowered.
 - One commit per screen, so any single screen can be reverted whole.
 
-### Stage D · Language to zero
+### Stage D · Language to zero ✅ *done 2026-08-25*
 
-Ratchet 186 → **0**, then flip the guard from "may not rise" to "must be zero".
+**Both counters at zero**, and both guards flipped from "may not rise" to "must
+be zero" — mutation-tested by reintroducing an English string and watching them
+fail.
+
+It took two counters. The first read **zero while 44 English sentences were
+still on screen**: it only ever matched markup attributes and element text, and
+never saw prose inside template literals, toasts, or confirm dialogs. A second
+counter now measures those, and a test explicitly rejects the claim "attributes
+are zero, therefore finished".
+
+That near-miss is the same shape as every other proxy in this project, and it
+would have ended this stage with English on the screen.
 
 ### Stage E · The deliverable that is not the app
 

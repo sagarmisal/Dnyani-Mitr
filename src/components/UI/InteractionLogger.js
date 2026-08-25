@@ -82,7 +82,7 @@ export class InteractionLogger {
     };
 
     const interactionType = typeMap[type] || INTERACTION_TYPES.OTHER;
-    const notes = noteMap[type] || 'Action taken via Dashboard';
+    const notes = noteMap[type] || t('p.viaDashboard');
 
     try {
       // Log the interaction
@@ -114,7 +114,7 @@ export class InteractionLogger {
       if (onDone) onDone();
     } catch (err) {
       console.error('Quick action failed:', err);
-      Toast.show('Failed to log action', 'error');
+      Toast.show(t('p.logFailed'), 'error');
     }
   }
 
@@ -127,7 +127,7 @@ export class InteractionLogger {
       Toast.show(`Snoozed for ${days} day(s)`, 'success');
       if (onDone) onDone();
     } catch (err) {
-      Toast.show('Failed to snooze', 'error');
+      Toast.show(t('p.snoozeFailed'), 'error');
     }
   }
 
@@ -364,7 +364,7 @@ export class InteractionLogger {
     const normalized = normalizePhone(phone);
     if (!normalized) return;
     if (!InteractionLogger._isMobileDevice()) {
-      Toast.show('Phone calls are only available on mobile devices', 'warning');
+      Toast.show(t('p.callMobileOnly'), 'warning');
       return;
     }
     InteractionLogger._openProtocolLink(`tel:+91${normalized}`);

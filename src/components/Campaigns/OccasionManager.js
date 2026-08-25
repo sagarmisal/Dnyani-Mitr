@@ -35,7 +35,7 @@ export class OccasionManager {
                 <div class="occasion-list">
                     ${occasions.length
                         ? occasions.map(o => this._row(o)).join('')
-                        : '<p class="text-secondary">No occasions yet.</p>'}
+                        : `<p class="text-secondary">${t('p.noOccasions')}</p>`}
                 </div>
                 <button id="occ-add-btn" class="btn btn-primary btn-sm" style="margin-top: 1rem;">+ Add occasion</button>
                 <div id="occ-editor" style="margin-top: 1rem;"></div>

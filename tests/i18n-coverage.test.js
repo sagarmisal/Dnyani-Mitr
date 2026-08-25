@@ -45,8 +45,9 @@ function untranslated() {
     return byFile;
 }
 
-// LOWER THIS as screens are converted. Never raise it: if a change needs it
-// raised, that change is adding English to a Marathi-first app (D-23).
+// ZERO. Both counters are at zero, so this is no longer a ratchet — it is the
+// rule. Any English string appearing in a component fails the suite the moment
+// it is written.
 //
 // WHAT THIS COUNTER SEES, AND WHAT IT DOES NOT. It matches English in markup
 // attributes and element text. It does NOT see prose inside template literals,
@@ -120,8 +121,9 @@ function untranslatedProse() {
     return byFile;
 }
 
-// Honest count when the second counter was introduced. LOWER IT, never raise.
-const PROSE_CEILING = 44;
+// ZERO, like the other one. Reaching it took a second counter, because the
+// first read zero while 44 English sentences were still on screen.
+const PROSE_CEILING = 0;
 
 describe('English prose can only decrease', () => {
     it(`is at or below ${PROSE_CEILING}`, () => {
@@ -137,7 +139,7 @@ describe('English prose can only decrease', () => {
         expect(total).toBeLessThanOrEqual(PROSE_CEILING);
     });
 
-    it('the attribute counter reaching zero does not mean done', () => {
+    it('neither counter alone is the finish line — this is why there are two', () => {
         // Guard against the mistake this file already made once: treating one
         // counter's zero as the finish line.
         const prose = Object.values(untranslatedProse()).reduce((n, v) => n + v.length, 0);
