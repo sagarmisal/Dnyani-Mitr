@@ -170,3 +170,38 @@ describe('operating — the screens that matter are reachable', () => {
 });
 
 import { readFileSync } from 'node:fs';
+
+describe('a record can never be present but invisible', () => {
+    it('a visitor arriving without status is still listed', async () => {
+        // getAll() filters on status === 'active'. The model defaults it and the
+        // v2 migration sets it, but SyncService.merge assigns plain objects and
+        // bypasses both — so a visitor from another machine could sit in storage
+        // and appear nowhere, with nothing reported. Found while writing J4.
+        localStorage.clear();
+        localStorage.setItem('NGOApp_v2_State', JSON.stringify({
+            version: '3.3.0',
+            visitors: [{ id: 'v_nostatus', isDeleted: false,
+                contacts: [{ relationType: 'SELF', name: 'सुनीता', phones: ['9822012345'], emails: [] }] }],
+            interactions: [], settings: {}
+        }));
+        StateManager.initialized = false;
+        StateManager.init();
+
+        const { default: VS } = await import('../src/services/VisitorService.js');
+        expect(VS.getAll(), 'a statusless visitor vanished').toHaveLength(1);
+        expect(StateManager.getState().visitors[0].status).toBe('active');
+    });
+
+    it('a deleted visitor without status stays deleted', () => {
+        localStorage.clear();
+        localStorage.setItem('NGOApp_v2_State', JSON.stringify({
+            version: '3.3.0',
+            visitors: [{ id: 'v_del', isDeleted: true,
+                contacts: [{ relationType: 'SELF', name: 'x', phones: [], emails: [] }] }],
+            interactions: [], settings: {}
+        }));
+        StateManager.initialized = false;
+        StateManager.init();
+        expect(StateManager.getState().visitors[0].status).toBe('deleted');
+    });
+});

@@ -159,13 +159,36 @@ inside Sync: a nudge nobody passes is not a nudge.
 
 - **Check:** 68 old tasks, 68 dispositions, zero orphans.
 
-### Stage A · Make completeness provable — *and it starts red*
+### Stage A · Make completeness provable ✅ *done 2026-08-25 — and it is red, as planned*
 
-- Six acceptance tests, `J1`…`J6`, each walking the real screens end to end.
-- A coverage floor: no component over 200 lines without a real test.
-- **J2 and J4 are expected to FAIL.** That is the exit condition, not a blocker.
-- **Rule:** if a failing test later has to be *edited* to pass, **the test was
-  wrong and that is a separate finding** — not a step.
+`tests/jobs/J1…J6` walk the real screens end to end. `tests/coverage-floor.test.js`
+ratchets the number of large untested components.
+
+**720 tests. Six red, every one of them named and deliberate:**
+
+| Red test | Closed by |
+|---|---|
+| J4 · the coordinator can ask for one month | **B1** |
+| J4 · what was brought can be counted | **B1** |
+| J4 · there is a reports screen behind अहवाल | **B1** |
+| J2 · the screen itself has a test | **B2** |
+| J2 · the screen speaks Marathi | **B2** |
+| coverage · critical screens are covered (`SyncManager`) | **C** |
+
+**Two defects found by writing the tests:**
+
+1. **`generateVisitorCSV()` returned headers and no rows.** `getAll()` filters on
+   `status === 'active'`; the model defaults it and the v2 migration sets it, but
+   `SyncService.merge` assigns plain objects and bypasses both. **A visitor
+   arriving from another phone without `status` would sit in storage and appear
+   nowhere** — no list, no search, no report, no error. Backfilled in
+   `ensureForwardFields`, with a test.
+2. **The coverage guard passed itself.** It counted name *mentions*, and its own
+   list of critical screens made `SyncManager` look covered — a comment in
+   another test supplied the second mention. Replaced with an import check; the
+   honest count of untested large components is **11, not 6**.
+
+The second one is RC-1 committed *inside the guard written to prevent RC-1*.
 
 ### Stage B · Close what Stage A exposed
 
@@ -253,6 +276,12 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage A done, deliberately red.** 720 tests, six failing, each
+  named and assigned to the stage that closes it. Writing them found two defects:
+  a visitor without `status` is invisible everywhere while sitting in storage
+  (fixed), and the coverage guard was satisfied by its own critical-screens list
+  — RC-1 committed inside the guard written to prevent RC-1. The honest count of
+  untested large components is 11, not the 6 the fakeable proxy reported.
 - **2026-08-25** — **Stage 0 done.** The old ledger had been deleted rather than
   reconciled during the split, so it was recovered from git and every one of its
   68 tasks given a disposition. Four are obsolete under D-24, two were already
