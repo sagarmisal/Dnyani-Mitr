@@ -133,16 +133,31 @@ quantity of it substitutes for one real device.
 
 ## 6 · The plan
 
-### Stage 0 · Reconcile the ledger — *first, or "done" is unreachable*
+### Stage 0 · Reconcile the ledger ✅ *done 2026-08-25*
 
-The old task list carries entries that decisions already superseded: tasks
-asking for answers the owner has given, and tasks assuming NGOs are using the
-app when D-24 records that none are. A list with stale entries can never reach
-zero.
+The old ledger was **deleted** rather than reconciled when the docs were split,
+so the first act of Stage 0 was to recover it from git and check that nothing
+real had gone with it. Every one of its 68 tasks now has a home:
 
-- **Post:** every open item is one a person could start today; each has an owner
-  and a stage; none contradicts a SETTLED decision.
-- **Check:** a script lists open items and their stage. **Orphans must be zero.**
+| Old task | Disposition |
+|---|---|
+| P0.1, P1.*, P2.* | Done — the work of Phases 1 and 2 |
+| P0.3, P0.4 | **Obsolete.** They collect and analyse NGO backups; D-24 records that no NGO is using the app, so none exist. The analyzer's job turned inward and the dogfood run is what it reads now |
+| P0.5 | Superseded by D-25 |
+| P0.6, P0.7 | Answered by the owner (D-26, D-28) |
+| P0.2, P0.8, P3.4, P3.10, P5.1, P5.6–P5.9 | → **Stage F** (owner, device) |
+| P3.1, P3.2, P3.3 | → **Stage B1** (Reports) |
+| P3.5 | → **Stage C** (`SyncManager` rebuild) |
+| P3.7 | Already done — the absent-≠-empty regression exists |
+| P3.8, P3.9 | Already done — plans export/merge built, 325 lines of tests |
+| P5.2–P5.5, P5.10 | → **Stage E** |
+
+**One genuine gap found: P3.6, the backup-age nudge, was never built.** PR-5 says
+we ask these NGOs for exactly one behaviour — *take a backup before you upgrade* —
+and nothing in the app asks. It is now **Stage B3**, and it goes on **Today**, not
+inside Sync: a nudge nobody passes is not a nudge.
+
+- **Check:** 68 old tasks, 68 dispositions, zero orphans.
 
 ### Stage A · Make completeness provable — *and it starts red*
 
@@ -157,6 +172,9 @@ zero.
 - **B1 (J4)** — test `ReportService`; build the Reports screen: date range,
   filters, live counts, BOM'd CSV, trustee columns.
 - **B2 (J2)** — characterize `ReminderDashboard`, then rebuild it on the kit.
+- **B3 (PR-5)** — the backup-age nudge, on **Today**. Derived from `syncLog`:
+  how long since a backup, shown where they already look, dismissible. Found
+  missing in Stage 0 — the one behaviour we ask for had nothing asking for it.
 - **Check:** the exact tests that were red pass **unedited**.
 
 ### Stage C · The six untouched screens
@@ -235,3 +253,9 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage 0 done.** The old ledger had been deleted rather than
+  reconciled during the split, so it was recovered from git and every one of its
+  68 tasks given a disposition. Four are obsolete under D-24, two were already
+  answered, three were already built. **One real gap: the backup-age nudge (P3.6)
+  was never built** — PR-5 asks these NGOs for exactly one behaviour and nothing
+  in the app asks for it. Added as Stage B3, on Today rather than inside Sync.
