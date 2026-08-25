@@ -890,3 +890,124 @@ One phone, one laptop, done by the owner. Everything above is code-verified.
 Items 1–5 I can prove here. Items 6 and 7 are yours, and no amount of 1–5
 substitutes for them.
 
+---
+
+## 19 · Execution specification
+
+Binding on implementation. Where this and a commit disagree, this is the defect.
+
+### 19.0 · The task protocol — every task, no exceptions
+
+Each step exists because a specific root cause in §15 produced a specific defect.
+This is not ceremony; it is the four failures, inverted.
+
+| Step | | Prevents |
+|---|---|---|
+| **1** | **Enumerate the sites first.** Grep every place the change must land, record the count in the commit message. | RC-2 — D-20 reached `validators.js` and not `ScheduledItemForm.save()` |
+| **2** | **Characterization test green before touching a redesign.** | RC-4 — redesigning untested code has no safety net |
+| **3** | Implement. | |
+| **4** | **Assert the positive property**, never the absence of its violation. "Every route has a door", not "no banned word". | RC-1 — four guards made this mistake independently |
+| **5** | **Mutation-test the new guard.** Break the thing it protects, watch it fail, restore. An unmutated guard is decoration. | RC-1 |
+| **6** | **Re-run the enumeration from step 1. It must return zero.** | RC-2 |
+| **7** | For any capability branch: test *absent* **and** *present-but-throwing*. | RC-3 — OEM WebViews expose `DecompressionStream` and then fail on use |
+| **8** | Full suite · `vite build` · reachability · i18n ratchet — all green before commit. | |
+
+**A task is not done when the code works. It is done when step 6 returns zero
+and step 5 has been seen to fail.**
+
+### 19.1 · Stage 0 — reconcile the ledger *(must be first)*
+
+The task list carries entries that decisions have already superseded. Left
+alone, "complete" is unreachable because tasks that no longer apply stay open.
+
+- **Pre:** none.
+- **Tasks:** close P0.6 and P0.7 (answered) · rewrite P0.3/P0.4 under D-24, since
+  no NGO is using the app so no backups exist to collect · fold P0.5 into D-25 ·
+  restate P0.2 as an owner device task · re-scope P3.4/P3.10/P5.* under D-24.
+- **Post:** every open task is one a person could actually start today. Every
+  open Q maps to a stage. No task contradicts a SETTLED decision.
+- **Check:** a script lists open tasks and open questions; each has a named owner
+  and a stage. Zero orphans.
+
+### 19.2 · Stage A — make completeness provable
+
+- **Pre:** Stage 0 complete.
+- **Tasks:** `tests/jobs/J1…J6.test.js`, one per job, each walking real screens
+  end to end · a coverage-floor guard (no component over 200 LOC untested),
+  mutation-tested.
+- **Post:** six named acceptance tests exist and run. **J2 and J4 are expected to
+  fail.**
+- **Check:** `npx vitest run tests/jobs` names all six. A red J2/J4 is the exit
+  condition, not a blocker — the gap is now visible rather than argued.
+- **Rollback:** tests only; nothing to revert.
+
+### 19.3 · Stage B — close what Stage A exposed
+
+- **Pre:** Stage A complete; J2 and J4 failing for a stated reason.
+- **B1 (J4):** `ReportService` tests · Reports screen (range, filters, counts,
+  BOM'd CSV) · trustee columns, after Q-06.
+- **B2 (J2):** characterization for `ReminderDashboard`, then rebuild on the kit.
+- **Post:** J2 and J4 acceptance green, by the same tests that were red.
+- **Check:** the exact test that failed now passes, unedited. **If the test had to
+  change to pass, the test was wrong and that is a separate finding.**
+- **Rollback:** each screen is one commit; revert restores the old screen intact.
+
+### 19.4 · Stage C — the six untouched screens
+
+Fixed order per screen, no exceptions: **characterize → redesign → translate.**
+
+`SyncManager` (906) → `VisitorForm` (689) → `VisitorView` (521) →
+`ReminderDashboard` (from B2) → `SettingsPage` (571) → batch the rest.
+
+- **Pre:** Stage B complete. For each screen: characterization test green.
+- **Post per screen:** characterization still green, unedited · kit components
+  used, no new one-off CSS · zero English in that file · ratchet lowered ·
+  reachability green.
+- **Check:** the characterization diff is empty. A redesign that changes
+  behaviour is a bug unless the change was written down first.
+- **Rollback:** one commit per screen.
+
+### 19.5 · Stage D — language to zero
+
+- **Pre:** Stage C complete.
+- **Post:** ratchet at **0**, guard flipped from "may not rise" to "must be zero".
+- **Check:** the counter script returns 0 · every key has both languages ·
+  placeholders match across languages.
+
+### 19.6 · Stage E — the deliverable that is not the app
+
+Device checklist · one laminated card · volunteer instructions · laptop note ·
+previous APK retained as rollback with its path recorded.
+
+- **Post:** each artifact exists and names what to do when it goes wrong.
+- **Check:** the checklist is followable by someone who has never seen the app.
+
+### 19.7 · Stage F — the device run *(owner)*
+
+- **Pre:** Stages A–E complete; `verify-apk.sh` prints **Signature matches**.
+- **Post:** completion items 6 and 7 satisfied.
+- **Check:** a backup taken on the phone restores on the laptop **and the
+  reverse**. Both directions, or the claim is unproven.
+
+### 19.8 · How I know the plan itself is right
+
+| Property | How it is checked |
+|---|---|
+| **Complete** | Every open task, open question and PROVISIONAL decision maps to exactly one stage. A script lists orphans; the count must be zero. |
+| **Correct** | No stage depends on a later one. Stage A deliberately produces failures — a plan whose first act is red is being honest about its inputs. |
+| **Robust** | Every exit condition is machine-checkable except Stage F, which is flagged as owner-only. No exit condition is a judgement call by me. |
+| **Reversible** | One commit per screen; rollback restores the previous screen whole. The previous APK is retained throughout. |
+
+### 19.9 · What would invalidate this plan
+
+Any of these means stop and re-plan, not push on:
+
+- The device run fails on rendering or storage — Stage C's assumptions about the
+  kit on a real WebView would be wrong, and everything after it is suspect.
+- A characterization test cannot be written for a screen because its behaviour
+  is genuinely undefined. That is a finding about the screen, not a reason to skip.
+- Marathi comes back materially wrong. Stage D would then be re-translation, not
+  completion, and it moves ahead of Stage C.
+- The owner adds a seventh job. §3 is the scope boundary and a new job needs a
+  decision entry, not an accommodation.
+
