@@ -343,7 +343,47 @@ export const STRINGS = {
     'view.deletePerson':    { mr: 'ही व्यक्ती काढून टाका',    en: 'Remove this person' },
     'view.deleted':         { mr: 'काढून टाकलं',            en: 'Removed' },
     'view.dncSet':          { mr: 'यापुढे संपर्क करणार नाही.', en: 'They will not be contacted.' },
-    'view.dncCleared':      { mr: 'संपर्क करू शकता.',        en: 'They can be contacted again.' }
+    'view.dncCleared':      { mr: 'संपर्क करू शकता.',        en: 'They can be contacted again.' },
+
+    /* ----------------------------------------------------------- settings */
+    // Named by what the person controls. "Machine Information" was our word for
+    // it; "This device" is theirs.
+    'set.preferences':      { mr: 'तुमच्या आवडीनुसार',       en: 'Your preferences' },
+    'set.orgName':          { mr: 'संस्थेचं नाव',            en: 'Your organisation’s name' },
+    'set.orgPlaceholder':   { mr: 'उदा. भगवान बाबा बालिकाश्रम', en: 'e.g. Bhagwan Baba Balikashram' },
+    'set.opening':          { mr: 'सुरुवातीची स्क्रीन',       en: 'Opening screen' },
+    'set.weekStart':        { mr: 'आठवडा कधी सुरू होतो',      en: 'Week starts on' },
+    'set.sunday':           { mr: 'रविवार',                 en: 'Sunday' },
+    'set.monday':           { mr: 'सोमवार',                 en: 'Monday' },
+    'set.lookahead':        { mr: 'किती दिवस आधी आठवण द्यायची', en: 'How many days ahead to remind' },
+    'set.backupEvery':      { mr: 'किती दिवसांनी बॅकअपची आठवण', en: 'Remind me to back up every' },
+    'set.lapseAfter':       { mr: 'किती दिवसांनी "भेट नाही" म्हणायचं', en: 'Count as “not seen” after' },
+    'set.tagline':          { mr: 'संदेशाखालची ओळ',          en: 'Sign-off line on messages' },
+    'set.campaignLang':     { mr: 'संदेशांची भाषा',           en: 'Language for messages' },
+    'set.english':          { mr: 'इंग्रजी',                 en: 'English' },
+    'set.save':             { mr: 'जतन करा',               en: 'Save' },
+    'set.thisDevice':       { mr: 'हा फोन',                 en: 'This device' },
+    'set.deviceName':       { mr: 'फोनचं नाव',              en: 'Name for this device' },
+    'set.role':             { mr: 'भूमिका',                 en: 'Role' },
+    'set.deviceId':         { mr: 'ओळख क्रमांक',            en: 'Device ID' },
+    'set.since':            { mr: 'कधीपासून',               en: 'In use since' },
+    'set.about':            { mr: 'ॲपबद्दल',               en: 'About' },
+    'set.templates':        { mr: 'संदेशांचे नमुने',          en: 'Message templates' },
+    'set.saveTemplates':    { mr: 'नमुने जतन करा',           en: 'Save templates' },
+    'set.resetTemplates':   { mr: 'पहिल्यासारखे करा',        en: 'Reset to the originals' },
+    'set.smsPermission':    { mr: 'SMS ची परवानगी द्या',     en: 'Allow SMS' },
+    'set.dailyNotif':       { mr: 'रोजची आठवण चालू करा',     en: 'Daily reminder' },
+    'set.dailyTime':        { mr: 'किती वाजता',             en: 'At what time' },
+    'set.platform':         { mr: 'कुठे चालू आहे',           en: 'Running on' },
+    'set.appVersion':       { mr: 'आवृत्ती',                en: 'Version' },
+    'set.people':           { mr: 'माणसं',                  en: 'People' },
+    'set.records':          { mr: 'नोंदी',                  en: 'Records' },
+    'set.knownDevices':     { mr: 'माहीत असलेले फोन',        en: 'Devices you sync with' },
+    'set.lastSync':         { mr: 'शेवटचं sync',            en: 'Last sync' },
+    'set.storageUsed':      { mr: 'वापरलेली जागा',           en: 'Space used' },
+    'set.smsStatus':        { mr: 'SMS परवानगी',            en: 'SMS permission' },
+    'set.testPaths':        { mr: 'तपासणी',                 en: 'Diagnostics' },
+    'set.markAs':           { mr: 'इतक्या दिवसांनी "भेट नाही" म्हणा', en: 'Count as not seen after' }
 };
 
 export default STRINGS;

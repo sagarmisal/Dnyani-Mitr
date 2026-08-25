@@ -341,6 +341,13 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage C.4 done (`SettingsPage`).** No defects — the first screen this
+  iteration to characterize clean. Its tests pin the thing that nearly shipped broken:
+  Settings holds the only door to Backup since the nav went to five tabs, and **backup must
+  be first** among those links, because PR-5 makes it the one behaviour we ask for rather
+  than another row in a list. Vocabulary moved from ours to theirs — "Machine Information"
+  became "हा फोन / This device", "Lapse Threshold (days)" became "किती दिवसांनी भेट नाही
+  म्हणायचं". 784 tests; i18n 122 → 85.
 - **2026-08-25** — **Stage C.3 done (`VisitorView`).** Characterization found four defects
   before a line was redesigned: a visitor whose `contacts` array is missing **crashed the
   screen** (and such records arrive through merge as plain objects), a contact without
