@@ -365,6 +365,7 @@ Status: **SETTLED** · **PROVISIONAL** (holds until evidence arrives) · **REOPE
 | **D-26** | 2026-08-24 | **D-11 confirmed: the ledger design language ships.** P1.8b is unblocked. | Owner reviewed `docs/design-preview-v3.3.html` and confirmed the proposed phone reads as an app. Answers Q-03. | SETTLED |
 | **D-27** | 2026-08-24 | **Success is measured by second use, not by retention.** | Adoption from zero is a different problem from retention, with a different test: does someone open it again without being asked. Anything measuring "engagement" over a base of zero is measuring nothing. | SETTLED |
 | **D-28** | 2026-08-24 | **The master-key activation gate is removed.** Every device provisions itself silently: a generated `machineId`, role **satellite**, no questions. `KEYS.md` and `ActivationScreen` deleted. | Answers Q-01. The key protected nothing — the valid keys shipped in `KEYS.md` inside the repository, so anyone with the file could type one. What it did do was stand in the doorway: the first screen was a code obtained from us, then "Root or Satellite?" — an architecture question asked of someone with no basis to answer it, before the app had shown them anything worth having. With adoption from zero as the real problem (D-27), a wall at the front door is the most expensive thing in the app. Provenance is now carried properly by D-22: the Seva Sankalp mark is on every screen and cannot be edited, which is a better claim of authorship than a shared code. Satellite is the safe default — a satellite can be promoted, whereas a device wrongly believing it is root claims authority over deletions and propagates it through sync. | SETTLED |
+| **D-29** | 2026-08-25 | **v3.3.0 goes out as a fresh install.** The old copy is uninstalled first; nothing is migrated. | Owner confirms no NGO is carrying data in the existing app (D-24), so there is no register to preserve and the in-place upgrade path is effort spent on a constraint that does not exist. The migration code and its tests stay — they are written and cost nothing to keep, and they will matter for v3.3.1 onward. **Signature verification also stays**, not for this install but so the *next* one can happen without an uninstall: from the moment a volunteer records a first visit, `verify-apk.sh` is the difference between an upgrade and a destroyed register. | SETTLED |
 
 ---
 
@@ -429,8 +430,10 @@ A change is done when **all** of these hold:
 - [ ] Tests green (entry fee, not the finish line)
 - [ ] `npx vite build` succeeds
 - [ ] Built on the maintainer's machine and `./scripts/verify-apk.sh` prints **Signature matches**
-- [ ] **Installs over the existing app** — no uninstall required
-- [ ] A backup was taken before the upgrade
+- [ ] **Installs over the existing app** — no uninstall required *(waived for
+      v3.3.0 only, per D-29; binding again from v3.3.1)*
+- [ ] A backup was taken before the upgrade *(waived for v3.3.0 only — there is
+      no data to take; binding again from v3.3.1)*
 - [ ] **One NGO used it for 48 hours**
 - [ ] The analyzer shows the feature actually produced records
 
@@ -503,6 +506,27 @@ Append-only. Newest last. One line per event, with the date and what changed.
   paste surfaced as a raw zlib error while continuing to report counts that would be wrong.
 - **2026-08-24** — Owner confirmed keystore backed up and re-entry acceptable; constraints
   lifted. Initiative replanned end-to-end and this document opened as the source of truth.
+- **2026-08-25** — Stages 0–E executed. Stage 0 reconciled the ledger; Stage A wrote six job
+  acceptance tests and let them run red where the app was; Stage B closed J4 (Reports) and J2,
+  and added the backup nudge; Stage C characterized then translated the five untested screens
+  volunteers touch — `SyncManager`, `VisitorForm`, `VisitorView`, `SettingsPage`, and a batch of
+  six more; Stage D took both English counters to zero; Stage E produced the non-app deliverables
+  (`docs/card.html`, `DEVICE_TEST.md`, `VOLUNTEER.md`, `LAPTOP.md`, `ROLLBACK.md`).
+- **2026-08-25** — Two findings from Stage E. **The version had never been bumped** — every stage
+  shipped as `versionCode 11 / 3.2.0` while every filename, doc and commit said v3.3.0; corrected
+  to `12 / 3.3.0`. And **APK rollback is impossible without data loss**, because the only way to
+  install an older `versionCode` is to uninstall, and uninstalling erases the register — so the
+  backup is the rollback, and an old APK kept "just in case" is a trap that looks like a plan.
+- **2026-08-25** — Owner scoped out the upgrade path (**D-29**): v3.3.0 is a fresh install, the
+  old copy is uninstalled first, and no NGO is carrying data in it. The "installs over the
+  existing app" and "a backup was taken before the upgrade" criteria are waived for this release
+  only and bind again from v3.3.1. Signature verification and the migration code stay — they buy
+  nothing today, and they are the whole difference between the *next* release being an upgrade
+  and being a data-destroying uninstall.
+- **2026-08-25** — Stages A–E complete: 798 tests green, build clean, both i18n counters at zero,
+  `verify-apk.sh` prints Signature matches. **Stage F is owner-only** and is the only thing left:
+  the device run on one real phone and one laptop, and the two backup directions — phone→laptop
+  and laptop→phone, the second being the leg that was broken until this release.
 
 ---
 

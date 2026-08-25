@@ -3,6 +3,11 @@
 Read this before it is needed. It is short, and the important part is that the
 obvious plan does not work.
 
+> **Not relevant on release day.** v3.3.0 goes out as a fresh install (D-29) —
+> the old copy is uninstalled first and holds no data, so going back to it costs
+> nothing. This page starts applying the moment a volunteer records a first
+> visit, and from then on it applies to every release.
+
 ## The obvious plan does not work
 
 **You cannot install v3.2.0 over v3.3.0.**

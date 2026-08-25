@@ -124,6 +124,7 @@ Seven checks. Not a feeling, not a judgement, and not negotiable.
 | 4 | Every screen has a door — reachability green | me |
 | 5 | `verify-apk.sh` prints **Signature matches** | me |
 | 6 | **The device run passes** on one real phone and one laptop | **owner only** |
+| — | ~~installs over the existing app~~ — **dropped.** Owner confirms this is a fresh install and the old copy is uninstalled first. No NGO holds data in it, so nothing is preserved. Signature checking stays, but only so the *next* upgrade can be non-destructive | — |
 | 7 | A backup from the phone restores on the laptop, **and the reverse** | **owner only** |
 
 **6 and 7 cannot be self-certified.** Everything in 1–5 is code-verified, and no

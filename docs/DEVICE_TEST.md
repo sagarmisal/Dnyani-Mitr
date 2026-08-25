@@ -8,23 +8,22 @@
 > Android device. This checklist is the first time it does, and it is the only
 > evidence that counts.
 
-**Before anything else:** on the phone you are about to upgrade, take a backup
-as a WhatsApp **text** message and send it to yourself.
-Settings → बॅकअप आणि शेअर → copy → send.
+**This is a fresh install.** Any earlier copy is uninstalled first, and no NGO is
+carrying data in one, so there is nothing to preserve on the way in.
 
-Not "as a file". File backups taken on a phone before v3.2.0 were never actually
-written, so anything saved that way does not exist.
+That is only true for *this* install. From the moment a volunteer records their
+first visit, the rule on the card applies and never stops applying: **do not
+uninstall** — it erases the register.
 
 ---
 
-## 1 · It installs over what is already there
+## 1 · It installs and opens
 
-- [ ] The app updates **without uninstalling**
-- [ ] After it opens, every visitor is still there — count them against the old number
-- [ ] Marathi names read correctly, no `?` and no empty boxes
-
-> **"App not installed" means stop.** Do not uninstall to fix it — that erases
-> the register. It means the file was signed with the wrong key. Tell us.
+- [ ] Any earlier copy is uninstalled first
+- [ ] The app installs
+- [ ] It opens with **no key, no login and no questions** — straight to आज
+- [ ] Marathi renders correctly, no `?` and no empty boxes
+- [ ] सेटिंग → ॲपबद्दल shows **3.3.0**
 
 ---
 
@@ -165,5 +164,7 @@ Write down: which step, what you expected, what happened. On a laptop, open the
 console (F12) and copy the red text — it names the file and line and is worth
 more than a screenshot.
 
-**If any visitor data is missing after the upgrade: stop.** Do not add anything,
-do not sync. The backup you took at the start is the way back.
+**From the first real visit onward, take a text backup before anything else.**
+This install starts empty, so there is nothing to lose today. That stops being
+true the moment a volunteer records someone — and there is no way back after
+that except the backup.
