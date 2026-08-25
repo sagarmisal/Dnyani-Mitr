@@ -789,3 +789,104 @@ the i18n ratchet lowered · reachability still green.
 **Not in scope:** new features. Phase 2.5 is finishing what Phases 1 and 2
 started on the screens they never reached.
 
+---
+
+## 17 · Review, 2026-08-25 — where this actually stands
+
+Measured, not remembered.
+
+### Solid — proven by tests that model real use
+
+| | Job | Evidence |
+|---|---|---|
+| **J1** | record a visit | dogfood week through the real capture sheet · phone identity · Devanagari across scripts |
+| **J3** | reach out and remember | `ThanksService` · the three memory guards · never addresses anyone by their number |
+| **J5** | never lose the register | backup → wipe → restore · a real v3.1.0 register upgraded intact |
+| **J6** | keep NGOs in step | six device legs including laptop → old phone · inflate fuzzed against zlib · merge carries fields it has never heard of |
+
+### Incomplete
+
+**J2 — who to reach out to today.** The calendar half is tested. The actual
+screen, `ReminderDashboard`, is **709 lines with no tests and no translation**.
+
+**J4 — prove the work.** Worse: the tab labelled **अहवाल** routes to My Day,
+which is 525 untested lines holding a few report buttons. `ReportService` has
+**no test of any kind**, and P3.1 — a real Reports screen — was never built. A
+coordinator cannot produce a trustee report today, and nothing would tell us.
+
+### Untouched
+
+**12 of 21 components — ~4,600 lines — have no real test.** 186 untranslated
+strings. Phase 3 entire, Phase 4 undecided, Phase 5 not started.
+
+### Never verified at all
+
+Nothing has run on a real Android device. Not one screen, not the file share,
+not the notifications, not the WebView rendering on a Redmi or an Oppo. Every
+claim about mobile in this document is code-verified only.
+
+### The structural gap behind all of it
+
+41 test files, and almost none names the job it serves. **There is no way to ask
+"is J2 covered?" and get an answer** — which is exactly how J4 reached this
+point with zero coverage while the suite stayed green at 682.
+
+---
+
+## 18 · The plan to a complete deliverable
+
+Ordered so that **completeness becomes provable before more is built**. §15's
+RC-1 was that guards checked the absence of bad things; the answer is a small
+number of positive, job-level tests that either pass or do not.
+
+### Stage A · Make completeness provable *(first, and it will fail)*
+
+| | Task | Gate |
+|---|---|---|
+| **A1** | Six acceptance tests, `J1`…`J6`, each walking the real screens end to end and named for its job | they run |
+| **A2** | Accept that **J2 and J4 fail** — that is the point. A red test is the honest state | the gap is visible, not argued |
+| **A3** | Coverage floor: no component over 200 lines without a real test | guard added, mutation-tested (F-1) |
+
+### Stage B · Close what Stage A exposes
+
+| | Task | Gate |
+|---|---|---|
+| **B1** | **J4** — build the Reports screen (date range, filters, counts, BOM'd CSV) and test `ReportService` | J4 acceptance green |
+| **B2** | **J2** — characterization test for `ReminderDashboard`, then rebuild on the kit | J2 acceptance green |
+
+### Stage C · The six screens never touched — **test → redesign → translate**
+
+`SyncManager` (906) · `VisitorForm` (689) · `VisitorView` (521) ·
+`ReminderDashboard` (709, from B2) · `SettingsPage` (571) · then batch
+`MyDayDashboard`, `InteractionHistory`, `GreetingQueue`, `SmsBatchQueue`.
+
+Characterization first every time: redesigning untested code has no safety net,
+and that is the largest remaining risk in this codebase.
+
+### Stage D · Language to zero
+
+Ratchet from 186 to **0**, and change the guard from "may not rise" to "must be
+zero". A Marathi-first app with English screens is the original complaint.
+
+### Stage E · The deliverable that is not the app
+
+Device checklist · one laminated card for beside the office phone · volunteer
+instructions · laptop note · the previous APK kept as rollback.
+
+### Stage F · The device run — **the only thing that makes any of this real**
+
+One phone, one laptop, done by the owner. Everything above is code-verified.
+
+### What "complete" means — all seven, or it is not done
+
+1. **J1–J6 acceptance tests green**
+2. **Zero** untranslated strings
+3. Every component over 200 lines has a real test
+4. Reachability green — every screen has a door
+5. `verify-apk.sh` prints **Signature matches**
+6. **Device run passed** on one real phone and one laptop
+7. A backup taken on the phone restores on the laptop, **and the reverse**
+
+Items 1–5 I can prove here. Items 6 and 7 are yours, and no amount of 1–5
+substitutes for them.
+
