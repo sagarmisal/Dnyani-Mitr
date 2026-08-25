@@ -182,7 +182,71 @@ export const STRINGS = {
     'sync.undo':            { mr: 'शेवटचं घेतलेलं रद्द करा',  en: 'Undo the last import' },
     'sync.visitors':        { mr: 'माणसं',                 en: 'People' },
     'sync.visitNotes':      { mr: 'भेटींच्या नोंदी',         en: 'Visit records' },
-    'sync.used':            { mr: 'वापरलेली जागा',          en: 'Space used' }
+    'sync.used':            { mr: 'वापरलेली जागा',          en: 'Space used' },
+
+    /* ------------------------------------------------------------ reports */
+    // What a trustee meeting asks for. Every label is a thing that happened,
+    // never a metric: "किती जण आले", not "engagement".
+    'report.title':         { mr: 'अहवाल',                 en: 'Report' },
+    'report.period':        { mr: 'कोणता काळ?',            en: 'Which period?' },
+    'report.thisMonth':     { mr: 'हा महिना',              en: 'This month' },
+    'report.lastMonth':     { mr: 'मागचा महिना',           en: 'Last month' },
+    'report.thisYear':      { mr: 'हे वर्ष',                en: 'This year' },
+    'report.custom':        { mr: 'तारखा निवडा',           en: 'Choose dates' },
+    'report.from':          { mr: 'पासून',                 en: 'From' },
+    'report.to':            { mr: 'पर्यंत',                 en: 'To' },
+    'report.visits':        { mr: 'भेटी',                  en: 'Visits' },
+    'report.people':        { mr: 'माणसं',                 en: 'People' },
+    'report.brought':       { mr: 'काही आणलं',             en: 'Brought something' },
+    'report.thanked':       { mr: 'आभार पाठवले',           en: 'Thanked' },
+    'report.whatBrought':   { mr: 'काय आणलं',              en: 'What was brought' },
+    'report.download':      { mr: 'यादी उतरवा (CSV)',      en: 'Download the list (CSV)' },
+    'report.copyText':      { mr: 'मजकूर कॉपी करा',         en: 'Copy as text' },
+    'report.copyHint':      { mr: 'कमिटीला WhatsApp वर पाठवण्यासाठी.', en: 'To send your committee on WhatsApp.' },
+    'report.empty':         { mr: 'या काळात कोणतीही नोंद नाही.', en: 'Nothing recorded in this period.' },
+    'report.emptyHint':     { mr: 'दुसरा काळ निवडून पाहा.',  en: 'Try a different period.' },
+    'report.copied':        { mr: 'कॉपी झालं',              en: 'Copied' },
+
+    /* ---------------------------------------------------------- reminders */
+    // The J2 screen. "Overdue" is gone for the reason D-10 gives: it accuses
+    // the volunteer every morning for something that is nobody's fault.
+    'rem.title':            { mr: 'आठवणी',                 en: 'Reminders' },
+    'rem.upcoming':         { mr: 'येणारे दिवस',            en: 'Coming up' },
+    'rem.search':           { mr: 'नावाने शोधा',            en: 'Search by name' },
+    'rem.allCities':        { mr: 'सर्व गावं',              en: 'All places' },
+    'rem.allEvents':        { mr: 'सर्व प्रसंग',             en: 'All occasions' },
+    'rem.clear':            { mr: 'काढा',                  en: 'Clear' },
+    'rem.selectAll':        { mr: 'सगळे निवडा',             en: 'Select all shown' },
+    'rem.clearSelection':   { mr: 'निवड काढा',              en: 'Clear selection' },
+    'rem.smsAll':           { mr: 'निवडलेल्यांना SMS पाठवा',  en: 'Send SMS to everyone selected' },
+    'rem.whatsappEach':     { mr: 'प्रत्येकाला WhatsApp उघडा', en: 'Open WhatsApp for each' },
+    'rem.waiting':          { mr: 'वाट पाहत आहेत',          en: 'Still waiting' },
+    'rem.thisWeek':         { mr: 'या आठवड्यात',            en: 'This week' },
+    'rem.later':            { mr: 'नंतर',                  en: 'Later' },
+    'rem.none':             { mr: 'अजून कुणी नाही',          en: 'No one yet' },
+    'rem.snoozed':          { mr: 'पुढे ढकललं',              en: 'Put off' },
+    'rem.alreadyDone':      { mr: 'यावेळी संपर्क झाला',       en: 'Already contacted' },
+    'rem.selectForGreeting': { mr: 'शुभेच्छांसाठी निवडा',      en: 'Select for greeting' },
+    'rem.openSms':          { mr: 'SMS उघडा',              en: 'Open SMS' },
+    'rem.markCalled':       { mr: 'फोन केला',               en: 'Called' },
+    'rem.markVisited':      { mr: 'भेट झाली',               en: 'Visited' },
+    'rem.snooze':           { mr: 'पुढे ढकला',              en: 'Put off' },
+    'rem.tomorrow':         { mr: 'उद्या',                  en: 'Tomorrow' },
+    'rem.logDetails':       { mr: 'तपशील नोंदवा',           en: 'Add details' },
+
+    /* ------------------------------------------------------ backup nudge */
+    // PR-5: we ask these NGOs for exactly ONE behaviour. This is the only place
+    // the app asks for it. It states a fact and offers the action — it does not
+    // scold, and it can be dismissed, because a nag that cannot be silenced
+    // gets the whole app closed instead.
+    'nudge.never':          { mr: 'तुम्ही अजून बॅकअप घेतलेला नाही.',
+                              en: 'You have not taken a backup yet.' },
+    'nudge.stale':          { mr: '{days} दिवसांपासून बॅकअप घेतलेला नाही.',
+                              en: 'No backup for {days} days.' },
+    'nudge.why':            { mr: 'फोन हरवला तर यादी परत आणता येईल.',
+                              en: 'It is how the register comes back if a phone is lost.' },
+    'nudge.action':         { mr: 'आत्ता बॅकअप घ्या',        en: 'Back up now' },
+    'nudge.dismiss':        { mr: 'नंतर',                   en: 'Later' }
 };
 
 export default STRINGS;

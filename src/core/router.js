@@ -93,6 +93,7 @@ export default new Router();
 
 // Route paths (for reference)
 export const ROUTES = {
+    REPORTS: '/reports',
     ACTIVATION: '/activation',
     CALENDAR: '/calendar',
     DASHBOARD: '/dashboard',

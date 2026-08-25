@@ -53,6 +53,7 @@ export class CalendarView {
         const dow = matrix.weekStart === 1 ? DOW_MON : DOW_SUN;
 
         this.container.innerHTML = `
+            ${this.renderBackupNudge()}
             ${this.renderTodayBar()}
             ${this.renderTiles()}
             <div class="card calendar-card">
@@ -89,6 +90,11 @@ export class CalendarView {
         this.container.querySelector('#calendar-day-pane').appendChild(pane.render());
 
         this.attach();
+        this.container.querySelector('#nudge-later')?.addEventListener('click', () => {
+            // A week, not forever. The risk does not go away because they are busy.
+            StateManager.updateSettings({ backupNudgeSnoozedUntil: Date.now() + 7 * 86400000 });
+            this.refresh();
+        });
         this.container.querySelector('#tile-inbound')?.addEventListener('click', () => this.openIntake(SCHEDULED_ITEM_DIRECTION.INBOUND));
         this.container.querySelector('#tile-outbound')?.addEventListener('click', () => this.openIntake(SCHEDULED_ITEM_DIRECTION.OUTBOUND));
         this.container.querySelector('#tile-thanks')?.addEventListener('click', () => {
@@ -107,6 +113,48 @@ export class CalendarView {
      * Only ever facts. No count here is framed as a failing (D-10): "आभार बाकी"
      * is work outstanding, not a reproach.
      */
+    /**
+     * The one behaviour we ask for (PR-5, Stage B3).
+     *
+     * On Today rather than inside Sync, which is two taps away behind Settings.
+     * A nudge nobody walks past is not a nudge — and Stage 0 found that nothing
+     * in the app asked for this at all, while the whole design rests on them
+     * doing it.
+     *
+     * States a fact and offers the action. It does not scold (D-10), and it can
+     * be dismissed for a week: a nag that cannot be silenced gets the app closed
+     * rather than the backup taken.
+     */
+    renderBackupNudge() {
+        const settings = StateManager.getSettings() || {};
+        const snoozeUntil = settings.backupNudgeSnoozedUntil || 0;
+        if (Date.now() < snoozeUntil) return '';
+
+        const log = StateManager.getState().syncLog || [];
+        const last = log
+            .map(e => new Date(e.at || e.date || e.exportedAt || 0).getTime())
+            .filter(t => !isNaN(t) && t > 0)
+            .sort((a, b) => b - a)[0];
+
+        const DAYS = 14;
+        const days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+        if (last && days < DAYS) return '';
+
+        const message = last ? t('nudge.stale', { days }) : t('nudge.never');
+        return `
+            <div class="lg-nudge" role="status">
+                <span class="lg-nudge-icon">💾</span>
+                <div class="lg-nudge-text">
+                    <b>${escapeHTML(message)}</b>
+                    <span>${escapeHTML(t('nudge.why'))}</span>
+                </div>
+                <div class="lg-nudge-actions">
+                    <a class="lg-btn lg-btn--sm lg-btn--primary" href="#${ROUTES.SYNC}">${escapeHTML(t('nudge.action'))}</a>
+                    <button class="lg-btn lg-btn--sm lg-btn--quiet" id="nudge-later">${escapeHTML(t('nudge.dismiss'))}</button>
+                </div>
+            </div>`;
+    }
+
     renderTodayBar() {
         const c = CalendarService.getTodayCounts
             ? CalendarService.getTodayCounts()

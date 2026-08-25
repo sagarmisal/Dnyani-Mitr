@@ -120,7 +120,7 @@ class App {
             <a href="#${ROUTES.CALENDAR}" class="nav-link">${escapeHTML(t('nav.today'))}</a>
             <a href="#${ROUTES.VISITORS}" class="nav-link">${escapeHTML(t('nav.people'))}</a>
             <a href="#${ROUTES.REMINDERS}" class="nav-link">${escapeHTML(t('nav.remember'))}</a>
-            <a href="#${ROUTES.DASHBOARD}" class="nav-link">${escapeHTML(t('nav.reports'))}</a>
+            <a href="#${ROUTES.REPORTS}" class="nav-link">${escapeHTML(t('nav.reports'))}</a>
             <a href="#${ROUTES.SETTINGS}" class="nav-link">${escapeHTML(t('nav.settings'))}</a>
           </nav>
         </div>
@@ -238,6 +238,12 @@ class App {
     Router.register(ROUTES.INTERACTIONS, () => {
       const history = new InteractionHistory();
       this.renderComponent(history.render());
+    });
+
+    // Reports route (J4) — the अहवाल tab used to land on My Day.
+    Router.register(ROUTES.REPORTS, () => {
+      const reports = new ReportsPage();
+      this.renderComponent(reports.render());
     });
 
     // Sync route

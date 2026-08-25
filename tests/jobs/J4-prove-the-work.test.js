@@ -56,11 +56,23 @@ describe('J4 · prove the work', () => {
 
     it('the coordinator can ask for ONE MONTH, not all of history', () => {
         // A trustee meeting asks about a period. Exporting everything and
-        // filtering in a spreadsheet is not producing a report.
-        expect(typeof ReportService.generateVisitorCSV,
-            'generateVisitorCSV takes no arguments — no date range is possible').toBe('function');
-        expect(ReportService.generateVisitorCSV.length,
-            'generateVisitorCSV accepts no range parameter').toBeGreaterThan(0);
+        // filtering in a spreadsheet afterwards is not producing a report.
+        //
+        // The first version of this asserted `generateVisitorCSV.length > 0`.
+        // That was wrong: Function.length counts parameters BEFORE the first
+        // default, so a destructured `({from, to} = {})` signature reads as
+        // zero arity — the proxy could not see the property. Assert the
+        // behaviour instead: a range must actually narrow the result.
+        const august = ReportService.generateVisitorCSV({ from: '2026-08-01', to: '2026-08-31' });
+        const july = ReportService.generateVisitorCSV({ from: '2026-07-01', to: '2026-07-31' });
+
+        // v1 visited in August, v2 in July. The visit counts must differ.
+        const visitsFor = (csv, name) => {
+            const row = csv.split(/\r?\n/).find(l => l.includes(name));
+            return row ? row.split(',').map(c => c.replace(/^"|"$/g, '')) : [];
+        };
+        expect(visitsFor(august, 'सुनीता')[8], 'August range shows the August visit').toBe('1');
+        expect(visitsFor(july, 'सुनीता')[8], 'July range must not count the August visit').toBe('0');
     });
 
     it('what was BROUGHT can be counted — the number a trustee asks for', () => {

@@ -190,7 +190,42 @@ ratchets the number of large untested components.
 
 The second one is RC-1 committed *inside the guard written to prevent RC-1*.
 
-### Stage B · Close what Stage A exposed
+### Stage B · Close what Stage A exposed ✅ *done 2026-08-25*
+
+**B1 (J4)** — `ReportService` characterized first, then given a date range,
+contribution counts and `summarise()`. `ReportsPage` built on the kit and wired
+to the **अहवाल** tab, which until now landed on My Day. Opens with this month
+already showing, because a report screen that opens empty is a form.
+
+**B2 (J2)** — `ReminderDashboard` characterized (9 tests, 709 lines that had
+none), then translated behind that net. Zero English left in the file.
+
+**B3 (PR-5)** — the backup nudge, on **Today**. Appears when no backup exists or
+the last is over a fortnight old, states the fact, offers the action, and
+dismisses for a week — not forever, because the risk does not go away because
+someone was busy.
+
+**All six of Stage A's red tests are green**, and none of them was edited to get
+there — except one, which is recorded below as a finding.
+
+**Three findings:**
+
+1. **A J4 test was wrong, not the code.** It asserted
+   `generateVisitorCSV.length > 0` to prove a date range existed. `Function.length`
+   counts parameters *before* the first default, so a destructured
+   `({from, to} = {})` reads as zero arity. **RC-1 for the third time:** a proxy
+   that could not see the property. Rewritten to assert that a range actually
+   narrows the result.
+2. **I reintroduced the single-quote interpolation bug**, the one that broke
+   `VisitorList` and that `modules-load` was written to catch. It caught it in
+   seconds. The guard works; the *tool* — blind string replacement with no
+   awareness of quoting — is the hazard.
+3. **A characterization test went vacuous.** It asserted the screen still carried
+   English so it would go red when the sweep arrived. It never did: it was
+   matching variable names like `upcoming` and `ReminderService`. Replaced with
+   the positive property — no user-visible English — rather than edited to pass.
+
+### Superseded plan text for Stage B
 
 - **B1 (J4)** — test `ReportService`; build the Reports screen: date range,
   filters, live counts, BOM'd CSV, trustee columns.
@@ -276,6 +311,10 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage B done.** J4 has a real Reports screen behind the अहवाल
+  tab; J2's 709-line screen has 9 characterization tests and zero English; the
+  backup nudge exists at last. 747 tests, one red (`SyncManager`, Stage C's first
+  item). i18n ratchet 186 → 163.
 - **2026-08-25** — **Stage A done, deliberately red.** 720 tests, six failing, each
   named and assigned to the stage that closes it. Writing them found two defects:
   a visitor without `status` is invisible everywhere while sitting in storage
