@@ -13,9 +13,11 @@
 > so that a restart or resume always lands on one baseline. Nothing is lost — they are in git:
 > `git show 9af1a1f:ngo-visitor-manager/<file>`. **Do not recreate them.**
 >
-> What still exists alongside this file, and why: `README.md` (repo entry point) ·
-> `KEYS.md` (activation keys — operational, irreplaceable) · `docs/DEVICE_TEST_phase1.md`
-> (the Phase 1 device gate) · `docs/design-preview-v3.3.html` (design direction, D-11).
+> **`ITERATION.md` carries the current iteration** — objective, measured state,
+> plan, and the execution protocol. This file carries what outlives it.
+>
+> Also present: `README.md` (repo entry point) · `docs/DEVICE_TEST_phase1.md`
+> (device gate) · `docs/design-preview-v3.3.html` (design direction, D-11).
 
 ---
 
@@ -27,7 +29,7 @@ Four sections carry the weight. Read them in this order and you have the whole i
 2. **§4 Principles.** The decision rules. When two options both look reasonable, these break the tie.
 3. **§5 Decisions.** Every settled question, with its reasoning and date. **Point at a decision
    ID rather than re-arguing it.** Re-opening one is allowed; doing it silently is not.
-4. **§8 Delivery.** Phases and their gates.
+4. **`ITERATION.md`.** The current plan, its stages and gates.
 
 **Adding to this document:** new decisions append to §5 with the next ID. New facts learned
 append to §14. Nothing in §5 or §14 is edited in place except to mark a status change — the
@@ -410,170 +412,15 @@ CRC32 → chunks) · vitest + happy-dom.
 
 ## 8 · Delivery
 
-**Legend — who executes:** `AUTO` unattended · `OWNER` you · `NGO` needs a volunteer or a device.
-A phase gate is a real-world event, never a green test suite (D-15).
+**The current plan lives in `ITERATION.md`** — stages, tasks, pre- and
+post-conditions, and the execution protocol. It is rewritten each iteration and
+its log is folded back into §13 here when the iteration closes.
 
-Task IDs are stable. Tick them here; a restarted session resumes from the ticks plus §14.
-
----
-
-### Phase 0 — ground truth · days · **gates everything after it**
-
-| | Task | Verify / gate | Who |
-|---|---|---|---|
-| ✅ **P0.1** | Commit the baseline — INITIATIVE.md, analyzer, design preview, nine doc deletions, repointed source refs | clean `git status`; 323 tests | AUTO |
-| **P0.2** | Run B — upgrade rehearsal against **real NGO data** (`docs/DEVICE_TEST_phase1.md` §1) | visitor count, Marathi renders, history intact, no console errors | OWNER |
-| **P0.3** | Collect one current backup per NGO, with the D-12 disclosure said first | 3 files in hand | OWNER |
-| **P0.4** | Run `scripts/analyze-backup.js` on all three; append findings to §14 | report produced; counts recorded | AUTO |
-| **P0.5** | **Resolve D-16** — campaigns live or die, on P0.4 evidence | decision status changed in §5 | OWNER |
-| **P0.6** | Send `docs/design-preview-v3.3.html` to the three NGOs | Q-02 and Q-03 answered; D-11 confirmed or revised | NGO |
-| **P0.7** | **Answer Q-01** — activation gate justified or removed | becomes a decision in §5 | OWNER |
-| **P0.8** | Check the Marathi pack is enabled in Gboard on pilot devices (Q-04) | yes/no per device | OWNER |
-
-**Gate:** D-16 resolved · D-11 confirmed or revised · Q-01…Q-04 answered.
-*P1.1–P1.7 may start before this gate — they are data-layer only and depend on none of it.*
+This document holds what does not change between iterations: what the product
+is, who uses it, the six jobs, the principles, every decision with its
+reasoning, and the root cause analysis.
 
 ---
-
-### Phase 1 — the spine · 1–2 weeks
-
-**Batch A — data foundation** *(no UI change, no visual risk, unblocked today)*
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| ✅ **P1.1** | `src/utils/devanagari.js` — fold key (D-18): NFC → irregular conjuncts (ज्ञ/क्ष/त्र/श्र) → schwa rule → matra/sibilant/aspirate collapse → Latin equivalences | new test file, ≥20 realistic pairs **including must-NOT-match** cases | AUTO |
-| ✅ **P1.2** | NFC normalisation on every name write and every search query | test: precomposed क़ (U+0958) matches decomposed क+़ | AUTO |
-| ✅ **P1.3** | `localeCompare(a, b, 'mr-IN')` at all three sort sites | test pinning ज्ञ last, per Marathi वर्णमाला | AUTO |
-| ✅ **P1.4** | UTF-8 BOM on CSV export (`helpers.js`) | test asserts blob starts `\ufeff` | AUTO |
-| ✅ **P1.5** | Devanagari + Arabic-Indic digit folding in `normalizePhone`; widen `PHONE_PATTERN` | `normalizePhone('९८२२०१२३४५') === '9822012345'` | AUTO |
-| ✅ **P1.6** | **D-07** — phone required, name optional; nameless visitor renders as its number | validator tests inverted | AUTO |
-| ✅ **P1.7** | **DF-2 gap** — decide and implement whether lookup searches family-member phones, not only SELF | new decision in §5; test either way | AUTO |
-
-**Batch B — the component kit** *(foundation; still no screen changes)*
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| ✅ **P1.8a** | Ledger tokens (D-11) **added** to `variables.css` alongside the existing `--color-*` set. Used only by the kit; every existing screen unchanged | build clean; kit hardcodes no colour | AUTO |
-| ✅ **P1.8b** | **Repoint the app** onto the ledger tokens | 185 of 189 hardcoded colours converted; only WhatsApp's brand green remains, deliberately. 18 contrast tests | AUTO |
-| ✅ **P1.9** | Component kit (D-05): `Sheet` (bottom), `Chips`, `Tile`, `Row`, `Section`, `Empty` | render test per component | AUTO |
-| ✅ **P1.10** | Extend `tests/styles-exist.test.js` to every class the kit uses | missing-class list empty | AUTO |
-| ✅ **P1.11** | **Visibility** assertions, not just render — position, z-index, off-screen checks | a deliberately unstyled component fails the suite | AUTO |
-
-**Batch C — the first screen** *(owner review expected at the end)*
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| ✅ **P1.12** | Capture sheet rebuilt on the kit — phone-first, chips, bottom sheet, org name in header (**UC-01, UC-02**) | records a visit with phone only | AUTO |
-| ✅ **P1.13** | Wire in; **remove the old form in the same commit** so no half-converted state ships | one capture path exists in the tree | AUTO |
-| ✅ **P1.14** | Importer round-trip (D-14): export from current build → import into rebuild | analyzer counts match on both sides | AUTO |
-| ✅ **P1.15** | Nameless-visitor audit — every list, detail, search, export, sync surface | no blank rows anywhere | AUTO |
-
-**Batch D — close out**
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| ✅ **P1.16** | Update §13; append §14 lines for what was learned | doc matches reality | AUTO |
-| ✅ **P1.17** | `vite build` → `cap sync android` → `assembleDebug` → `./scripts/verify-apk.sh` | prints **Signature matches** | AUTO |
-| ✅ **P1.18** | Write the device checklist for the capture sheet, replacing `LOCAL_TEST_v3.2.0.md` | checklist exists | AUTO |
-| 🔶 **P1.19** | ~~a volunteer records a real visit unaided~~ → **D-24: we are the pilot.** Replaced by `tests/dogfood-week.test.js` — one volunteer's week through the real screens — plus an owner run on a real device | 12 dogfood tests green; owner device run outstanding | OWNER |
-
-**Gate:** P1.19 passes. If they need to be told how, the screen is wrong — fix it before Phase 2.
-
----
-
-### Phase 2 — the day · 1–2 weeks
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| ✅ **P2.1** | Shell: **five** destinations, brand header (D-22), visible language toggle (D-23) | nav fits a 360px screen; org name wraps rather than truncating | AUTO |
-| ✅ **P2.2** | **Today** — stat row answering *"how is today?"* (**UC-05**) | counts correct against fixture | AUTO |
-| ✅ **P2.3** | Today — four large action tiles | targets ≥44px | AUTO |
-| ✅ **P2.4** | Today — calendar inline **plus** the day's list, one scroll. Merges My Day and Calendar (see §6) | one screen, no navigation to see today | AUTO |
-| ✅ **P2.5** | Day pane order: coming to us → needs catching up → we are going → on this day | order test | AUTO |
-| ✅ **P2.6** | **"A year ago today"** — month+day matching for interactions in `CalendarService` (**UC-06**) | test across year boundaries and leap days | AUTO |
-| ✅ **P2.7** | UC-06's three guards: never render empty (widen ±3 days) · no *"we miss you"* under ~6 months · no gift claim before contributions exist | one test per guard | AUTO |
-| ✅ **P2.8** | Reminders screen rebuilt, host vocabulary (**UC-07**, D-10) | no accusatory string remains | AUTO |
-| 🔶 **P2.9** | **Vocabulary sweep** — string layer built (`i18n.js` + `strings.js`, Marathi-first with toggle); header done. Remaining: sweep the other screens onto `t()` | a test forbids the banned vocabulary; every key has both languages | AUTO |
-| ✅ **P2.10** | J3 single-message send with mark-as-sent (**UC-08, UC-09**) | Interaction + `thankedAt` written | AUTO |
-| ✅ **P2.11** | `Interaction.thankedAt` — model field, `migrateState()` handling, null-safe default | migration test from v3.2.0 fixture | AUTO |
-| ✅ **P2.12** | Pending-thanks count, **age-bounded** so it cannot become an accusation | test: old items drop off | AUTO |
-| ✅ **P2.13** | `Interaction.contribution` — chips (meal/donation/books/clothes/educational/grocery) + free-text item line, on the capture sheet | migration test; chips optional | AUTO |
-| ✅ **P2.14** | First run asks nothing about machines — silent satellite; promotion moves to Settings | fresh install reaches Today with no architecture question | AUTO |
-| ✅ **P2.15** | Act on Q-01: keep the activation gate with a stated reason, or remove it and `KEYS.md` | matches the §5 decision | AUTO |
-| ✅ **P2.16** | Never-blank defaults on every screen (dates pre-filled, filters pre-set) | no screen opens empty-and-blocking | AUTO |
-| ✅ **P2.17** | Delete the Data Quality screen and its routes/tests | gone; nav still five | AUTO |
-| 🔶 **P2.18** | Build, sign, verify — **done, signature matches**. The 48-hour soak is the owner's, per D-24 | APK verified; soak outstanding | OWNER |
-
-**Gate:** 48 hours of real use, and the analyzer proves records were actually created — not just that the app was installed.
-
----
-
-### Phase 3 — proof and safety · ~1 week
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| **P3.1** | Reports screen: date range, type filter, search (**UC-10**) | filters compose correctly | AUTO |
-| **P3.2** | Live count tiles on Reports, pre-set to this month so it never opens empty | opens with data | AUTO |
-| **P3.3** | CSV columns rewritten for trustees; drop `EngagementScore` / `ConsentGiven` (§6). Check Q-06 first | columns match what a trustee reads | AUTO |
-| **P3.4** | CSV export verified **on an Android device**, not just in a test | file opens in Excel, Marathi intact | NGO |
-| **P3.5** | Backup / restore UI rebuilt on the kit (**UC-11, UC-12**) | round-trip preserves all nine collections | AUTO |
-| **P3.6** | Backup-age nudge derived from `syncLog` — the one behaviour we ask for (PR-5) | appears after N days, dismissible | AUTO |
-| **P3.7** | Regression test: **absent ≠ empty** on restore | a package missing `occasions` leaves them untouched | AUTO |
-| **P3.8** | Send plans / receive plans (**UC-13**, J6) | one message for a week of plans | AUTO |
-| **P3.9** | Plan merge rules under test: assignment, visitor stubs, 30-day tombstones, terminal `done`, idempotent re-import | one test per rule | AUTO |
-| **P3.10** | A coordinator produces a trustee report **unaided** | they succeed without help | NGO |
-
-**Gate:** P3.10 passes, and a backup taken on one device restores intact on another.
-
----
-
-### Phase 4 — bulk messaging · conditional on D-16
-
-*Only one of these branches executes.*
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| **P4.A1** | **If D-16 = dead:** remove Campaigns, Occasions, GreetingQueue, SmsBatchQueue — components, services, routes, tests, nav, and their state collections | build shrinks; tests green; migration still reads old data without crashing | AUTO |
-| **P4.A2** | If dead: confirm `occasions` data is retained in storage even with the UI gone, so nothing is destroyed by an upgrade | restore of an old backup still round-trips | AUTO |
-| **P4.B1** | **If D-16 = alive:** rebuild the campaign flow on the kit, shaped by what P0.4 showed was actually used | a campaign can be built and previewed | AUTO |
-| **P4.B2** | If alive: occasion date entry with the visible **never-guess** state for movable festivals | "needs a date" shown, no lunar guessing | AUTO |
-| **P4.B3** | If alive: owner sources movable festival dates from a verified almanac | dates entered and confirmed | OWNER |
-
----
-
-### Phase 5 — rollout
-
-| | Task | Verify | Who |
-|---|---|---|---|
-| **P5.1** | **Tell all three NGOs their phone "file backups" from before v3.2.0 do not exist**, and have each re-take one as text | 3 fresh text backups in hand | OWNER |
-| **P5.2** | The laminated card — one card, three lines, for beside the office phone (PR-4) | printed and delivered | OWNER |
-| **P5.3** | Volunteer instructions — short, in their language, for the two flows they actually use | written | AUTO |
-| **P5.4** | Laptop deployment note — replaces the guide deleted 2026-08-24; four machines, which browser (per Q-07) | written | AUTO |
-| **P5.5** | Build the distributable APK on the maintainer's machine; `verify-apk.sh` | **Signature matches** | AUTO |
-| **P5.6** | Pilot: one phone + one laptop, 48-hour soak, before anyone else | no data loss, no red console errors | NGO |
-| **P5.7** | Roll out to the remaining two NGOs over WhatsApp | each confirms it opened and their data is intact | OWNER |
-| **P5.8** | Two weeks after rollout: collect backups, run the analyzer, append to §14 | usage evidence recorded | AUTO |
-| **P5.9** | Retain the previous APK as rollback; record where it lives | path recorded in §13 | OWNER |
-| **P5.10** | Archive this document — mark it delivered, keep it in the repo | §14 closed with a delivery entry | AUTO |
-
-**Gate:** all three NGOs on the new build, each having confirmed their register is intact.
-
----
-
-### Task count and shape
-
-| Phase | Tasks | AUTO | OWNER / NGO |
-|---|---|---|---|
-| 0 — ground truth | 8 | 2 | 6 |
-| 1 — the spine | 19 | 18 | 1 |
-| 2 — the day | 18 | 17 | 1 |
-| 3 — proof and safety | 10 | 8 | 2 |
-| 4 — bulk (one branch) | 2–3 | 2 | 0–1 |
-| 5 — rollout | 10 | 4 | 6 |
-| **Total** | **~68** | **~51** | **~17** |
-
-**The critical path runs through the seventeen you own**, not the fifty-one I can execute. P0.2
-(Run B) and P0.3 (three backups) block the most, and both are yours.
 
 ## 9 · Definition of done (D-15)
 
@@ -628,27 +475,7 @@ Answer these into §5. **Never let them be decided silently by whoever implement
 
 ---
 
-## 13 · Current state — 2026-08-24
-
-| | |
-|---|---|
-| Version | v3.2.0 / versionCode 11 (unbumped — Phase 1 ships as a rebuild, not a release) |
-| Branch | `initiative-phase-1` — Phase 1 batches A–D complete |
-| Commits | `e5c00f6` (Iteration 11, 54 files, +14,456/−5,386), `9af1a1f` (docs) |
-| Tests | **542 passing**, 35 files |
-| Build | ~449 kB, ~154 kB gzip · APK signature **verified** |
-| Untracked | `docs/design-preview-v3.3.html`, `scripts/analyze-backup.js` |
-| Keystore | **Backed up** (owner-confirmed 2026-08-24) |
-| Blocking | Owner device run + the Marathi read-through. Phase 1 complete bar P1.19; Phase 2 complete bar the soak |
-
-**Build gotchas that cost an hour each if forgotten:**
-- `./gradlew` needs **Java 21**: `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`
-- **Never `npm audit fix --force`** — it bumps vite to 8, outside `vite-plugin-singlefile@2.3.0`'s
-  peer range, and `npm install` then fails for everyone. vite is pinned `^5.0.0` deliberately.
-
----
-
-## 14 · Progress log
+## 13 · Progress log
 
 Append-only. Newest last. One line per event, with the date and what changed.
 
@@ -679,7 +506,7 @@ Append-only. Newest last. One line per event, with the date and what changed.
 
 ---
 
-## 15 · Root cause analysis — 2026-08-25
+## 14 · Root cause analysis — 2026-08-25
 
 Twenty-four defects were found during Phases 1 and 2. The suite was green at
 every commit and grew from 323 tests to 682. **Not one of the five most severe
@@ -762,252 +589,3 @@ redesigned.** Redesigning untested code has no safety net, and this is the
 largest remaining risk in the codebase.
 
 ---
-
-## 16 · Phase 2.5 — the screens never touched
-
-Six screens still carry their original markup under the new colours, and none
-has a test. They are where a volunteer spends most of their time.
-
-**Order per screen is fixed: test → redesign → translate.** Characterization
-first (F-5), because a redesign with no safety net is how behaviour disappears
-silently; translation last, because the strings change during the redesign and
-translating twice is waste.
-
-| | Screen | LOC | English | Why it ranks here |
-|---|---|---|---|---|
-| **2.5.1** | `Sync/SyncManager` | 906 | 0 | It saves their register. Zero tests today, and it is the one screen whose failure is unrecoverable |
-| **2.5.2** | `Visitors/VisitorForm` | 689 | 21 | The other capture path. Fifteen fields shown where one is required (P1.5's finding, never acted on) |
-| **2.5.3** | `Visitors/VisitorView` | 521 | 24 | Where you check who someone is before you call them |
-| **2.5.4** | `Reminders/ReminderDashboard` | 709 | 23 | J2 — who to reach out to today |
-| **2.5.5** | `Settings/SettingsPage` | 571 | 37 | Backup now lives here (§15), so it must not read as a settings dump |
-| **2.5.6** | `Dashboard`, `InteractionHistory`, `GreetingQueue`, `SmsBatchQueue` | ~1,550 | 41 | Lower traffic; batch them |
-
-**Gate for each:** characterization test green before any markup changes ·
-the kit's components used, not new one-off CSS · zero English left in that file ·
-the i18n ratchet lowered · reachability still green.
-
-**Not in scope:** new features. Phase 2.5 is finishing what Phases 1 and 2
-started on the screens they never reached.
-
----
-
-## 17 · Review, 2026-08-25 — where this actually stands
-
-Measured, not remembered.
-
-### Solid — proven by tests that model real use
-
-| | Job | Evidence |
-|---|---|---|
-| **J1** | record a visit | dogfood week through the real capture sheet · phone identity · Devanagari across scripts |
-| **J3** | reach out and remember | `ThanksService` · the three memory guards · never addresses anyone by their number |
-| **J5** | never lose the register | backup → wipe → restore · a real v3.1.0 register upgraded intact |
-| **J6** | keep NGOs in step | six device legs including laptop → old phone · inflate fuzzed against zlib · merge carries fields it has never heard of |
-
-### Incomplete
-
-**J2 — who to reach out to today.** The calendar half is tested. The actual
-screen, `ReminderDashboard`, is **709 lines with no tests and no translation**.
-
-**J4 — prove the work.** Worse: the tab labelled **अहवाल** routes to My Day,
-which is 525 untested lines holding a few report buttons. `ReportService` has
-**no test of any kind**, and P3.1 — a real Reports screen — was never built. A
-coordinator cannot produce a trustee report today, and nothing would tell us.
-
-### Untouched
-
-**12 of 21 components — ~4,600 lines — have no real test.** 186 untranslated
-strings. Phase 3 entire, Phase 4 undecided, Phase 5 not started.
-
-### Never verified at all
-
-Nothing has run on a real Android device. Not one screen, not the file share,
-not the notifications, not the WebView rendering on a Redmi or an Oppo. Every
-claim about mobile in this document is code-verified only.
-
-### The structural gap behind all of it
-
-41 test files, and almost none names the job it serves. **There is no way to ask
-"is J2 covered?" and get an answer** — which is exactly how J4 reached this
-point with zero coverage while the suite stayed green at 682.
-
----
-
-## 18 · The plan to a complete deliverable
-
-Ordered so that **completeness becomes provable before more is built**. §15's
-RC-1 was that guards checked the absence of bad things; the answer is a small
-number of positive, job-level tests that either pass or do not.
-
-### Stage A · Make completeness provable *(first, and it will fail)*
-
-| | Task | Gate |
-|---|---|---|
-| **A1** | Six acceptance tests, `J1`…`J6`, each walking the real screens end to end and named for its job | they run |
-| **A2** | Accept that **J2 and J4 fail** — that is the point. A red test is the honest state | the gap is visible, not argued |
-| **A3** | Coverage floor: no component over 200 lines without a real test | guard added, mutation-tested (F-1) |
-
-### Stage B · Close what Stage A exposes
-
-| | Task | Gate |
-|---|---|---|
-| **B1** | **J4** — build the Reports screen (date range, filters, counts, BOM'd CSV) and test `ReportService` | J4 acceptance green |
-| **B2** | **J2** — characterization test for `ReminderDashboard`, then rebuild on the kit | J2 acceptance green |
-
-### Stage C · The six screens never touched — **test → redesign → translate**
-
-`SyncManager` (906) · `VisitorForm` (689) · `VisitorView` (521) ·
-`ReminderDashboard` (709, from B2) · `SettingsPage` (571) · then batch
-`MyDayDashboard`, `InteractionHistory`, `GreetingQueue`, `SmsBatchQueue`.
-
-Characterization first every time: redesigning untested code has no safety net,
-and that is the largest remaining risk in this codebase.
-
-### Stage D · Language to zero
-
-Ratchet from 186 to **0**, and change the guard from "may not rise" to "must be
-zero". A Marathi-first app with English screens is the original complaint.
-
-### Stage E · The deliverable that is not the app
-
-Device checklist · one laminated card for beside the office phone · volunteer
-instructions · laptop note · the previous APK kept as rollback.
-
-### Stage F · The device run — **the only thing that makes any of this real**
-
-One phone, one laptop, done by the owner. Everything above is code-verified.
-
-### What "complete" means — all seven, or it is not done
-
-1. **J1–J6 acceptance tests green**
-2. **Zero** untranslated strings
-3. Every component over 200 lines has a real test
-4. Reachability green — every screen has a door
-5. `verify-apk.sh` prints **Signature matches**
-6. **Device run passed** on one real phone and one laptop
-7. A backup taken on the phone restores on the laptop, **and the reverse**
-
-Items 1–5 I can prove here. Items 6 and 7 are yours, and no amount of 1–5
-substitutes for them.
-
----
-
-## 19 · Execution specification
-
-Binding on implementation. Where this and a commit disagree, this is the defect.
-
-### 19.0 · The task protocol — every task, no exceptions
-
-Each step exists because a specific root cause in §15 produced a specific defect.
-This is not ceremony; it is the four failures, inverted.
-
-| Step | | Prevents |
-|---|---|---|
-| **1** | **Enumerate the sites first.** Grep every place the change must land, record the count in the commit message. | RC-2 — D-20 reached `validators.js` and not `ScheduledItemForm.save()` |
-| **2** | **Characterization test green before touching a redesign.** | RC-4 — redesigning untested code has no safety net |
-| **3** | Implement. | |
-| **4** | **Assert the positive property**, never the absence of its violation. "Every route has a door", not "no banned word". | RC-1 — four guards made this mistake independently |
-| **5** | **Mutation-test the new guard.** Break the thing it protects, watch it fail, restore. An unmutated guard is decoration. | RC-1 |
-| **6** | **Re-run the enumeration from step 1. It must return zero.** | RC-2 |
-| **7** | For any capability branch: test *absent* **and** *present-but-throwing*. | RC-3 — OEM WebViews expose `DecompressionStream` and then fail on use |
-| **8** | Full suite · `vite build` · reachability · i18n ratchet — all green before commit. | |
-
-**A task is not done when the code works. It is done when step 6 returns zero
-and step 5 has been seen to fail.**
-
-### 19.1 · Stage 0 — reconcile the ledger *(must be first)*
-
-The task list carries entries that decisions have already superseded. Left
-alone, "complete" is unreachable because tasks that no longer apply stay open.
-
-- **Pre:** none.
-- **Tasks:** close P0.6 and P0.7 (answered) · rewrite P0.3/P0.4 under D-24, since
-  no NGO is using the app so no backups exist to collect · fold P0.5 into D-25 ·
-  restate P0.2 as an owner device task · re-scope P3.4/P3.10/P5.* under D-24.
-- **Post:** every open task is one a person could actually start today. Every
-  open Q maps to a stage. No task contradicts a SETTLED decision.
-- **Check:** a script lists open tasks and open questions; each has a named owner
-  and a stage. Zero orphans.
-
-### 19.2 · Stage A — make completeness provable
-
-- **Pre:** Stage 0 complete.
-- **Tasks:** `tests/jobs/J1…J6.test.js`, one per job, each walking real screens
-  end to end · a coverage-floor guard (no component over 200 LOC untested),
-  mutation-tested.
-- **Post:** six named acceptance tests exist and run. **J2 and J4 are expected to
-  fail.**
-- **Check:** `npx vitest run tests/jobs` names all six. A red J2/J4 is the exit
-  condition, not a blocker — the gap is now visible rather than argued.
-- **Rollback:** tests only; nothing to revert.
-
-### 19.3 · Stage B — close what Stage A exposed
-
-- **Pre:** Stage A complete; J2 and J4 failing for a stated reason.
-- **B1 (J4):** `ReportService` tests · Reports screen (range, filters, counts,
-  BOM'd CSV) · trustee columns, after Q-06.
-- **B2 (J2):** characterization for `ReminderDashboard`, then rebuild on the kit.
-- **Post:** J2 and J4 acceptance green, by the same tests that were red.
-- **Check:** the exact test that failed now passes, unedited. **If the test had to
-  change to pass, the test was wrong and that is a separate finding.**
-- **Rollback:** each screen is one commit; revert restores the old screen intact.
-
-### 19.4 · Stage C — the six untouched screens
-
-Fixed order per screen, no exceptions: **characterize → redesign → translate.**
-
-`SyncManager` (906) → `VisitorForm` (689) → `VisitorView` (521) →
-`ReminderDashboard` (from B2) → `SettingsPage` (571) → batch the rest.
-
-- **Pre:** Stage B complete. For each screen: characterization test green.
-- **Post per screen:** characterization still green, unedited · kit components
-  used, no new one-off CSS · zero English in that file · ratchet lowered ·
-  reachability green.
-- **Check:** the characterization diff is empty. A redesign that changes
-  behaviour is a bug unless the change was written down first.
-- **Rollback:** one commit per screen.
-
-### 19.5 · Stage D — language to zero
-
-- **Pre:** Stage C complete.
-- **Post:** ratchet at **0**, guard flipped from "may not rise" to "must be zero".
-- **Check:** the counter script returns 0 · every key has both languages ·
-  placeholders match across languages.
-
-### 19.6 · Stage E — the deliverable that is not the app
-
-Device checklist · one laminated card · volunteer instructions · laptop note ·
-previous APK retained as rollback with its path recorded.
-
-- **Post:** each artifact exists and names what to do when it goes wrong.
-- **Check:** the checklist is followable by someone who has never seen the app.
-
-### 19.7 · Stage F — the device run *(owner)*
-
-- **Pre:** Stages A–E complete; `verify-apk.sh` prints **Signature matches**.
-- **Post:** completion items 6 and 7 satisfied.
-- **Check:** a backup taken on the phone restores on the laptop **and the
-  reverse**. Both directions, or the claim is unproven.
-
-### 19.8 · How I know the plan itself is right
-
-| Property | How it is checked |
-|---|---|
-| **Complete** | Every open task, open question and PROVISIONAL decision maps to exactly one stage. A script lists orphans; the count must be zero. |
-| **Correct** | No stage depends on a later one. Stage A deliberately produces failures — a plan whose first act is red is being honest about its inputs. |
-| **Robust** | Every exit condition is machine-checkable except Stage F, which is flagged as owner-only. No exit condition is a judgement call by me. |
-| **Reversible** | One commit per screen; rollback restores the previous screen whole. The previous APK is retained throughout. |
-
-### 19.9 · What would invalidate this plan
-
-Any of these means stop and re-plan, not push on:
-
-- The device run fails on rendering or storage — Stage C's assumptions about the
-  kit on a real WebView would be wrong, and everything after it is suspect.
-- A characterization test cannot be written for a screen because its behaviour
-  is genuinely undefined. That is a finding about the screen, not a reason to skip.
-- Marathi comes back materially wrong. Stage D would then be re-translation, not
-  completion, and it moves ahead of Stage C.
-- The owner adds a seventh job. §3 is the scope boundary and a new job needs a
-  decision entry, not an accommodation.
-
