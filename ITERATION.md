@@ -239,10 +239,15 @@ there — except one, which is recorded below as a finding.
 
 Fixed order per screen: **characterize → redesign → translate.**
 
-`SyncManager` (906, and the only screen whose failure is unrecoverable) →
-`VisitorForm` (689) → `VisitorView` (521) → `ReminderDashboard` → `SettingsPage`
-(571) → batch `MyDayDashboard`, `InteractionHistory`, `GreetingQueue`,
-`SmsBatchQueue`.
+✅ `SyncManager` (906) → ✅ `VisitorForm` (689) → `VisitorView` (521) →
+✅ `ReminderDashboard` (B2) → `SettingsPage` (571) → batch `MyDayDashboard`,
+`InteractionHistory`, `GreetingQueue`, `SmsBatchQueue`.
+
+> **Correction.** I described `VisitorForm` repeatedly as "fifteen fields shown
+> where one is required". **It is a three-step wizard** — Primary / Family /
+> Details — and has been throughout. Progressive disclosure was already there;
+> what was wrong was the *rule* it enforced, not its shape. The claim came from
+> counting `<label>` tags in the file rather than opening the screen.
 
 - **Post per screen:** characterization still green and unedited · kit components
   used, no new one-off CSS · zero English in that file · ratchet lowered.
@@ -325,6 +330,14 @@ Append-only. One line per event.
 - **2026-08-25** — Iteration opened. Scope: finish, do not extend. Split from
   `INITIATIVE.md`, which keeps the durable record — jobs, principles, decisions,
   RCA — while this file carries the current plan and dies with it.
+- **2026-08-25** — **Stage C.1–C.2 done.** `SyncManager`: characterization found that a
+  malformed `syncLog` entry — which arrives through merge from *other machines* — crashed
+  the one screen that recovers a register, plus three undefined CSS classes on its action
+  layout. `VisitorForm`: characterization found it still **demanded a name**, the rule D-20
+  replaced, on the second capture path — RC-2 again, the decision having reached the
+  validator and the calendar sheet but not its sibling. Both translated. Also corrected a
+  claim I had repeated in the planning docs: VisitorForm is a wizard, not a flat form.
+  765 tests; i18n 163 → 142.
 - **2026-08-25** — **Stage B done.** J4 has a real Reports screen behind the अहवाल
   tab; J2's 709-line screen has 9 characterization tests and zero English; the
   backup nudge exists at last. 747 tests, one red (`SyncManager`, Stage C's first
