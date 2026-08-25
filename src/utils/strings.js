@@ -246,7 +246,38 @@ export const STRINGS = {
     'nudge.why':            { mr: 'फोन हरवला तर यादी परत आणता येईल.',
                               en: 'It is how the register comes back if a phone is lost.' },
     'nudge.action':         { mr: 'आत्ता बॅकअप घ्या',        en: 'Back up now' },
-    'nudge.dismiss':        { mr: 'नंतर',                   en: 'Later' }
+    'nudge.dismiss':        { mr: 'नंतर',                   en: 'Later' },
+
+    /* ------------------------------------------- sync, said in plain words */
+    // Named by what the person is doing — sending their list to a volunteer,
+    // getting a volunteer's notes back — never by the mechanism.
+    'sync.shareVolunteers': { mr: 'स्वयंसेवकांना पाठवा',       en: 'Send to volunteers' },
+    'sync.sendDevice':      { mr: 'दुसऱ्या फोनवर पाठवा',      en: 'Send to another phone' },
+    'sync.sendCoordinator': { mr: 'कार्यालयाला पाठवा',        en: 'Send to the office' },
+    'sync.shareVolunteersHint': { mr: 'तुमची यादी स्वयंसेवकांच्या फोनवर पाठवा.',
+                              en: 'Send your list to the volunteers’ phones.' },
+    'sync.sendDeviceHint':  { mr: 'तुमच्या भेटींच्या नोंदी दुसऱ्या फोनवर पाठवा.',
+                              en: 'Send your visit notes to another phone.' },
+    'sync.sendCoordinatorHint': { mr: 'तुमच्या भेटींच्या नोंदी कार्यालयाला पाठवा.',
+                              en: 'Send your visit notes to the office.' },
+    'sync.importVolunteer': { mr: 'स्वयंसेवकाकडून घ्या',       en: 'Get from a volunteer' },
+    'sync.receiveDevice':   { mr: 'दुसऱ्या फोनवरून घ्या',      en: 'Get from another phone' },
+    'sync.getCoordinator':  { mr: 'कार्यालयाकडून घ्या',        en: 'Get from the office' },
+    'sync.importVolunteerHint': { mr: 'स्वयंसेवकाच्या फोनवरच्या नवीन नोंदी घ्या.',
+                              en: 'Bring in a volunteer’s new records.' },
+    'sync.receiveDeviceHint': { mr: 'दुसऱ्या फोनवरून माणसं आणि नोंदी घ्या.',
+                              en: 'Bring in people and records from another phone.' },
+    'sync.viaWhatsApp':     { mr: 'WhatsApp वर पाठवा',        en: 'Send on WhatsApp' },
+    'sync.copyPaste':       { mr: 'कॉपी करून WhatsApp मध्ये पेस्ट करा',
+                              en: 'Copy, then paste into WhatsApp' },
+    'sync.saveFile':        { mr: 'फाइल म्हणून ठेवा',          en: 'Save as a file' },
+    'sync.undoQ':           { mr: 'शेवटचं घेतलेलं परत करायचं?',  en: 'Undo the last import?' },
+    'sync.copyManual':      { mr: 'मजकूर निवडून स्वतः कॉपी करा.', en: 'Select the text and copy it yourself.' },
+    'sync.unreadable':      { mr: 'हा मजकूर वाचता आला नाही.',   en: 'This could not be read.' },
+    'sync.pasteFirst':      { mr: 'आधी बॅकअपचा मजकूर पेस्ट करा.', en: 'Paste the backup text first.' },
+    'sync.restoreQ':        { mr: 'सगळं परत आणायचं?',          en: 'Restore everything?' },
+    'sync.noSnapshot':      { mr: 'परत जाण्यासारखं काही नाही.',  en: 'There is nothing to go back to.' },
+    'sync.nothingToSend':   { mr: 'पाठवण्यासारखं अजून काही नाही.', en: 'Nothing to send yet.' }
 };
 
 export default STRINGS;

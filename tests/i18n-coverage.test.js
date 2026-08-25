@@ -49,7 +49,7 @@ function untranslated() {
 // Visitors screen. LOWER THIS as screens are converted. Never raise it: if a
 // change needs it raised, that change is adding an English string to a
 // Marathi-first app (D-23).
-const CEILING = 163;
+const CEILING = 160;
 
 describe('untranslated strings can only decrease', () => {
     it(`is at or below the ratchet of ${CEILING}`, () => {

@@ -277,7 +277,21 @@ inverted — this is those failures turned into a procedure.
 | 5 | **Mutation-test the guard** — break it, watch it fail, restore | an unmutated guard is decoration |
 | 6 | **Re-run step 1's enumeration. It must return zero** | half-applied changes |
 | 7 | Capability branches: test **absent** *and* **present-but-throwing** | OEM WebViews expose an API then fail on use |
-| 8 | Suite · build · reachability · ratchet — all green | |
+| 8 | **Run `vite build` immediately after any bulk source edit**, before moving to the next file | a parse error entering a file nothing imports |
+| 9 | Suite · build · reachability · ratchet — all green | |
+
+> **On the single-quote interpolation bug.** I made it three times — `VisitorList`,
+> `ReminderDashboard`, `SyncManager` — always from a replacement script that did
+> not know what kind of quote it landed inside. I tried to build a guard for it
+> and stopped: a regex flagged 70 innocent lines, a line-by-line quote tracker
+> flagged 129 (HTML inside a multi-line template is not JavaScript), a small
+> lexer got to 4 and still wrong. Answering it properly needs a real parser, and
+> a guard with known false positives is worse than none because it teaches people
+> to skip it.
+>
+> The fatal form is already caught by `modules-load`. The fix for the rest is
+> step 8 above — **build after every bulk edit** — which would have caught all
+> three within seconds. The failure was process, not tooling.
 
 > **A task is not done when the code works. It is done when step 6 returns zero
 > and step 5 has been seen to fail.**

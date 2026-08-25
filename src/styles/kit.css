@@ -481,3 +481,29 @@ textarea.si-input { min-height: 64px; resize: vertical; }
 .lg-nudge-text span { display: block; font-size: 11.5px; color: var(--lg-ink-soft); margin-top: 2px; }
 .lg-nudge-actions { display: flex; gap: 7px; flex: none; }
 .lg-nudge-actions .lg-btn { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* ---------- Sync screen layout ----------
+   These three classes were used by SyncManager and defined nowhere: the same
+   family as the button that once shipped invisible. The primary actions are
+   what a person came here to do; the rest are set apart rather than competing
+   with them. */
+.sync-primary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.sync-more-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--lg-rule-faint);
+}
+.sync-capability-hint {
+  font-size: 11.5px;
+  color: var(--lg-ink-soft);
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
