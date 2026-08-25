@@ -383,7 +383,102 @@ export const STRINGS = {
     'set.storageUsed':      { mr: 'वापरलेली जागा',           en: 'Space used' },
     'set.smsStatus':        { mr: 'SMS परवानगी',            en: 'SMS permission' },
     'set.testPaths':        { mr: 'तपासणी',                 en: 'Diagnostics' },
-    'set.markAs':           { mr: 'इतक्या दिवसांनी "भेट नाही" म्हणा', en: 'Count as not seen after' }
+    'set.markAs':           { mr: 'इतक्या दिवसांनी "भेट नाही" म्हणा', en: 'Count as not seen after' },
+
+    /* ------------------------------------------------- shared, many screens */
+    'common.date':          { mr: 'तारीख',                 en: 'Date' },
+    'common.city':          { mr: 'गाव',                   en: 'Village or town' },
+    'common.category':      { mr: 'प्रकार',                 en: 'Category' },
+    'common.allCities':     { mr: 'सर्व गावं',              en: 'All places' },
+    'common.allCategories': { mr: 'सर्व प्रकार',            en: 'All kinds' },
+    'common.anyTag':        { mr: 'कोणतीही खूण',            en: 'Any tag' },
+    'common.preview':       { mr: 'कसं दिसेल',              en: 'Preview' },
+    'common.message':       { mr: 'संदेश',                  en: 'Message' },
+    'common.language':      { mr: 'भाषा',                  en: 'Language' },
+    'common.total':         { mr: 'एकूण',                   en: 'Total' },
+    'common.sent':          { mr: 'पाठवले',                 en: 'Sent' },
+    'common.failed':        { mr: 'गेले नाहीत',              en: 'Did not go' },
+    'common.skipped':       { mr: 'वगळले',                  en: 'Skipped' },
+    'common.previous':      { mr: 'मागचं',                  en: 'Previous' },
+    'common.next':          { mr: 'पुढचं',                  en: 'Next' },
+    'common.from':          { mr: 'पासून',                  en: 'From' },
+    'common.to':            { mr: 'पर्यंत',                  en: 'To' },
+    'common.notes':         { mr: 'नोंद',                   en: 'Notes' },
+    'common.optional':      { mr: 'नसलं तरी चालेल',          en: 'Optional' },
+
+    /* ------------------------------------------------------------ campaign */
+    'camp.new':             { mr: 'नवीन संदेश मोहीम',        en: 'New message round' },
+    'camp.occasion':        { mr: 'प्रसंग',                  en: 'Occasion' },
+    'camp.messageType':     { mr: 'कसला संदेश',             en: 'Kind of message' },
+    'camp.greeting':        { mr: 'शुभेच्छा',                en: 'Greeting' },
+    'camp.invitation':      { mr: 'निमंत्रण',                en: 'Invitation' },
+    'camp.channel':         { mr: 'कशाने पाठवायचं',          en: 'How to send' },
+    'camp.recipients':      { mr: 'कुणाला',                  en: 'Who gets it' },
+    'camp.consentOnly':     { mr: 'फक्त ज्यांनी संमती दिली आहे', en: 'Only people who agreed' },
+    'camp.smsRecommended':  { mr: 'SMS सुचवलं जातं',         en: 'SMS is usually best' },
+
+    /* ------------------------------------------------------- sending in bulk */
+    'bulk.aboutToSend':     { mr: 'पाठवणार आहात',           en: 'About to send' },
+    'bulk.sentFrom':        { mr: 'तुमच्या फोनवरून जातील',    en: 'They go from your phone' },
+    'bulk.start':           { mr: 'पाठवायला सुरुवात करा',     en: 'Start sending' },
+    'bulk.permBlocked':     { mr: 'परवानगी नाकारली आहे',      en: 'Permission was refused' },
+    'bulk.permNeeded':      { mr: 'SMS ची परवानगी हवी',      en: 'SMS permission is needed' },
+    'bulk.grant':           { mr: 'परवानगी द्या',            en: 'Allow it' },
+    'bulk.usePerContact':   { mr: 'एकेकाला पाठवा',           en: 'Send one at a time instead' },
+    'bulk.gotIt':           { mr: 'समजलं',                  en: 'Got it' },
+    'bulk.done':            { mr: 'झालं',                   en: 'Done' },
+
+    /* ------------------------------------------------------------ greetings */
+    'greet.title':          { mr: 'शुभेच्छा पाठवा',           en: 'Send greetings' },
+    'greet.skip':           { mr: 'वगळा',                   en: 'Skip' },
+    'greet.stop':           { mr: 'थांबा',                   en: 'Stop' },
+    'greet.didNotSend':     { mr: 'पाठवला नाही',             en: 'Did not send' },
+    'greet.yesSent':        { mr: 'हो, पाठवला',              en: 'Yes, sent it' },
+
+    /* ------------------------------------------------------------- my day */
+    'day.title':            { mr: 'माझा दिवस',              en: 'My day' },
+    'day.createCampaign':   { mr: 'संदेश मोहीम सुरू करा',     en: 'Start a message round' },
+    'day.contactedWeek':    { mr: 'या आठवड्यात संपर्क',        en: 'Contacted this week' },
+    'day.remindersDone':    { mr: 'पूर्ण झालेल्या आठवणी',      en: 'Reminders done' },
+    'day.allClear':         { mr: 'आज काही बाकी नाही',        en: 'Nothing pending today' },
+    'day.called':           { mr: 'फोन केला',                en: 'Called' },
+    'day.view':             { mr: 'पाहा',                    en: 'Open' },
+    'day.needsAttention':   { mr: 'लक्ष द्यायला हवं',          en: 'Worth a look' },
+    'day.contact':          { mr: 'संपर्क करा',              en: 'Get in touch' },
+    'day.previewReport':    { mr: 'महिन्याचा अहवाल पाहा',      en: 'See the monthly report' },
+
+    /* ---------------------------------------------------- logging a record */
+    'log.title':            { mr: 'नोंद करा',               en: 'Add a record' },
+    'log.outcome':          { mr: 'काय झालं',                en: 'What happened' },
+    'log.duration':         { mr: 'किती वेळ (मिनिटं)',        en: 'How long (minutes)' },
+    'log.followUpDate':     { mr: 'पुन्हा कधी',              en: 'Follow up on' },
+    'log.followUpNotes':    { mr: 'पुढच्या वेळेसाठी नोंद',     en: 'Note for next time' },
+    'log.save':             { mr: 'नोंद जतन करा',            en: 'Save the record' },
+
+    /* -------------------------------------------------------------- history */
+    'hist.title':           { mr: 'सर्व नोंदी',              en: 'All records' },
+    'hist.allTypes':        { mr: 'सर्व प्रकार',             en: 'All kinds' },
+    'hist.allOutcomes':     { mr: 'सर्व निकाल',              en: 'All outcomes' },
+    'hist.allVolunteers':   { mr: 'सर्व स्वयंसेवक',           en: 'Everyone' },
+    // Says what will actually happen, in the person's own terms: the messages
+    // leave from THIS phone and this SIM, so the cost and the sender are theirs.
+    'bulk.aboutToSendN':    { mr: 'तुमच्या फोनवरून {n} SMS पाठवले जातील.',
+                              en: '{n} SMS messages will be sent from your phone.' },
+    'bulk.sentFromSim':     { mr: 'तुमच्या फोनच्या SIM वरून जातील',  en: 'They go from your phone’s SIM' },
+    'bulk.sendSms':         { mr: 'SMS पाठवा',              en: 'Send SMS' },
+    'occ.nameEn':           { mr: 'नाव (इंग्रजी)',           en: 'Name (English)' },
+    'occ.nameMr':           { mr: 'नाव (मराठी)',            en: 'Name (Marathi)' },
+    'occ.delete':           { mr: 'हा प्रसंग काढा',          en: 'Remove this occasion' },
+    'camp.list':            { mr: 'संदेश मोहिमा',            en: 'Message rounds' },
+    'camp.upcoming':        { mr: 'येणारे प्रसंग',            en: 'Occasions coming up' },
+    'camp.past':            { mr: 'आधीच्या मोहिमा',          en: 'Earlier rounds' },
+    'camp.create':          { mr: 'सुरू करा',                en: 'Start' },
+    'view.use':             { mr: 'वापरा',                  en: 'Use' },
+    'bulk.perContactAlways': { mr: 'किंवा प्रत्येक आठवणीवरचं 📱 बटण वापरा — त्याला कोणतीही परवानगी लागत नाही.',
+                              en: 'Or use the 📱 button on each reminder — that needs no permission at all.' },
+    // An empty screen is an invitation (PR-4): it names the button to press.
+    'view.firstRecordHint': { mr: '"नोंद करा" वापरून पहिली भेट नोंदवा.',
+                              en: 'Use “Add a record” to note your first contact.' }
 };
 
 export default STRINGS;

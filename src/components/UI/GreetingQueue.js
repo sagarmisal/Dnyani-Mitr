@@ -3,6 +3,7 @@
 // persists state to localStorage to survive WebView kills on MIUI/ColorOS.
 
 import InteractionService from '../../services/InteractionService.js';
+import { t } from '../../utils/i18n.js';
 import ReminderService from '../../services/ReminderService.js';
 import { Toast } from './Toast.js';
 import { InteractionLogger } from './InteractionLogger.js';
@@ -137,7 +138,7 @@ export class GreetingQueue {
       overlay.innerHTML = `
         <div class="greeting-queue-modal">
           <div class="gq-header">
-            <h3>Send Greetings</h3>
+            <h3>${t('greet.title')}</h3>
             <span class="gq-progress">${done + 1} of ${total}</span>
           </div>
 
@@ -157,14 +158,14 @@ export class GreetingQueue {
             </div>
 
             <div class="gq-message-preview">
-              <label class="form-label" style="font-size: 0.75rem; color: #64748b;">Message Preview</label>
+              <label class="form-label" style="font-size: 0.75rem; color: #64748b;">${t('common.preview')}</label>
               <div class="gq-message-text">${GreetingQueue._escapeHtml(message)}</div>
             </div>
           </div>
 
           <div class="gq-footer">
-            <button class="btn btn-secondary btn-sm" id="gq-skip">Skip</button>
-            <button class="btn btn-sm" style="background:#ef4444;color:white;border:none;" id="gq-stop">Stop</button>
+            <button class="btn btn-secondary btn-sm" id="gq-skip">${t('greet.skip')}</button>
+            <button class="btn btn-sm" style="background:#ef4444;color:white;border:none;" id="gq-stop">${t('greet.stop')}</button>
             <button class="btn btn-primary" id="gq-send" style="flex:1;">
               💬 Open WhatsApp & Send
             </button>
@@ -228,7 +229,7 @@ export class GreetingQueue {
     footer.innerHTML = `
       <button class="btn btn-secondary" id="gq-didnt-send">Didn't Send</button>
       <button class="btn btn-primary" id="gq-did-send" style="flex:1;">
-        Yes, I Sent It
+        ${t('greet.yesSent')}
       </button>
     `;
 
@@ -262,21 +263,21 @@ export class GreetingQueue {
           <div class="gq-summary-stats">
             <div class="gq-stat-item gq-stat-sent">
               <div class="gq-stat-number">${s.sent.length}</div>
-              <div class="gq-stat-label">Sent</div>
+              <div class="gq-stat-label">${t('common.sent')}</div>
             </div>
             <div class="gq-stat-item gq-stat-skipped">
               <div class="gq-stat-number">${s.skipped.length}</div>
-              <div class="gq-stat-label">Skipped</div>
+              <div class="gq-stat-label">${t('common.skipped')}</div>
             </div>
             <div class="gq-stat-item gq-stat-total">
               <div class="gq-stat-number">${s.queue.length}</div>
-              <div class="gq-stat-label">Total</div>
+              <div class="gq-stat-label">${t('common.total')}</div>
             </div>
           </div>
           ${s.sent.length > 0 ? `<p style="color:#16a34a; margin-top:1rem;">All sent greetings have been logged as interactions.</p>` : ''}
         </div>
         <div class="gq-footer" style="justify-content:center;">
-          <button class="btn btn-primary" id="gq-close">Done</button>
+          <button class="btn btn-primary" id="gq-close">${t('bulk.done')}</button>
         </div>
       </div>
     `;

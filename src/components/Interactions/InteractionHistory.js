@@ -38,7 +38,7 @@ export class InteractionHistory {
         container.innerHTML = `
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">Interaction History</h2>
+                    <h2 class="card-title">${t('hist.title')}</h2>
                     <p class="text-secondary">${this._renderWeekSummary(weekStats)}</p>
                 </div>
 
@@ -48,14 +48,14 @@ export class InteractionHistory {
                         <input type="text" id="ih-search" class="form-input" placeholder="Search visitor name..." value="${this._escapeHtml(this.filters.search)}">
 
                         <select id="ih-type" class="form-select">
-                            <option value="">All Types</option>
+                            <option value="">${t('hist.allTypes')}</option>
                             ${Object.entries(INTERACTION_TYPE_LABELS).map(([val, label]) =>
                                 `<option value="${val}" ${this.filters.type === val ? 'selected' : ''}>${label}</option>`
                             ).join('')}
                         </select>
 
                         <select id="ih-outcome" class="form-select">
-                            <option value="">All Outcomes</option>
+                            <option value="">${t('hist.allOutcomes')}</option>
                             ${Object.entries(INTERACTION_OUTCOME_LABELS).map(([val, label]) =>
                                 `<option value="${val}" ${this.filters.outcome === val ? 'selected' : ''}>${label}</option>`
                             ).join('')}
@@ -63,7 +63,7 @@ export class InteractionHistory {
 
                         ${isRoot ? `
                         <select id="ih-volunteer" class="form-select">
-                            <option value="">All Volunteers</option>
+                            <option value="">${t('hist.allVolunteers')}</option>
                             <option value="${machineInfo.machineId}" ${this.filters.volunteer === machineInfo.machineId ? 'selected' : ''}>${this._escapeHtml(machineInfo.machineName)} (me)</option>
                             ${Object.entries(knownMachines)
                                 .filter(([id]) => id !== machineInfo.machineId)
@@ -72,8 +72,8 @@ export class InteractionHistory {
                             ).join('')}
                         </select>` : ''}
 
-                        <input type="date" id="ih-date-from" class="form-input" value="${this.filters.dateFrom}" placeholder="From date">
-                        <input type="date" id="ih-date-to" class="form-input" value="${this.filters.dateTo}" placeholder="To date">
+                        <input type="date" id="ih-date-from" class="form-input" value="${this.filters.dateFrom}" placeholder="${t('common.from')}">
+                        <input type="date" id="ih-date-to" class="form-input" value="${this.filters.dateTo}" placeholder="${t('common.to')}">
                     </div>
 
                     <!-- Results -->
@@ -211,9 +211,9 @@ export class InteractionHistory {
     _renderPagination(totalPages) {
         return `
             <div style="display:flex; justify-content:center; gap:1rem; margin-top:1.5rem;">
-                <button class="btn btn-secondary btn-sm" id="ih-prev" ${this.page === 1 ? 'disabled' : ''}>Previous</button>
+                <button class="btn btn-secondary btn-sm" id="ih-prev" ${this.page === 1 ? 'disabled' : ''}>${t('common.previous')}</button>
                 <span class="text-secondary">Page ${this.page} of ${totalPages}</span>
-                <button class="btn btn-secondary btn-sm" id="ih-next" ${this.page === totalPages ? 'disabled' : ''}>Next</button>
+                <button class="btn btn-secondary btn-sm" id="ih-next" ${this.page === totalPages ? 'disabled' : ''}>${t('common.next')}</button>
             </div>`;
     }
 

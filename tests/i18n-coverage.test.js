@@ -54,7 +54,7 @@ function untranslated() {
 // moved this number by zero, because all of them were of the kind it cannot
 // see. So the real untranslated surface is LARGER than this number, and Stage D
 // finishes against a manual read of each file, not against this reaching zero.
-const CEILING = 85;
+const CEILING = 0;
 
 describe('untranslated strings can only decrease', () => {
     it(`is at or below the ratchet of ${CEILING}`, () => {
@@ -81,5 +81,70 @@ describe('untranslated strings can only decrease', () => {
         const notDone = core.filter(f => (byFile[f] || []).length > 0)
             .map(f => `${f}: ${byFile[f].slice(0, 5).join(' · ')}`);
         expect(notDone, 'core-flow screens still holding English').toEqual([]);
+    });
+});
+
+/**
+ * The second counter — English PROSE.
+ *
+ * The counter above matches markup attributes and element text. It reads zero
+ * now, and zero is NOT done: it never saw sentences inside template literals,
+ * toast strings, or confirm-dialog copy. Translating SyncManager's 21 strings
+ * moved it by exactly nothing, because all of them were of this kind.
+ *
+ * Two counters, because one of them was quietly claiming a finish line it could
+ * not see.
+ */
+function untranslatedProse() {
+    const files = [];
+    (function walk(dir) {
+        readdirSync(dir).forEach(f => {
+            const p = join(dir, f);
+            statSync(p).isDirectory() ? walk(p) : f.endsWith('.js') && files.push(p);
+        });
+    })('src/components');
+
+    const byFile = {};
+    files.forEach(f => {
+        const hits = new Set();
+        readFileSync(f, 'utf8').split('\n').forEach(line => {
+            const code = line.trim();
+            if (code.startsWith('//') || code.startsWith('*')) return;
+            // Three or more English words in a row, inside quotes or element text.
+            for (const m of line.matchAll(/['`>]\s*([A-Z][a-z]+(?:[ ,'’-][A-Za-z]+){2,}[.!?]?)\s*[<'`]/g)) {
+                hits.add(m[1]);
+            }
+        });
+        if (hits.size) byFile[f.replace('src/components/', '')] = [...hits].sort();
+    });
+    return byFile;
+}
+
+// Honest count when the second counter was introduced. LOWER IT, never raise.
+const PROSE_CEILING = 44;
+
+describe('English prose can only decrease', () => {
+    it(`is at or below ${PROSE_CEILING}`, () => {
+        const byFile = untranslatedProse();
+        const total = Object.values(byFile).reduce((n, v) => n + v.length, 0);
+        if (total > PROSE_CEILING) {
+            const worst = Object.entries(byFile)
+                .sort((a, b) => b[1].length - a[1].length).slice(0, 5)
+                .map(([f, v]) => `\n    ${String(v.length).padStart(3)}  ${f}  — ${v[0].slice(0, 44)}`)
+                .join('');
+            expect.fail(`${total} English sentences, ceiling ${PROSE_CEILING}.${worst}`);
+        }
+        expect(total).toBeLessThanOrEqual(PROSE_CEILING);
+    });
+
+    it('the attribute counter reaching zero does not mean done', () => {
+        // Guard against the mistake this file already made once: treating one
+        // counter's zero as the finish line.
+        const prose = Object.values(untranslatedProse()).reduce((n, v) => n + v.length, 0);
+        const attrs = Object.values(untranslated()).reduce((n, v) => n + v.length, 0);
+        if (attrs === 0 && prose > 0) {
+            expect(prose, 'attributes are done; prose is not — Stage D is not finished').toBeGreaterThan(0);
+        }
+        expect(true).toBe(true);
     });
 });

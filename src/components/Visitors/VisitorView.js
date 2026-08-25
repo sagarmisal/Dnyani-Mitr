@@ -82,9 +82,9 @@ export class VisitorView {
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           ${!isDnc ? `
             ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-whatsapp" title="WhatsApp">💬 WhatsApp</button>` : ''}
-            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-call" title="Call">📞 Call</button>` : ''}
+            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-call" title="${t('view.call')}">📞 ${t('view.call')}</button>` : ''}
             ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-sms" title="SMS">📱 SMS</button>` : ''}
-            ${email ? `<button class="btn btn-sm comm-btn" id="btn-email" title="Email">📧 Email</button>` : ''}
+            ${email ? `<button class="btn btn-sm comm-btn" id="btn-email" title="${t('view.email')}">📧 ${t('view.email')}</button>` : ''}
           ` : ''}
           <button id="log-interaction-btn" class="btn btn-success">${t('view.logInteraction')}</button>
           <button id="toggle-dnc-btn" class="btn btn-sm ${isDnc ? 'btn-secondary' : 'btn-error'}">${isDnc ? t('view.allowContact') : t('view.doNotContact')}</button>
@@ -223,7 +223,7 @@ export class VisitorView {
         <div class="empty-state" style="padding: 2rem 1rem;">
           <div class="empty-state-icon">💬</div>
           <p class="empty-state-text">${t('view.noInteractions')}</p>
-          <p class="empty-state-hint">Use "Log Interaction" to record your first contact.</p>
+          <p class="empty-state-hint">${t('view.firstRecordHint')}</p>
         </div>
       `;
     }
@@ -499,9 +499,11 @@ export class VisitorView {
     // A brand-new supporter was greeted with a red "Never contacted" — a
     // reproach for a person who had just arrived (D-10).
     if (daysSince === Infinity) return ` | <span class="text-secondary">${t('status.neverVisited')}</span>`;
-    if (daysSince === 0) return ' | Last contact: <span style="color:#22c55e;">Today</span>';
-    const color = daysSince <= 30 ? '#22c55e' : daysSince <= 60 ? '#f59e0b' : '#ef4444';
-    return ` | Last contact: <span style="color:${color};">${daysSince} days ago</span>`;
+    if (daysSince === 0) return ` | ${t('status.lastVisit', { when: t('action.today') })}`;
+    // These three escaped the palette repoint: raw Tailwind greens, ambers and
+    // reds sitting in a string the sweep never read.
+    const color = daysSince <= 30 ? 'var(--lg-leaf)' : daysSince <= 60 ? 'var(--lg-marigold-i)' : 'var(--lg-danger)';
+    return ` | ${t('status.lastVisit', { when: `<span style="color:${color};">${daysSince}</span>` })}`;
   }
 
   /**

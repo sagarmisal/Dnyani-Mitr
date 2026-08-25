@@ -8,6 +8,7 @@
 // report what was actually sent (anything past `sentIndex - 1`) on resume.
 
 import SmsService from '../../services/SmsService.js';
+import { t } from '../../utils/i18n.js';
 import { InteractionLogger } from './InteractionLogger.js';
 import { Toast } from './Toast.js';
 import { normalizePhone } from '../../utils/formatters.js';
@@ -203,18 +204,18 @@ export class SmsBatchQueue {
                 </div>
                 <div class="sms-body">
                     <p class="sms-lead">
-                        About to send <strong>${total}</strong> SMS message${total === 1 ? '' : 's'} from your phone's SIM.
+                        ${t('bulk.aboutToSendN', { n: total })}
                     </p>
                     <ul class="sms-disclaimer">
-                        <li>Messages are sent from <strong>your number</strong> using your mobile plan.</li>
+                        <li>${t('bulk.sentFromSim')} <strong>your number</strong> using your mobile plan.</li>
                         <li>Standard SMS charges from your carrier apply.</li>
                         <li>Sending paces at ~1 message every 1.5 seconds (≈${Math.ceil(total * 1.5)}s total).</li>
                         <li>You can cancel at any time. Already-sent messages can't be unsent.</li>
                     </ul>
                 </div>
                 <div class="sms-footer">
-                    <button class="btn btn-secondary" id="sms-cancel">Cancel</button>
-                    <button class="btn btn-primary" id="sms-start" style="flex:1;">Start sending</button>
+                    <button class="btn btn-secondary" id="sms-cancel">${t('action.cancel')}</button>
+                    <button class="btn btn-primary" id="sms-start" style="flex:1;">${t('bulk.start')}</button>
                 </div>
             </div>
         `;
@@ -228,7 +229,7 @@ export class SmsBatchQueue {
             return `
                 <div class="sms-batch-modal">
                     <div class="sms-header">
-                        <h3>Permission Was Blocked</h3>
+                        <h3>${t('bulk.permBlocked')}</h3>
                     </div>
                     <div class="sms-body">
                         <p class="sms-lead">
@@ -238,11 +239,11 @@ export class SmsBatchQueue {
                             To enable bulk SMS, open your phone's <strong>Settings → Apps → Dnyani Mitr → Permissions → SMS</strong> and turn it on.
                         </p>
                         <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
-                            Or keep using the per-contact <span style="white-space:nowrap;">📱 button</span> on each reminder — that always works without any permission.
+                            ${t('bulk.perContactAlways')}
                         </p>
                     </div>
                     <div class="sms-footer">
-                        <button class="btn btn-primary" id="sms-close" style="flex:1;">OK, got it</button>
+                        <button class="btn btn-primary" id="sms-close" style="flex:1;">${t('bulk.gotIt')}</button>
                     </div>
                 </div>
             `;
@@ -250,11 +251,11 @@ export class SmsBatchQueue {
         return `
             <div class="sms-batch-modal">
                 <div class="sms-header">
-                    <h3>SMS Permission Needed</h3>
+                    <h3>${t('bulk.permNeeded')}</h3>
                 </div>
                 <div class="sms-body">
                     <p class="sms-lead">
-                        Sending SMS in bulk needs Android's <strong>Send SMS</strong> permission.
+                        Sending SMS in bulk needs Android's <strong>${t('bulk.sendSms')}</strong> permission.
                     </p>
                     <p style="color: var(--color-text-secondary); font-size: 0.9rem;">
                         Without it, you can still tap the <span style="white-space:nowrap;">📱 button</span>
@@ -262,8 +263,8 @@ export class SmsBatchQueue {
                     </p>
                 </div>
                 <div class="sms-footer">
-                    <button class="btn btn-secondary" id="sms-close">Use per-contact instead</button>
-                    <button class="btn btn-primary" id="sms-retry" style="flex:1;">Grant permission</button>
+                    <button class="btn btn-secondary" id="sms-close">${t('bulk.usePerContact')}</button>
+                    <button class="btn btn-primary" id="sms-retry" style="flex:1;">${t('bulk.grant')}</button>
                 </div>
             </div>
         `;
@@ -282,7 +283,7 @@ export class SmsBatchQueue {
                     ${SmsBatchQueue._renderSendingInner(state)}
                 </div>
                 <div class="sms-footer">
-                    <button class="btn btn-secondary" id="sms-cancel-batch">Cancel</button>
+                    <button class="btn btn-secondary" id="sms-cancel-batch">${t('action.cancel')}</button>
                 </div>
             </div>
         `;
@@ -336,15 +337,15 @@ export class SmsBatchQueue {
                     <div class="sms-summary-stats">
                         <div class="sms-stat sms-stat-sent">
                             <div class="sms-stat-num">${sent}</div>
-                            <div class="sms-stat-label">Sent</div>
+                            <div class="sms-stat-label">${t('common.sent')}</div>
                         </div>
                         <div class="sms-stat sms-stat-failed">
                             <div class="sms-stat-num">${failed}</div>
-                            <div class="sms-stat-label">Failed</div>
+                            <div class="sms-stat-label">${t('common.failed')}</div>
                         </div>
                         <div class="sms-stat sms-stat-total">
                             <div class="sms-stat-num">${total}</div>
-                            <div class="sms-stat-label">Total</div>
+                            <div class="sms-stat-label">${t('common.total')}</div>
                         </div>
                     </div>
                     ${sent > 0 && logWarnings.length === 0 ? `<p style="color:#16a34a; margin-top:1rem; font-size:0.9rem;">Sent messages logged as interactions.</p>` : ''}
@@ -360,7 +361,7 @@ export class SmsBatchQueue {
                     ` : ''}
                 </div>
                 <div class="sms-footer" style="justify-content:center;">
-                    <button class="btn btn-primary" id="sms-close">Done</button>
+                    <button class="btn btn-primary" id="sms-close">${t('bulk.done')}</button>
                 </div>
             </div>
         `;
