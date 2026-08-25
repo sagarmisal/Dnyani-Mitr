@@ -7,10 +7,10 @@
 > If this document and the code disagree, the code is right and this document is a defect
 > to fix in the same change. Never route around it silently.
 >
-> **This is the only planning document.** `PROJECT_PLAN.md`, `VERSION_3_VISION.md`,
+> **Two planning documents, and only two — this and `ITERATION.md`.** The older ones, `PROJECT_PLAN.md`, `VERSION_3_VISION.md`,
 > `ITERATION_2/10/11_PLAN.md`, `RESUME.md`, `docs/ITERATION_11_REVIEW.html`,
-> `docs/testing_guide.md` and `docs/laptop_only_deployment_guide.md` were **deleted 2026-08-24**
-> so that a restart or resume always lands on one baseline. Nothing is lost — they are in git:
+> `docs/testing_guide.md` and `docs/laptop_only_deployment_guide.md`, were **deleted 2026-08-24**
+> so that a restart or resume lands on a known baseline. Nothing is lost — they are in git:
 > `git show 9af1a1f:ngo-visitor-manager/<file>`. **Do not recreate them.**
 >
 > **`ITERATION.md` carries the current iteration** — objective, measured state,
