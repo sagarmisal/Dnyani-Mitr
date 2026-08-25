@@ -1,6 +1,8 @@
 // Settings Page Component
 
 import StateManager from '../../core/state.js';
+import { ROUTES } from '../../core/router.js';
+import { t } from '../../utils/i18n.js';
 import StorageManager from '../../core/storage.js';
 import ActivationManager from '../../core/activation.js';
 import { Toast } from '../UI/Toast.js';
@@ -30,6 +32,42 @@ export class SettingsPage {
     this.container.innerHTML = `
       <div class="settings-grid">
         <div>
+          <!-- These four lost their nav tabs when it went from eight to five
+               (D-25, and section 6 of INITIATIVE.md). Removing the tab without
+               adding an entry point here left Backup and Sync UNREACHABLE, so
+               an NGO could not have backed up or restored at all. Backup leads
+               because it is the one behaviour we ask of them (PR-5). -->
+          <div class="card lg-more">
+            <div class="card-header">
+              <h2 class="card-title">${t('more.title')}</h2>
+            </div>
+            <a class="lg-more-item lg-more-item--lead" href="#${ROUTES.SYNC}">
+              <span class="lg-more-icon">💾</span>
+              <span class="lg-more-text">
+                <b>${t('more.backup')}</b>
+                <span>${t('more.backupHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.INTERACTIONS}">
+              <span class="lg-more-icon">📋</span>
+              <span class="lg-more-text">
+                <b>${t('more.history')}</b>
+                <span>${t('more.historyHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.CAMPAIGNS}">
+              <span class="lg-more-icon">🪔</span>
+              <span class="lg-more-text">
+                <b>${t('more.campaigns')}</b>
+                <span>${t('more.campaignsHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.ABOUT}">
+              <span class="lg-more-icon">ℹ️</span>
+              <span class="lg-more-text"><b>${t('more.about')}</b></span>
+            </a>
+          </div>
+
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Preferences</h2>

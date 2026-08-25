@@ -152,7 +152,37 @@ export const STRINGS = {
     'settings.ngoName':     { mr: 'संस्थेचं नाव',           en: 'Your organisation’s name' },
     'settings.ngoNameHint': { mr: 'हे नाव प्रत्येक स्क्रीनवर वर दिसेल.',
                               en: 'This appears at the top of every screen.' },
-    'settings.backup':      { mr: 'बॅकअप',                en: 'Backup' }
+    'settings.backup':      { mr: 'बॅकअप',                en: 'Backup' },
+
+    /* ------------------------------------------------ getting to things */
+    // These four screens lost their nav tabs when it went from eight to five.
+    // They must be reachable from SOMEWHERE, and backup most of all: it is the
+    // one behaviour we ask of them (PR-5), and it kept the register alive.
+    'more.title':           { mr: 'इतर',                  en: 'More' },
+    'more.backup':          { mr: 'बॅकअप आणि शेअर',        en: 'Backup and share' },
+    'more.backupHint':      { mr: 'नवीन आवृत्ती घेण्याआधी नेहमी बॅकअप घ्या.',
+                              en: 'Always take a backup before updating the app.' },
+    'more.history':         { mr: 'सर्व नोंदी',            en: 'All records' },
+    'more.historyHint':     { mr: 'आजवरच्या सगळ्या भेटी आणि फोन.',
+                              en: 'Every visit and call so far.' },
+    'more.campaigns':       { mr: 'सणाचे संदेश',           en: 'Festival messages' },
+    'more.campaignsHint':   { mr: 'एकाच वेळी अनेकांना शुभेच्छा.',
+                              en: 'Greet many people at once.' },
+    'more.about':           { mr: 'ॲपबद्दल',              en: 'About this app' },
+
+    /* ------------------------------------------------ backup and sharing */
+    // The screen that saves their register. It must read in their language —
+    // this is what they open when a phone is about to be replaced.
+    'sync.title':           { mr: 'बॅकअप आणि शेअर',        en: 'Backup and share' },
+    'sync.paste':           { mr: 'आलेला संदेश इथे पेस्ट करा', en: 'Paste the message you received' },
+    'sync.review':          { mr: 'काय येणार आहे ते पाहा',   en: 'Review what will come in' },
+    'sync.import':          { mr: 'घ्या',                  en: 'Import' },
+    'sync.restore':         { mr: 'बॅकअपमधून परत आणा',      en: 'Restore from backup' },
+    'sync.restorePasted':   { mr: 'पेस्ट केलेल्या बॅकअपमधून परत आणा', en: 'Restore from pasted backup' },
+    'sync.undo':            { mr: 'शेवटचं घेतलेलं रद्द करा',  en: 'Undo the last import' },
+    'sync.visitors':        { mr: 'माणसं',                 en: 'People' },
+    'sync.visitNotes':      { mr: 'भेटींच्या नोंदी',         en: 'Visit records' },
+    'sync.used':            { mr: 'वापरलेली जागा',          en: 'Space used' }
 };
 
 export default STRINGS;

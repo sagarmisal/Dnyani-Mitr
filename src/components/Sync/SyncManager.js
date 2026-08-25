@@ -1,4 +1,5 @@
 import ActivationManager from '../../core/activation.js';
+import { t } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import VisitorService from '../../services/VisitorService.js';
 import SyncService from '../../services/SyncService.js';
@@ -63,7 +64,7 @@ export class SyncManager {
 
         container.innerHTML = `
       <div class="dashboard-header" style="margin-bottom: 1.5rem;">
-        <h2 style="margin: 0;">Sync your data</h2>
+        <h2 style="margin: 0;">${t('sync.title')}</h2>
         <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
           ${this.escapeHtml(this.machineInfo.machineName)} · ${roleLabel}
         </p>
@@ -129,7 +130,7 @@ export class SyncManager {
               ${this.escapeHtml(receiveDesc)}
             </p>
 
-            <label class="form-label" for="receive-textarea" style="margin-bottom: 0.25rem;">Paste sync message</label>
+            <label class="form-label" for="receive-textarea" style="margin-bottom: 0.25rem;">${t('sync.paste')}</label>
             <textarea id="receive-textarea" rows="4" class="form-textarea" style="font-size: 0.85rem;" placeholder="Long-press in WhatsApp → Copy → paste here. If multiple messages, paste them one after another."></textarea>
             <div id="receive-status" style="margin-top: 0.5rem; min-height: 1.4rem; font-size: 0.85rem;"></div>
 
@@ -154,13 +155,13 @@ export class SyncManager {
       <!-- Import preview (shared by paste + file paths) -->
       <div id="import-preview" class="hidden card" style="margin-bottom: 1.5rem; border: 2px solid var(--color-warning);">
         <div class="card-header">
-          <h3 class="card-title">Review import</h3>
+          <h3 class="card-title">${t('sync.review')}</h3>
         </div>
         <div class="card-body">
           <div id="preview-stats" style="font-size: 0.9rem; margin-bottom: 1rem;"></div>
           <div style="display: flex; gap: 0.5rem;">
-            <button id="confirm-import-btn" class="btn btn-success" style="flex: 1;">Import</button>
-            <button id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-import-btn" class="btn btn-success" style="flex: 1;">${t('sync.import')}</button>
+            <button id="cancel-import-btn" class="btn btn-secondary">${t('action.cancel')}</button>
           </div>
         </div>
       </div>
@@ -212,12 +213,12 @@ export class SyncManager {
 
           <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border);" />
 
-          <h4 style="margin: 0 0 0.5rem 0;">Restore from backup</h4>
+          <h4 style="margin: 0 0 0.5rem 0;">${t('sync.restore')}</h4>
           <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0 0 0.75rem 0;">
             Paste a backup message below. Restoring replaces ALL current data.
           </p>
           <textarea id="restore-textarea" rows="3" class="form-textarea" style="font-size: 0.85rem;" placeholder="Paste backup message here..."></textarea>
-          <button id="restore-text-btn" class="btn btn-error btn-sm" style="margin-top: 0.5rem; width: 100%;">Restore from pasted backup</button>
+          <button id="restore-text-btn" class="btn btn-error btn-sm" style="margin-top: 0.5rem; width: 100%;">${t('sync.restorePasted')}</button>
 
           ${this.renderSyncLog()}
           ${this.renderKnownMachines()}
@@ -243,7 +244,7 @@ export class SyncManager {
               We saved a snapshot just before it: ${new Date(backupInfo.createdAt).toLocaleString()}
             </p>
           </div>
-          <button id="undo-sync-btn" class="btn btn-secondary btn-sm">Undo last import</button>
+          <button id="undo-sync-btn" class="btn btn-secondary btn-sm">${t('sync.undo')}</button>
         </div>
       </div>
     `;
@@ -872,15 +873,15 @@ export class SyncManager {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 1rem; text-align: center;">
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${VisitorService.getAll().length}</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Visitors</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.visitors')}</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${StateManager.getState().interactions?.length || 0}</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Visit notes</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.visitNotes')}</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${this.calculateStorageSize()} KB</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Used</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.used')}</div>
         </div>
       </div>
     `;

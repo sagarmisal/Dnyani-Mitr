@@ -427,3 +427,32 @@ textarea.si-input { min-height: 64px; resize: vertical; }
   line-height: 1.45;
 }
 .lg-memory-actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+
+/* ---------- Settings → More: the way back to Backup, History, Campaigns ----------
+   These four lost their nav tabs when it went from eight to five. Backup leads
+   and is visually heavier than the rest: it is the one behaviour we ask of
+   these NGOs, and it is what keeps the register alive when a phone dies. */
+.lg-more { padding-bottom: 4px; }
+.lg-more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px;
+  border-top: 1px solid var(--lg-rule-faint);
+  color: var(--lg-ink);
+  text-decoration: none;
+  min-height: var(--lg-tap);
+}
+.lg-more-item:first-of-type { border-top: 0; }
+.lg-more-item--lead { background: var(--lg-wash); border-radius: var(--lg-r-ctl); padding: 14px 12px; }
+.lg-more-icon { font-size: 20px; flex: none; }
+.lg-more-text { min-width: 0; }
+.lg-more-text b { display: block; font-size: 14.5px; }
+.lg-more-text span {
+  display: block;
+  font-size: 12px;
+  color: var(--lg-ink-soft);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.lg-more-item:focus-visible { outline: 3px solid var(--lg-marigold-l); outline-offset: 2px; }
