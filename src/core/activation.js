@@ -25,6 +25,53 @@ class ActivationManager {
     }
 
     /**
+     * Make sure this device has an identity, without asking anyone anything.
+     * (INITIATIVE.md D-28, P2.14/P2.15 — answers Q-01.)
+     *
+     * WHY THE GATE WENT
+     * -----------------
+     * The master key never protected anything: the valid keys were listed in
+     * KEYS.md, in the repository, and any device with the file could type one.
+     * What it did do was stand in the doorway — the first screen a volunteer
+     * met was a code they had to obtain from us, followed by "Root Machine or
+     * Satellite Machine?", an architecture question asked of someone with no
+     * basis to answer it, before the app had shown them a single thing worth
+     * having. With adoption from zero as the actual problem (D-27), a wall at
+     * the front door is the most expensive thing in the app.
+     *
+     * Provenance is handled properly now, by D-22: the Seva Sankalp mark is on
+     * every screen and cannot be edited. That is a better claim of authorship
+     * than a shared code ever was.
+     *
+     * WHAT SURVIVES
+     * -------------
+     * machineId stamps createdBy on every record and is the identity sync
+     * merges on, so it is still generated — just silently, here. Role defaults
+     * to satellite because that is the safe assumption: a satellite that should
+     * have been root can be promoted in Settings, whereas a device wrongly
+     * believing it is root claims authority over deletions it should not have.
+     *
+     * Idempotent. An already-activated device keeps the identity it has, so
+     * upgrading changes nothing about who this machine is.
+     */
+    ensureActivated() {
+        if (this.isActivated()) return this.getMachineInfo();
+
+        const machineId = generateUUID();
+        const data = {
+            activated: true,
+            activatedAt: new Date().toISOString(),
+            machineId,
+            machineName: 'This device',
+            machineRole: MACHINE_ROLES.SATELLITE,
+            autoProvisioned: true      // so we can tell these apart later
+        };
+        StorageManager.saveActivation(data);
+        this.activationData = data;
+        return this.getMachineInfo();
+    }
+
+    /**
      * Activate with master key
      */
     activate(masterKey, machineSetup) {

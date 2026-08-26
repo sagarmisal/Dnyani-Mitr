@@ -1,6 +1,7 @@
 // Search Service - Advanced search and filtering
 
 import { debounce } from '../utils/helpers.js';
+import { compareNames } from '../utils/devanagari.js';
 
 class SearchService {
     constructor() {
@@ -48,9 +49,13 @@ class SearchService {
             if (aVal == null) return order === 'asc' ? 1 : -1;
             if (bVal == null) return order === 'asc' ? -1 : 1;
 
-            // String comparison
-            if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-            if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+            // String comparison (P1.3). Code-point order puts Devanagari in
+            // roughly the right sequence by accident and gets the Marathi
+            // convention wrong at the end of the alphabet, so compare by locale.
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+                const cmp = compareNames(aVal, bVal);
+                return order === 'asc' ? cmp : -cmp;
+            }
 
             if (aVal < bVal) return order === 'asc' ? -1 : 1;
             if (aVal > bVal) return order === 'asc' ? 1 : -1;

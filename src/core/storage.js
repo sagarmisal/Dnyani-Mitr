@@ -137,10 +137,38 @@ class StorageManager {
         // pass through the Interaction constructor (SyncService.merge assigns
         // plain objects), so every consumer must also treat a missing value as
         // null rather than relying on this pass alone.
+        // A visitor without `status` is filtered out of getAll() and is therefore
+        // invisible in every list, every search and every report — while sitting
+        // in storage the whole time, with nothing reported. The model defaults it
+        // and the v2 migration sets it, but records arriving through
+        // SyncService.merge are assigned as plain objects and bypass both.
+        // Found by writing J4's acceptance test against a fixture that lacked it.
+        if (Array.isArray(state.visitors)) {
+            state.visitors.forEach(v => {
+                if (v && !v.status) {
+                    v.status = v.deletedAt || v.isDeleted ? 'deleted' : 'active';
+                    changed = true;
+                }
+            });
+        }
         if (Array.isArray(state.interactions)) {
             state.interactions.forEach(i => {
                 if (i && i.followUpCompletedAt === undefined) {
                     i.followUpCompletedAt = null;
+                    changed = true;
+                }
+                // Phase 2: thanked-state and contribution. Same caveat as above —
+                // records arriving through sync bypass the constructor, so every
+                // consumer must also treat a missing value as null/[] rather than
+                // trusting this pass. Note contribution CANNOT be backfilled with
+                // real data: nobody recorded what past visitors brought, and
+                // guessing would be inventing history.
+                if (i && i.thankedAt === undefined) {
+                    i.thankedAt = null;
+                    changed = true;
+                }
+                if (i && !Array.isArray(i.contribution)) {
+                    i.contribution = [];
                     changed = true;
                 }
             });

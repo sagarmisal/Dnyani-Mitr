@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dnyani Mitr — design preview</title>
+<style>
+/* ============================================================
+   DESIGN PREVIEW — Dnyani Mitr v3.3
+   Standalone. Opens offline by double-click. No network needed.
+
+   Palette is drawn from the object this app replaces: a bound
+   paper visitor register. Aged paper ground, the blue ruling of
+   ledger paper as the structural line, binding-cloth red for
+   actions, marigold for occasions.
+
+   Signature device: the register rule. Every section label sits
+   ON a horizontal line with its content hanging beneath — the way
+   Devanagari hangs from the shirorekha, and the way a ledger page
+   rules a heading.
+   ============================================================ */
+
+:root{
+  --paper:#f6f2e8;      /* aged ledger page */
+  --page:#fffdf7;       /* a fresher leaf */
+  --ink:#232b36;        /* ballpoint blue-black */
+  --ink-soft:#5f6875;   /* faded ink */
+  --rule:#c3ccdb;       /* the blue ruling of ledger paper */
+  --rule-faint:#e2e5dd;
+  --bind:#8a3b36;       /* binding cloth — primary action */
+  --bind-d:#6d2d29;
+  --marigold:#dc9a2e;   /* झेंडू — occasions */
+  --leaf:#456a4f;       /* quiet positive */
+  --wash:#efe8d8;       /* warm fill */
+  --danger:#a4443c;
+
+  --r-card:14px;
+  --r-ctl:11px;
+  --r-chip:999px;
+  --sheet-r:20px;
+
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sys:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",sans-serif;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sys);font-size:16px;line-height:1.6;
+  /* faint ledger ruling across the whole page */
+  background-image:repeating-linear-gradient(to bottom,transparent 0 43px,rgba(195,204,219,.28) 43px 44px);
+}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px 96px}
+
+/* ---------- the signature: register rule ---------- */
+.rule{
+  display:flex;align-items:baseline;gap:14px;
+  border-top:2px solid var(--ink);
+  margin:64px 0 22px;padding-top:0;
+}
+.rule h2{
+  font-size:15px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  margin:0;transform:translateY(-50%);background:var(--paper);padding:0 12px 0 0;
+}
+.rule .mr{
+  font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+  transform:translateY(-50%);background:var(--paper);padding:0 12px;letter-spacing:.06em;
+}
+.rule--sub{border-top-width:1px;border-color:var(--rule);margin-top:40px}
+.rule--sub h2{font-size:13px;font-weight:700;letter-spacing:.1em}
+
+/* ---------- masthead ---------- */
+.mast{padding:56px 0 0}
+.mast .kicker{
+  font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--bind);margin:0 0 18px
+}
+.mast h1{
+  font-size:clamp(34px,6.4vw,62px);line-height:1.02;margin:0 0 18px;
+  font-weight:800;letter-spacing:-.025em;max-width:16ch;
+}
+.mast h1 em{font-style:normal;color:var(--bind)}
+.mast .lede{font-size:clamp(17px,2.1vw,20px);color:var(--ink-soft);max-width:60ch;margin:0}
+
+/* the one question */
+.ask{
+  margin:36px 0 0;padding:22px 24px;background:var(--page);
+  border:1px solid var(--rule);border-left:5px solid var(--bind);border-radius:var(--r-card);
+  max-width:66ch;
+}
+.ask p{margin:0;font-size:17px}
+.ask p + p{margin-top:10px;color:var(--ink-soft);font-size:15px}
+.ask b{color:var(--bind)}
+
+/* ---------- phone simulator frames ---------- */
+.stage{display:grid;grid-template-columns:1fr;gap:28px;margin-top:26px}
+@media(min-width:900px){.stage{grid-template-columns:1fr 1fr;gap:40px}}
+
+.seg{display:none;gap:6px;background:var(--wash);padding:5px;border-radius:var(--r-chip);margin:0 auto 22px;width:max-content}
+.seg button{
+  border:0;background:transparent;font:inherit;font-weight:700;font-size:14px;
+  padding:9px 20px;border-radius:var(--r-chip);color:var(--ink-soft);cursor:pointer;min-height:42px
+}
+.seg button[aria-pressed="true"]{background:var(--page);color:var(--ink);box-shadow:0 1px 3px rgba(35,43,54,.14)}
+@media(max-width:899px){
+  .seg{display:flex}
+  .stage{grid-template-columns:1fr}
+  .stage .col[hidden]{display:none}
+}
+
+.col > .caption{
+  display:flex;align-items:center;gap:9px;margin:0 0 12px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)
+}
+.col > .caption .tag{padding:3px 9px;border-radius:var(--r-chip);font-weight:700;letter-spacing:.08em}
+.tag--now{background:#e3e8f0;color:#3d4a5c}
+.tag--new{background:var(--bind);color:#fff}
+
+.phone{
+  width:100%;max-width:372px;margin:0 auto;background:#101418;
+  border-radius:32px;padding:9px;box-shadow:0 18px 44px rgba(35,43,54,.22);
+}
+.screen{
+  position:relative;overflow:hidden;border-radius:24px;height:648px;
+  display:flex;flex-direction:column;font-size:14px;line-height:1.45;
+}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ============================================================
+   SIM A — today's app  (honest replica: Tailwind defaults,
+   centred dialog, selects, small buttons, eight tabs)
+   ============================================================ */
+.simA{background:#f9fafb;color:#1a1a1a}
+.simA .hdr{background:#2563eb;color:#fff;padding:13px 14px 0}
+.simA .hdr h3{margin:0;font-size:16px;font-weight:700}
+.simA .hdr p{margin:2px 0 10px;font-size:11px;opacity:.85}
+.simA .tabs{display:flex;gap:14px;overflow-x:auto;font-size:12px;padding-bottom:9px}
+.simA .tabs::-webkit-scrollbar{display:none}
+.simA .tabs span{white-space:nowrap;opacity:.72;padding-bottom:5px}
+.simA .tabs span.on{opacity:1;font-weight:700;border-bottom:2px solid #fff}
+.simA .body{padding:12px}
+.simA .card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin-bottom:11px}
+.simA .card h4{margin:0 0 9px;font-size:13px;font-weight:700}
+.simA .mrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;font-size:13px;font-weight:700}
+.simA .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.simA .dow{font-size:9px;text-align:center;color:#6b7280;padding:3px 0}
+.simA .d{aspect-ratio:1;border:1px solid #e5e7eb;border-radius:3px;font-size:10px;padding:2px 0 0 3px;color:#374151}
+.simA .d.t{border-color:#2563eb;border-width:2px;font-weight:700}
+.simA .d.o{opacity:.34}
+.simA .d .dt{display:block;width:4px;height:4px;border-radius:50%;background:#2563eb;margin:1px auto 0}
+.simA .sec{font-size:11px;font-weight:700;color:#6b7280;margin:13px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+.simA .item{border-bottom:1px solid #f3f4f6;padding:8px 0;font-size:12px}
+.simA .item:last-child{border:0}
+.simA .item b{display:block;font-size:13px}
+.simA .item span{color:#6b7280;font-size:11px}
+.simA .warn{color:#ef4444;font-weight:700;font-size:11px}
+.simA select{
+  width:100%;padding:6px 8px;font:inherit;font-size:12px;
+  border:1px solid #d1d5db;border-radius:4px;background:#fff;margin-top:5px
+}
+.simA .btn{
+  border:0;background:#2563eb;color:#fff;font:inherit;font-size:11px;font-weight:600;
+  padding:6px 11px;border-radius:4px;cursor:pointer
+}
+.simA .btn.g{background:#e5e7eb;color:#374151}
+.simA .btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+/* centred dialog — the pattern in main.css today */
+.simA .ov{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:9;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .18s
+}
+.simA .ov.show{opacity:1;pointer-events:auto}
+.simA .dlg{background:#fff;border-radius:12px;width:100%;max-height:78%;overflow:auto;padding:15px}
+.simA .dlg h4{margin:0 0 11px;font-size:14px}
+.simA .lbl{font-size:11px;color:#6b7280;display:block;margin:9px 0 3px}
+.simA input[type=text],.simA input[type=tel],.simA input[type=date]{
+  width:100%;padding:6px 8px;font:inherit;font-size:12px;border:1px solid #d1d5db;border-radius:4px
+}
+
+/* ============================================================
+   SIM B — proposed  (ledger palette, bottom sheet, chips, tiles)
+   ============================================================ */
+.simB{background:var(--paper);color:var(--ink)}
+.simB .hdr{background:var(--bind);color:#fff;padding:13px 15px 0}
+.simB .org{display:flex;align-items:center;gap:9px}
+.simB .org .mark{
+  width:31px;height:31px;border-radius:9px;background:rgba(255,255,255,.19);
+  display:grid;place-items:center;font-size:15px;flex:none
+}
+.simB .org h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.simB .org p{margin:1px 0 0;font-size:10.5px;opacity:.82}
+.simB .tabs{display:flex;gap:7px;overflow-x:auto;padding:11px 0 9px}
+.simB .tabs::-webkit-scrollbar{display:none}
+.simB .tabs span{
+  white-space:nowrap;font-size:12px;padding:6px 13px;border-radius:var(--r-chip);
+  background:rgba(255,255,255,.17);min-height:32px;display:flex;align-items:center
+}
+.simB .tabs span.on{background:#fff;color:var(--bind);font-weight:700}
+.simB .body{padding:13px}
+
+/* stat row — the landing screen answers "how is today?" */
+.simB .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.simB .stat{background:var(--page);border:1px solid var(--rule-faint);border-radius:var(--r-ctl);padding:9px 6px;text-align:center}
+.simB .stat b{display:block;font-size:21px;line-height:1.1;font-weight:800}
+.simB .stat span{font-size:9px;color:var(--ink-soft);line-height:1.25;display:block;margin-top:2px}
+.simB .stat.hi b{color:var(--bind)}
+
+/* big action tiles */
+.simB .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
+.simB .tile{
+  background:var(--wash);border:0;border-radius:var(--r-card);padding:13px;
+  text-align:left;font:inherit;font-weight:700;font-size:12.5px;color:var(--ink);
+  cursor:pointer;min-height:62px;display:flex;flex-direction:column;gap:5px;line-height:1.25
+}
+.simB .tile em{font-style:normal;font-size:17px}
+.simB .tile.pri{background:var(--bind);color:#fff}
+
+.simB .card{background:var(--page);border:1px solid var(--rule-faint);border-radius:var(--r-card);padding:12px;margin-bottom:11px}
+.simB .mrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.simB .mrow b{font-size:14px}
+.simB .nav2{display:flex;gap:5px}
+.simB .nav2 button{
+  border:1px solid var(--rule);background:var(--page);border-radius:9px;width:31px;height:31px;
+  font:inherit;cursor:pointer;color:var(--ink)
+}
+.simB .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.simB .dow{font-size:9px;text-align:center;color:var(--ink-soft);padding:3px 0;font-weight:600}
+.simB .d{
+  aspect-ratio:1;border-radius:8px;font-size:11px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;background:transparent;color:var(--ink)
+}
+.simB .d.has{background:var(--wash)}
+.simB .d.t{background:var(--bind);color:#fff;font-weight:800}
+.simB .d.o{opacity:.3}
+.simB .d .dt{width:4px;height:4px;border-radius:50%;background:var(--marigold)}
+.simB .d.t .dt{background:#fff}
+
+/* section headings inside the day pane use the register rule too */
+.simB .sec{
+  border-top:1.5px solid var(--ink);margin:15px 0 8px;display:flex;align-items:baseline;
+}
+.simB .sec span{
+  font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  background:var(--page);padding-right:9px;transform:translateY(-50%)
+}
+.simB .sec .n{
+  font-family:var(--mono);font-size:9.5px;color:var(--ink-soft);background:var(--page);
+  padding:0 8px;transform:translateY(-50%);letter-spacing:.04em;font-weight:600
+}
+.simB .item{padding:8px 0;border-bottom:1px solid var(--rule-faint);font-size:12px}
+.simB .item:last-child{border:0}
+.simB .item b{display:block;font-size:13px}
+.simB .item span{color:var(--ink-soft);font-size:11px}
+.simB .item .when{color:var(--ink-soft);font-size:11px}
+
+.simB .chip{
+  display:inline-block;padding:3px 9px;border-radius:var(--r-chip);font-size:10.5px;
+  background:var(--wash);margin:3px 3px 0 0;font-weight:600
+}
+.simB .chip.mg{background:#faedd4;color:#8a5f10}
+.simB .btn{
+  border:0;background:var(--bind);color:#fff;font:inherit;font-size:12px;font-weight:700;
+  padding:9px 15px;border-radius:var(--r-ctl);cursor:pointer;min-height:40px
+}
+.simB .btn.g{background:var(--wash);color:var(--ink)}
+.simB .btn.sm{padding:6px 12px;font-size:11px;min-height:34px}
+.simB .btns{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+
+/* the memory card — "on this day last year" */
+.simB .memory{
+  background:linear-gradient(180deg,#faf3e4,#f6efdf);
+  border:1px solid #ecdcb8;border-radius:var(--r-card);padding:12px;margin-bottom:11px
+}
+.simB .memory .yr{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:#8a5f10;font-weight:700;margin-bottom:5px
+}
+
+/* BOTTOM SHEET — the pattern change */
+.simB .ov{
+  position:absolute;inset:0;background:rgba(35,43,54,.46);z-index:9;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s
+}
+.simB .ov.show{opacity:1;pointer-events:auto}
+.simB .sheet{
+  background:var(--page);width:100%;max-height:86%;overflow:auto;
+  border-radius:var(--sheet-r) var(--sheet-r) 0 0;padding:8px 15px 16px;
+  transform:translateY(100%);transition:transform .26s cubic-bezier(.22,1,.36,1)
+}
+.simB .ov.show .sheet{transform:translateY(0)}
+.simB .grab{width:36px;height:4px;border-radius:2px;background:var(--rule);margin:5px auto 12px}
+.simB .sheet h4{margin:0 0 3px;font-size:15px}
+.simB .sheet .hint{margin:0 0 13px;font-size:11.5px;color:var(--ink-soft)}
+.simB .lbl{font-size:11px;color:var(--ink-soft);display:block;margin:12px 0 5px;font-weight:600}
+.simB input[type=text],.simB input[type=tel],.simB input[type=date]{
+  width:100%;padding:11px;font:inherit;font-size:14px;border:1px solid var(--rule);
+  border-radius:var(--r-ctl);background:var(--page);color:var(--ink);min-height:44px
+}
+.simB .found{
+  font-size:11.5px;color:var(--leaf);margin-top:6px;font-weight:600;
+  display:flex;gap:5px;align-items:center
+}
+/* CHIPS — the replacement for <select> */
+.simB .chips{display:flex;flex-wrap:wrap;gap:6px}
+.simB .chips button{
+  border:1.5px solid var(--rule);background:var(--page);color:var(--ink);
+  font:inherit;font-size:12.5px;font-weight:600;padding:9px 13px;border-radius:var(--r-chip);
+  cursor:pointer;min-height:42px;display:flex;align-items:center;gap:5px;line-height:1
+}
+.simB .chips button[aria-pressed="true"]{
+  background:var(--bind);border-color:var(--bind);color:#fff
+}
+.simB .chips.mg button[aria-pressed="true"]{background:var(--marigold);border-color:var(--marigold);color:#3d2a06}
+
+/* ---------- page-level content blocks ---------- */
+.prose{max-width:68ch}
+.prose p{margin:0 0 16px}
+.prose p.lead{font-size:18px}
+.prose strong{font-weight:700}
+.prose code{
+  font-family:var(--mono);font-size:.86em;background:var(--wash);
+  padding:2px 6px;border-radius:5px
+}
+
+.cols{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:760px){.cols{grid-template-columns:1fr 1fr}}
+@media(min-width:1000px){.cols.c3{grid-template-columns:repeat(3,1fr)}}
+
+.note{
+  background:var(--page);border:1px solid var(--rule-faint);border-radius:var(--r-card);padding:18px 20px
+}
+.note h4{margin:0 0 9px;font-size:15px;display:flex;align-items:center;gap:8px}
+.note p{margin:0;font-size:14.5px;color:var(--ink-soft);line-height:1.62}
+.note p + p{margin-top:11px}
+.note.bad{border-left:4px solid var(--danger)}
+.note.good{border-left:4px solid var(--leaf)}
+.note.hold{border-left:4px solid var(--marigold)}
+
+/* evidence figures */
+.figs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 26px}
+@media(min-width:760px){.figs{grid-template-columns:repeat(4,1fr)}}
+.fig{background:var(--page);border:1px solid var(--rule-faint);border-radius:var(--r-card);padding:17px}
+.fig b{display:block;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em}
+.fig b.a{color:var(--bind)}
+.fig span{display:block;font-size:12px;color:var(--ink-soft);margin-top:7px;line-height:1.4}
+
+/* swatches */
+.sw{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.sw{grid-template-columns:repeat(5,1fr)}}
+.swatch{border-radius:var(--r-ctl);overflow:hidden;border:1px solid var(--rule-faint);background:var(--page)}
+.swatch .chipc{height:62px}
+.swatch .meta{padding:8px 9px}
+.swatch .meta b{display:block;font-size:12px}
+.swatch .meta span{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-soft);margin-top:2px}
+.swatch .meta em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-soft);margin-top:5px;line-height:1.35}
+
+/* before / after language table */
+.ba{width:100%;border-collapse:collapse;font-size:14.5px}
+.ba th{
+  text-align:left;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-soft);padding:0 12px 9px 0;border-bottom:1.5px solid var(--ink);font-weight:800
+}
+.ba td{padding:11px 12px 11px 0;border-bottom:1px solid var(--rule-faint);vertical-align:top}
+.ba td.was{color:var(--ink-soft);width:44%}
+.ba td.was code{background:#e9e3d5}
+.ba td.now{font-weight:600}
+.ba tr:last-child td{border-bottom:0}
+
+/* decision list */
+.dec{list-style:none;padding:0;margin:0;counter-reset:d}
+.dec li{
+  counter-increment:d;background:var(--page);border:1px solid var(--rule-faint);
+  border-radius:var(--r-card);padding:16px 18px 16px 56px;position:relative;margin-bottom:11px
+}
+.dec li::before{
+  content:counter(d);position:absolute;left:17px;top:16px;
+  font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;
+  background:var(--bind);width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center
+}
+.dec li b{display:block;font-size:15px;margin-bottom:5px}
+.dec li p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.6}
+
+.foot{
+  margin-top:72px;padding-top:22px;border-top:2px solid var(--ink);
+  font-size:13px;color:var(--ink-soft)
+}
+.foot p{margin:0 0 7px}
+
+:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  .simB .sheet{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ===================== MASTHEAD ===================== -->
+<header class="mast">
+  <p class="kicker">Design preview · v3.3 · not yet built</p>
+  <h1>The same app, in the <em>language of a register</em>.</h1>
+  <p class="lede">
+    Three NGOs told us another app felt easier to use. They were right, and this is what we
+    learned from it. Nothing here changes what the app remembers — only how it looks and how
+    it is touched.
+  </p>
+
+  <div class="ask">
+    <p><b>One question for the NGO team:</b> put the two phones below side by side. Does the
+      right-hand one feel like the app you said was easy?</p>
+    <p>Say yes, no, or “close, but —”. Nothing is built yet. This page is a proposal, and it is
+      cheaper to change now than after it is on your phones.</p>
+  </div>
+</header>
+
+<!-- ===================== THE COMPARISON ===================== -->
+<div class="rule"><h2>Side by side</h2><span class="mr">same data · same screen · same phone</span></div>
+
+<div class="seg" role="group" aria-label="Choose which version to show">
+  <button type="button" data-show="old" aria-pressed="false">Today’s app</button>
+  <button type="button" data-show="new" aria-pressed="true">Proposed</button>
+</div>
+
+<div class="stage">
+
+  <!-- ---------- TODAY ---------- -->
+  <div class="col" id="colOld" hidden>
+    <p class="caption"><span class="tag tag--now">Today</span> v3.2.0 — as it ships now</p>
+    <div class="phone"><div class="screen simA">
+      <div class="hdr">
+        <h3>NGO Visitor &amp; Reminder Manager</h3>
+        <p>Dnyani Mitr</p>
+        <div class="tabs">
+          <span class="on">Calendar</span><span>My Day</span><span>Visitors</span>
+          <span>Reminders</span><span>Campaigns</span><span>History</span>
+          <span>Sync</span><span>Settings</span>
+        </div>
+      </div>
+      <div class="scroll"><div class="body">
+
+        <div class="card">
+          <div class="mrow"><span>‹</span><span>August 2026</span><span>›</span></div>
+          <div class="grid7">
+            <div class="dow">M</div><div class="dow">T</div><div class="dow">W</div><div class="dow">T</div>
+            <div class="dow">F</div><div class="dow">S</div><div class="dow">S</div>
+            <div class="d o">27</div><div class="d o">28</div><div class="d o">29</div><div class="d o">30</div>
+            <div class="d o">31</div><div class="d">1</div><div class="d">2</div>
+            <div class="d">3</div><div class="d">4</div><div class="d">5</div><div class="d">6</div>
+            <div class="d">7</div><div class="d">8</div><div class="d">9</div>
+            <div class="d">10</div><div class="d">11</div><div class="d">12</div><div class="d">13</div>
+            <div class="d">14</div><div class="d">15<i class="dt"></i></div><div class="d">16</div>
+            <div class="d">17</div><div class="d">18<i class="dt"></i></div><div class="d">19</div><div class="d">20</div>
+            <div class="d">21</div><div class="d">22</div><div class="d">23</div>
+            <div class="d t">24</div><div class="d">25</div><div class="d">26</div><div class="d">27</div>
+            <div class="d">28</div><div class="d">29</div><div class="d">30</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="mrow"><span>24 August 2026</span></div>
+          <div class="btns">
+            <button class="btn" type="button" data-open="a">＋ Someone is coming</button>
+            <button class="btn g" type="button">＋ Plan a visit</button>
+          </div>
+
+          <div class="sec">Coming to us</div>
+          <div class="item"><b>रमेश जाधव</b><span>Inbound visit · 3 people</span></div>
+
+          <div class="sec">Needs catching up</div>
+          <div class="item"><b>मंगल कुलकर्णी</b><span class="warn">Overdue — 41 days</span></div>
+          <div class="item"><b>विजय देशमुख</b><span class="warn">Never contacted</span></div>
+
+          <div class="sec">Filter</div>
+          <label class="lbl">Interaction type</label>
+          <select><option>All types</option><option>Call</option><option>Visit</option></select>
+          <label class="lbl">Outcome</label>
+          <select><option>Any outcome</option><option>Successful</option><option>No answer</option></select>
+        </div>
+
+      </div></div>
+
+      <!-- centred dialog, as main.css does today -->
+      <div class="ov" id="ovA">
+        <div class="dlg">
+          <h4>Someone is coming</h4>
+          <label class="lbl">Phone number *</label>
+          <input type="tel" value="9822012345">
+          <label class="lbl">Their name *</label>
+          <input type="text" value="सुनीता पाटील">
+          <label class="lbl">Date *</label>
+          <input type="date" value="2026-08-24">
+          <label class="lbl">Type</label>
+          <select><option>Visit</option><option>Call</option><option>Event</option></select>
+          <label class="lbl">Occasion</label>
+          <select><option>None</option><option>Birthday</option><option>Anniversary</option></select>
+          <label class="lbl">Relation</label>
+          <select><option>Self</option><option>Child</option><option>Spouse</option></select>
+          <div class="btns">
+            <button class="btn" type="button" data-close="a">Save</button>
+            <button class="btn g" type="button" data-close="a">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ---------- PROPOSED ---------- -->
+  <div class="col" id="colNew">
+    <p class="caption"><span class="tag tag--new">Proposed</span> v3.3 — surface only</p>
+    <div class="phone"><div class="screen simB">
+      <div class="hdr">
+        <div class="org">
+          <div class="mark">🏠</div>
+          <div>
+            <h3>भगवान बाबा बालिकाश्रम</h3>
+            <p>ज्ञानी मित्र · सोमवार, २४ ऑगस्ट</p>
+          </div>
+        </div>
+        <div class="tabs">
+          <span class="on">आज · Today</span><span>माणसं</span><span>आठवणी</span>
+          <span>अहवाल</span><span>सेटिंग</span>
+        </div>
+      </div>
+      <div class="scroll"><div class="body">
+
+        <div class="stats">
+          <div class="stat"><b>3</b><span>आज येणारे</span></div>
+          <div class="stat"><b>1</b><span>वाढदिवस</span></div>
+          <div class="stat hi"><b>4</b><span>आभार बाकी</span></div>
+          <div class="stat"><b>2</b><span>बऱ्याच दिवसांत</span></div>
+        </div>
+
+        <div class="tiles">
+          <button class="tile pri" type="button" data-open="b"><em>➕</em>कुणीतरी येतंय<br>Someone is coming</button>
+          <button class="tile" type="button"><em>💐</em>आभार पाठवा<br>Send thanks</button>
+          <button class="tile" type="button"><em>🗓️</em>भेट ठरवा<br>Plan a visit</button>
+          <button class="tile" type="button"><em>📄</em>अहवाल<br>Report</button>
+        </div>
+
+        <div class="card">
+          <div class="mrow">
+            <b>ऑगस्ट २०२६</b>
+            <div class="nav2"><button type="button" aria-label="Previous month">‹</button><button type="button" aria-label="Next month">›</button></div>
+          </div>
+          <div class="grid7">
+            <div class="dow">सो</div><div class="dow">मं</div><div class="dow">बु</div><div class="dow">गु</div>
+            <div class="dow">शु</div><div class="dow">श</div><div class="dow">रवि</div>
+            <div class="d o">27</div><div class="d o">28</div><div class="d o">29</div><div class="d o">30</div>
+            <div class="d o">31</div><div class="d">1</div><div class="d">2</div>
+            <div class="d">3</div><div class="d">4</div><div class="d">5</div><div class="d">6</div>
+            <div class="d">7</div><div class="d">8</div><div class="d">9</div>
+            <div class="d">10</div><div class="d">11</div><div class="d">12</div><div class="d">13</div>
+            <div class="d">14</div><div class="d has">15<i class="dt"></i></div><div class="d">16</div>
+            <div class="d">17</div><div class="d has">18<i class="dt"></i></div><div class="d">19</div><div class="d">20</div>
+            <div class="d">21</div><div class="d">22</div><div class="d">23</div>
+            <div class="d t">24<i class="dt"></i></div><div class="d">25</div><div class="d">26</div><div class="d">27</div>
+            <div class="d">28</div><div class="d">29</div><div class="d">30</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec"><span>आज येणारे · Coming to us</span><i class="n">2</i></div>
+          <div class="item">
+            <b>रमेश जाधव</b>
+            <span class="when">दुपारी ४ · ३ माणसं</span>
+            <span class="chip mg">🎂 मुलीचा वाढदिवस</span>
+            <div class="btns"><button class="btn sm" type="button">आले का?</button></div>
+          </div>
+          <div class="item"><b>सुनीता पाटील</b><span class="when">वेळ ठरली नाही</span></div>
+
+          <div class="sec"><span>बऱ्याच दिवसांत भेट नाही</span><i class="n">2</i></div>
+          <div class="item"><b>मंगल कुलकर्णी</b><span>शेवटची भेट — जुलै मध्ये</span></div>
+          <div class="item"><b>विजय देशमुख</b><span>नवीन — अजून भेट नाही</span></div>
+
+          <div class="sec"><span>गेल्या वर्षी आज · A year ago</span><i class="n">1</i></div>
+          <div class="memory">
+            <div class="yr">२४ ऑगस्ट २०२५ · एक वर्षापूर्वी</div>
+            <b style="font-size:13px">अनिल आणि सुजाता शिंदे</b>
+            <span style="font-size:11.5px;color:var(--ink-soft);display:block">
+              मुलांसाठी जेवण घेऊन आले होते
+            </span>
+            <div class="btns">
+              <button class="btn sm" type="button">💐 आभार पाठवा</button>
+              <button class="btn sm g" type="button">तुमची आठवण येते</button>
+            </div>
+          </div>
+        </div>
+
+      </div></div>
+
+      <!-- bottom sheet -->
+      <div class="ov" id="ovB">
+        <div class="sheet">
+          <div class="grab"></div>
+          <h4>कुणीतरी येतंय</h4>
+          <p class="hint">फोन नंबर टाका — बाकी सगळं एका बोटाने.</p>
+
+          <label class="lbl">फोन नंबर · Phone number</label>
+          <input type="tel" value="98220 12345" inputmode="numeric">
+          <p class="found">✓ सुनीता पाटील — याआधी ४ वेळा आल्या आहेत</p>
+
+          <label class="lbl">कशासाठी? · What for</label>
+          <div class="chips" role="group">
+            <button type="button" aria-pressed="true">🎂 वाढदिवस</button>
+            <button type="button" aria-pressed="false">💍 लग्नाचा वाढदिवस</button>
+            <button type="button" aria-pressed="false">🪔 सण</button>
+            <button type="button" aria-pressed="false">🙏 सहज भेट</button>
+            <button type="button" aria-pressed="false">🕯️ स्मरण</button>
+          </div>
+
+          <label class="lbl">किती माणसं? · How many</label>
+          <div class="chips" role="group">
+            <button type="button" aria-pressed="false">१</button>
+            <button type="button" aria-pressed="false">२</button>
+            <button type="button" aria-pressed="true">३–५</button>
+            <button type="button" aria-pressed="false">५+</button>
+          </div>
+
+          <label class="lbl">काय आणलं? · What they brought</label>
+          <div class="chips mg" role="group">
+            <button type="button" aria-pressed="true">🍱 जेवण</button>
+            <button type="button" aria-pressed="false">💰 देणगी</button>
+            <button type="button" aria-pressed="false">📚 पुस्तकं</button>
+            <button type="button" aria-pressed="false">👕 कपडे</button>
+            <button type="button" aria-pressed="false">🛍️ किराणा</button>
+          </div>
+
+          <div class="btns">
+            <button class="btn" type="button" data-close="b">जतन करा · Save</button>
+            <button class="btn g" type="button" data-close="b">रद्द</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<p class="prose" style="margin-top:22px;color:var(--ink-soft);font-size:14px">
+  Both phones are live — tap <b>＋ Someone is coming</b> on either one and watch where the form
+  arrives. Sample names only; no real visitor data appears on this page.
+</p>
+
+<!-- ===================== EVIDENCE ===================== -->
+<div class="rule"><h2>What the review found</h2><span class="mr">measured in the code, 24 Aug 2026</span></div>
+
+<div class="figs">
+  <div class="fig"><b>26</b><span><code>&lt;select&gt;</code> dropdowns across our components</span></div>
+  <div class="fig"><b>9</b><span>checkboxes in our entire app</span></div>
+  <div class="fig"><b class="a">22</b><span>checkboxes in <em>one</em> form of the app they liked</span></div>
+  <div class="fig"><b class="a">8</b><span>CSS variables carrying their whole visual language</span></div>
+</div>
+
+<div class="prose">
+  <p class="lead">The gap was never features. It was <strong>how information gets into the
+  app</strong>, and <strong>what the app sounds like</strong> while you do it.</p>
+  <p>A checkbox or chip is one tap. A <code>&lt;select&gt;</code> is tap → read a list → scroll →
+  tap, rendered by whatever picker the phone’s manufacturer ships. A text field is the keyboard —
+  which, in Devanagari, on a low-cost handset, for someone in their fifties, is where an app stops
+  being usable and starts being work.</p>
+  <p>Our palette turned out to be <strong>Tailwind’s defaults, unchanged</strong> —
+  <code>#2563eb</code>, <code>#10b981</code>, <code>#ef4444</code>, <code>#f59e0b</code>. The most
+  common palette on the web. It reads as a developer tool, because it is the one every developer
+  tool uses. Theirs was eight hand-picked warm values applied to every single control. Their app
+  feels coherent because it <em>is</em> coherent — that is a pass we have to make, not a feature we
+  can add.</p>
+</div>
+
+<!-- ===================== PALETTE ===================== -->
+<div class="rule rule--sub"><h2>The palette, and where it comes from</h2></div>
+
+<div class="prose">
+  <p>Not copied from their app. Drawn from the object this software replaces: a bound paper visitor
+  register. Aged paper as the ground, the blue ruling of ledger paper as the structural line,
+  binding-cloth red for actions, marigold for occasions.</p>
+</div>
+
+<div class="sw">
+  <div class="swatch"><div class="chipc" style="background:#f6f2e8"></div><div class="meta">
+    <b>Paper</b><span>#f6f2e8</span><em>page ground</em></div></div>
+  <div class="swatch"><div class="chipc" style="background:#232b36"></div><div class="meta">
+    <b>Ink</b><span>#232b36</span><em>ballpoint blue-black</em></div></div>
+  <div class="swatch"><div class="chipc" style="background:#c3ccdb"></div><div class="meta">
+    <b>Rule</b><span>#c3ccdb</span><em>ledger ruling</em></div></div>
+  <div class="swatch"><div class="chipc" style="background:#8a3b36"></div><div class="meta">
+    <b>Binding</b><span>#8a3b36</span><em>every action</em></div></div>
+  <div class="swatch"><div class="chipc" style="background:#dc9a2e"></div><div class="meta">
+    <b>Marigold</b><span>#dc9a2e</span><em>occasions only</em></div></div>
+</div>
+
+<div class="prose" style="margin-top:20px">
+  <p>The rule colour does real work: every section heading on this page and inside the proposed
+  app sits <em>on</em> a horizontal line with its content hanging beneath — the way Devanagari
+  hangs from the शिरोरेखा, and the way a ledger rules a heading. One device, used everywhere,
+  meaning “a new column starts here”.</p>
+</div>
+
+<!-- ===================== PATTERNS ===================== -->
+<div class="rule"><h2>Seven changes to how it is touched</h2><span class="mr">no data model is affected</span></div>
+
+<div class="cols c3">
+  <div class="note good">
+    <h4>1 · Forms rise from the bottom</h4>
+    <p>Their form is a <strong>bottom sheet</strong> — it slides up from the thumb and is rounded
+      at the top, exactly like WhatsApp and every Android app these volunteers already use.</p>
+    <p>Ours is centred in the middle of the screen: a desktop dialog on a phone. One CSS line,
+      and much of why theirs feels native and ours feels like a website.</p>
+  </div>
+  <div class="note good">
+    <h4>2 · Chips instead of dropdowns</h4>
+    <p>Every short, stable list becomes tappable chips: what for, how many, relation, what they
+      brought. All options are visible without touching anything, so people discover choices they
+      would never have found inside a dropdown.</p>
+  </div>
+  <div class="note good">
+    <h4>3 · The first screen answers a question</h4>
+    <p>Theirs opens with counts for today, four large actions, and the day’s list — one scroll,
+      no navigation. Ours opens with a month grid.</p>
+    <p>Theirs answers <em>“how is today?”</em>. Ours answers <em>“what date is it?”</em></p>
+  </div>
+  <div class="note good">
+    <h4>4 · Large soft tiles, not small buttons</h4>
+    <p>Four big left-aligned targets with an emoji each, instead of <code>btn-sm</code>. Easier to
+      hit, and — more importantly — easier to <em>see</em>.</p>
+  </div>
+  <div class="note good">
+    <h4>5 · Emoji as the icon set</h4>
+    <p>🍱 💐 🪔 🎂 🕯️ used consistently. No image files, renders on every phone, and it crosses
+      reading speed: someone finds 🍱 faster than the word for it. We use emoji occasionally,
+      which is worse than not at all.</p>
+  </div>
+  <div class="note good">
+    <h4>6 · One geometry everywhere</h4>
+    <p>Every control in their app: 11px padding, soft corners, one type size. No exceptions in the
+      whole file. Generous radii read as friendly; small sharp controls read as technical.</p>
+  </div>
+  <div class="note good">
+    <h4>7 · Never a blank screen</h4>
+    <p>Their report screen opens already showing today. Their date fields arrive filled in. Nobody
+      ever faces an empty form they must complete before seeing anything at all.</p>
+  </div>
+  <div class="note hold">
+    <h4>The risk, stated plainly</h4>
+    <p>This is a <strong>wide change across every screen</strong>, in a codebase whose only UI
+      tests check that elements render — not that they are visible.</p>
+    <p>That guard exists because a form once shipped with CSS classes that did not exist: every
+      test passed and the button silently did nothing. A palette-and-layout sweep is exactly the
+      change that can pass a green test suite and still look broken on a Redmi. It needs checking
+      on a real phone, not a test run.</p>
+  </div>
+  <div class="note hold">
+    <h4>Do it whole, or not at all</h4>
+    <p>These seven are not separate items competing for priority. They are one pass.</p>
+    <p>Doing three of seven is <em>worse</em> than doing none — a half-converted app is visibly
+      inconsistent in a way today’s app is not.</p>
+  </div>
+</div>
+
+<!-- ===================== LANGUAGE ===================== -->
+<div class="rule"><h2>What the app calls things</h2><span class="mr">every string is user-facing</span></div>
+
+<div class="prose">
+  <p>These are real strings from the app today. The left column is our architecture appearing on
+  their screen. The right column is what someone running a children’s home would say.</p>
+</div>
+
+<table class="ba">
+  <thead><tr><th>The app says today</th><th>What it should say</th></tr></thead>
+  <tbody>
+    <tr><td class="was"><code>Machine Role: Root or Satellite?</code></td>
+        <td class="now">Nothing — never ask. Every phone is a satellite; the office computer is promoted later, in Settings.</td></tr>
+    <tr><td class="was"><code>Overdue — 41 days</code></td>
+        <td class="now">शेवटची भेट — जुलै मध्ये · <span style="color:var(--ink-soft);font-weight:400">Last visit — in July</span></td></tr>
+    <tr><td class="was"><code>Never contacted</code></td>
+        <td class="now">नवीन — अजून भेट नाही · <span style="color:var(--ink-soft);font-weight:400">New — no visit yet</span></td></tr>
+    <tr><td class="was"><code>Follow-ups Due</code></td>
+        <td class="now">फोन करायला हवा · <span style="color:var(--ink-soft);font-weight:400">Worth a call</span></td></tr>
+    <tr><td class="was"><code>Data Quality</code></td>
+        <td class="now">Removed from view. It is a maintainer’s concern wearing a user’s clothing.</td></tr>
+    <tr><td class="was"><code>NGO Visitor &amp; Reminder Manager</code></td>
+        <td class="now">The NGO’s own name, at the top of every screen.</td></tr>
+  </tbody>
+</table>
+
+<div class="note bad" style="margin-top:26px">
+  <h4>Why this matters more than it looks</h4>
+  <p><em>Overdue</em> and <em>Never contacted</em> are accusations. Every morning, the app opens by
+    listing what the volunteer has failed to do. The other app opens with who came to see the
+    children.</p>
+  <p>Same query, same rows, same urgency — different sentence. Over forty days that difference
+    decides whether the app is opened at all.</p>
+</div>
+
+<!-- ===================== THE REQUESTED FEATURE ===================== -->
+<div class="rule"><h2>“Who came on this day last year?”</h2><span class="mr">requested by the NGO · no migration needed</span></div>
+
+<div class="cols">
+  <div class="prose">
+    <p class="lead">This is the one feature on the list they asked for themselves — and the data
+      for it is already in the app, being thrown away.</p>
+    <p>Every visit is written down once, shown on its own day, and never surfaced again. The
+      matcher that finds “this date in other years” already exists and is already tested — it is
+      used for birthdays. It has simply never been pointed at past visits.</p>
+    <p>It is also the answer to a real problem: <strong>most days have nothing scheduled</strong>,
+      so the app opens empty and there is no reason to look at it. A memory gives a quiet day
+      something to show.</p>
+  </div>
+  <div>
+    <div class="note hold">
+      <h4>Three things it must get right</h4>
+      <p><strong>Never show an empty section.</strong> With 300 visitors over two years there is
+        less than one visit per calendar date. Match the exact day first; if nothing, widen to a
+        few days either side and say so — “around this time last year”.</p>
+      <p><strong>Never say “we miss you” to someone who came last month.</strong> Check the last
+        visit first. Under six months, the only safe message is thanks.</p>
+      <p><strong>“Thanks for the gift” does not work yet.</strong> We do not record what anyone
+        brings. That is the one change on the list that needs a new field — and it can never be
+        filled in backwards. Every month it waits is a month of gift history that cannot be
+        recovered.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== NOT COPYING ===================== -->
+<div class="rule"><h2>What we are deliberately not copying</h2><span class="mr">their app got things wrong too</span></div>
+
+<div class="cols c3">
+  <div class="note bad"><h4>Delete sitting beside Close</h4>
+    <p>Five buttons in a row — WhatsApp, Card, Edit, <em>Close, Delete</em> — a destructive action
+      next to a dismissal, both grey, on a phone. Our confirm dialog is safer and stays.</p></div>
+  <div class="note bad"><h4>A sheet that fills the screen</h4>
+    <p>With 22 checkboxes their form reaches 92% of the screen height, losing the whole point of a
+      bottom sheet. Sheets only work if the form is short — ours must stay short.</p></div>
+  <div class="note bad"><h4>Native <code>alert()</code> for every error</h4>
+    <p>Jarring, styled by the phone manufacturer, and it blocks everything. Our toast is better and
+      stays.</p></div>
+  <div class="note bad"><h4>Editing that changes nothing</h4>
+    <p>Their gratitude-message editor writes to a function that a later duplicate overwrites. The
+      settings screen edits messages the app never sends.</p></div>
+  <div class="note bad"><h4>An export that is one long line</h4>
+    <p>Their CSV joins rows with a literal backslash-r instead of a line break, so the whole export
+      opens in Excel as a single row.</p></div>
+  <div class="note bad"><h4>Buttons that throw</h4>
+    <p>Every button in their Reminders tab passes an unquoted ID and fails on click. None of this
+      is visible in a demo — it is what “generated in a few minutes” costs.</p></div>
+</div>
+
+<!-- ===================== UNCHANGED ===================== -->
+<div class="rule"><h2>What this does not touch</h2><span class="mr">the reason to keep this app</span></div>
+
+<div class="cols c3">
+  <div class="note good"><h4>Everything works offline</h4>
+    <p>No account, no login, no network. The hosted-database idea was considered and dropped —
+      each NGO keeps its own data and its own backup, as today.</p></div>
+  <div class="note good"><h4>People are still people</h4>
+    <p>Matching by phone number stays. The other app makes a new row for every visit, so the same
+      supporter appears three times and their name is the only thing joining them.</p></div>
+  <div class="note good"><h4>Birthdays still come back</h4>
+    <p>A birthday recorded this year appears next year, and every year. In the other app it never
+      returns — which is invisible in a demo and decisive in year two.</p></div>
+  <div class="note good"><h4>WhatsApp backup and sync stay</h4>
+    <p>Untouched. A full backup is about half a megabyte compressed — it fits in a message, and
+      that is what protects an NGO when a phone breaks.</p></div>
+  <div class="note good"><h4>No new permanent fields — except one</h4>
+    <p>Everything shown above is surface. Only “what they brought” adds a field, and only if you
+      approve it.</p></div>
+  <div class="note good"><h4>Nothing is deleted</h4>
+    <p>Campaigns and bulk messaging stay until we know whether they are used. The test is one
+      question to each NGO: how many have you sent since March?</p></div>
+</div>
+
+<!-- ===================== DECISIONS ===================== -->
+<div class="rule"><h2>Decisions needed before anything is built</h2></div>
+
+<ol class="dec">
+  <li><b>Does the right-hand phone feel like the app they liked?</b>
+    <p>Yes, no, or “close, but —”. This is the whole reason the page exists. Everything below
+      matters less than this answer.</p></li>
+  <li><b>Marathi first, or English first?</b>
+    <p>The preview puts Marathi first with English beneath. That is a real choice: it is warmer for
+      field volunteers and slower for the coordinators on laptops. Ask both groups separately —
+      they will not agree.</p></li>
+  <li><b>Binding red, or something else?</b>
+    <p>The action colour is drawn from a register’s cloth binding. It is warm and calm, but red
+      carries meaning. If it reads wrong, marigold or a deep green work equally well and cost one
+      line to change.</p></li>
+  <li><b>Approve “what they brought”?</b>
+    <p>The only permanent change on the list. It makes the reports genuinely useful and turns next
+      year’s memory into “thank you for the meal you brought”. It also cannot be undone, and it
+      cannot be backfilled.</p></li>
+  <li><b>Who is the pilot?</b>
+    <p>One phone and one laptop, upgraded first, used for two days before anyone else sees it. This
+      is a wide visual change, and a real phone is the only test that counts.</p></li>
+</ol>
+
+<div class="foot">
+  <p><b>Dnyani Mitr · design preview v3.3</b> — a proposal, not a build. Nothing on this page
+    exists in the app yet.</p>
+  <p>Names and numbers shown are samples. No real visitor data appears here, and this file contains
+    none.</p>
+  <p>Prepared 24 August 2026, from a review of the app the NGO shared and a measurement of our own
+    code. Open it offline; it needs no network.</p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  // Segmented control — one phone at a time on small screens.
+  var cols = { old: document.getElementById('colOld'), new: document.getElementById('colNew') };
+  var segBtns = document.querySelectorAll('.seg button');
+
+  function apply(which){
+    segBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.show === which)); });
+    if (window.matchMedia('(max-width:899px)').matches) {
+      cols.old.hidden = which !== 'old';
+      cols.new.hidden = which !== 'new';
+    } else {
+      cols.old.hidden = false;
+      cols.new.hidden = false;
+    }
+  }
+  segBtns.forEach(function(b){ b.addEventListener('click', function(){ apply(b.dataset.show); }); });
+
+  var mq = window.matchMedia('(max-width:899px)');
+  function sync(){
+    var pressed = document.querySelector('.seg button[aria-pressed="true"]');
+    apply(pressed ? pressed.dataset.show : 'new');
+  }
+  mq.addEventListener ? mq.addEventListener('change', sync) : mq.addListener(sync);
+  sync();
+
+  // Both overlays: open, close, and close on backdrop tap.
+  var ov = { a: document.getElementById('ovA'), b: document.getElementById('ovB') };
+  document.querySelectorAll('[data-open]').forEach(function(el){
+    el.addEventListener('click', function(){ ov[el.dataset.open].classList.add('show'); });
+  });
+  document.querySelectorAll('[data-close]').forEach(function(el){
+    el.addEventListener('click', function(){ ov[el.dataset.close].classList.remove('show'); });
+  });
+  Object.keys(ov).forEach(function(k){
+    ov[k].addEventListener('click', function(e){ if (e.target === ov[k]) ov[k].classList.remove('show'); });
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') Object.keys(ov).forEach(function(k){ ov[k].classList.remove('show'); });
+  });
+
+  // Chips are live so the difference can be felt, not just read.
+  document.querySelectorAll('.chips').forEach(function(group){
+    var multi = group.classList.contains('mg');
+    group.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var on = btn.getAttribute('aria-pressed') === 'true';
+        if (!multi) group.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+        btn.setAttribute('aria-pressed', String(!on));
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

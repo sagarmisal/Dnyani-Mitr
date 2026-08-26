@@ -10,6 +10,7 @@
 // attached, rather than as a bare system dialog.
 
 import StateManager from '../../core/state.js';
+import { t } from '../../utils/i18n.js';
 import NotificationService from '../../services/NotificationService.js';
 import { Toast } from './Toast.js';
 import { APP_VERSION, FEATURES } from '../../utils/constants.js';
@@ -98,7 +99,7 @@ export class WhatsNew {
                 if (perm && perm.granted) {
                     StateManager.updateSettings({ notificationsEnabled: true, notificationDigestTime: '09:00' });
                     await NotificationService.sync(StateManager.getSettings());
-                    Toast.show('You will get a reminder each morning.', 'success');
+                    Toast.show(`${t('p.dailyReminder')}`, 'success');
                 } else {
                     // Refused, or unavailable on desktop. Not an error, and not
                     // worth a scary message — just leave it off.

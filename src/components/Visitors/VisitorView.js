@@ -6,7 +6,8 @@ import EngagementService from '../../services/EngagementService.js';
 import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
 import EventBus, { EVENTS } from '../../core/events.js';
-import { formatDate, formatRelativeTime, normalizePhone } from '../../utils/formatters.js';
+import { formatDate, formatRelativeTime, normalizePhone, visitorDisplayName } from '../../utils/formatters.js';
+import { t } from '../../utils/i18n.js';
 import { RELATIONSHIP_LABELS, INTERACTION_TYPE_LABELS, INTERACTION_OUTCOME_LABELS } from '../../utils/constants.js';
 import { ConfirmDialog } from '../UI/ConfirmDialog.js';
 import { Toast } from '../UI/Toast.js';
@@ -40,9 +41,9 @@ export class VisitorView {
       const errorContainer = document.createElement('div');
       errorContainer.innerHTML = `
         <div class="card text-center" style="padding: 3rem;">
-          <h3>Visitor Not Found</h3>
-          <p class="text-secondary">The visitor you are looking for does not exist or has been deleted.</p>
-          <button class="btn btn-primary" onclick="window.location.hash='${ROUTES.VISITORS}'">Back to List</button>
+          <h3>${t('view.notFound')}</h3>
+          <p class="text-secondary">${t('view.notFound')}</p>
+          <button class="btn btn-primary" onclick="window.location.hash='${ROUTES.VISITORS}'">${t('view.back')}</button>
         </div>
       `;
       return errorContainer;
@@ -51,8 +52,12 @@ export class VisitorView {
     const container = document.createElement('div');
     container.className = 'visitor-view-container';
 
-    const self = this.visitor.contacts.find(c => c.relationType === 'SELF');
-    const family = this.visitor.contacts.filter(c => c.relationType !== 'SELF');
+    // Records arriving through merge are plain objects — SyncService never runs
+    // them past the models — so `contacts` can genuinely be missing. Crashing
+    // here blanks the screen a volunteer opens before phoning someone.
+    const contacts = Array.isArray(this.visitor.contacts) ? this.visitor.contacts : [];
+    const self = contacts.find(c => c.relationType === 'SELF');
+    const family = contacts.filter(c => c.relationType !== 'SELF');
     const phone = self?.phones?.[0] || '';
     const email = self?.emails?.[0] || '';
     const hasPhone = !!normalizePhone(phone);
@@ -63,9 +68,9 @@ export class VisitorView {
         <div>
           <button id="back-btn" class="btn btn-secondary btn-sm" style="margin-bottom: 0.5rem;">← Back</button>
           <h2 style="margin: 0;">
-            ${this.escapeHtml(self?.name || 'Unknown Visitor')}
-            ${isDnc ? '<span class="badge badge-dnc">Do Not Contact</span>' : ''}
-            ${this.visitor.consentGiven ? '<span class="badge badge-consent" title="Consent recorded">Consent</span>' : ''}
+            ${this.escapeHtml(visitorDisplayName(this.visitor))}
+            ${isDnc ? `<span class="badge badge-dnc">${t('view.doNotContact')}</span>` : ''}
+            ${this.visitor.consentGiven ? `<span class="badge badge-consent" title="${t('view.consentRecorded')}">${t('view.consent')}</span>` : ''}
             ${this.renderEngagementBadge()}
           </h2>
           <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
@@ -77,14 +82,14 @@ export class VisitorView {
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           ${!isDnc ? `
             ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-whatsapp" title="WhatsApp">💬 WhatsApp</button>` : ''}
-            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-call" title="Call">📞 Call</button>` : ''}
+            ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-call" title="${t('view.call')}">📞 ${t('view.call')}</button>` : ''}
             ${hasPhone ? `<button class="btn btn-sm comm-btn" id="btn-sms" title="SMS">📱 SMS</button>` : ''}
-            ${email ? `<button class="btn btn-sm comm-btn" id="btn-email" title="Email">📧 Email</button>` : ''}
+            ${email ? `<button class="btn btn-sm comm-btn" id="btn-email" title="${t('view.email')}">📧 ${t('view.email')}</button>` : ''}
           ` : ''}
-          <button id="log-interaction-btn" class="btn btn-success">Log Interaction</button>
-          <button id="toggle-dnc-btn" class="btn btn-sm ${isDnc ? 'btn-secondary' : 'btn-error'}">${isDnc ? 'Allow Contact' : 'Do Not Contact'}</button>
-          <button id="edit-visitor-btn" class="btn btn-primary">Edit</button>
-          <button id="delete-visitor-btn" class="btn btn-error">Delete</button>
+          <button id="log-interaction-btn" class="btn btn-success">${t('view.logInteraction')}</button>
+          <button id="toggle-dnc-btn" class="btn btn-sm ${isDnc ? 'btn-secondary' : 'btn-error'}">${isDnc ? t('view.allowContact') : t('view.doNotContact')}</button>
+          <button id="edit-visitor-btn" class="btn btn-primary">${t('action.edit')}</button>
+          <button id="delete-visitor-btn" class="btn btn-error">${t('action.delete')}</button>
         </div>
       </div>
 
@@ -93,7 +98,7 @@ export class VisitorView {
           <!-- Contact Cards -->
           <div class="card" style="margin-bottom: 2rem;">
             <div class="card-header">
-              <h3 class="card-title">Primary Contact</h3>
+              <h3 class="card-title">${t('view.primaryContact')}</h3>
             </div>
             <div class="card-body">
               ${this.renderContactDetails(self)}
@@ -103,7 +108,7 @@ export class VisitorView {
           ${family.length > 0 ? `
             <div class="card" style="margin-bottom: 2rem;">
               <div class="card-header">
-                <h3 class="card-title">Family members</h3>
+                <h3 class="card-title">${t('view.family')}</h3>
               </div>
               <div class="card-body" style="padding: 0;">
                 <div class="family-list">
@@ -127,7 +132,7 @@ export class VisitorView {
           ${this.visitor.notes ? `
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">General Notes</h3>
+                <h3 class="card-title">${t('view.generalNotes')}</h3>
               </div>
               <div class="card-body">
                 <p style="white-space: pre-wrap;">${this.escapeHtml(this.visitor.notes)}</p>
@@ -140,7 +145,7 @@ export class VisitorView {
           <!-- Timeline / Interactions -->
           <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <h3 class="card-title">Timeline</h3>
+              <h3 class="card-title">${t('view.timeline')}</h3>
               <span class="badge badge-primary">${this.interactions.length}</span>
             </div>
             <div class="card-body" style="padding: 1rem;">
@@ -153,13 +158,13 @@ export class VisitorView {
           <!-- Tags -->
           <div class="card" style="margin-top: 2rem;">
             <div class="card-header">
-              <h3 class="card-title">Tags</h3>
+              <h3 class="card-title">${t('view.tags')}</h3>
             </div>
             <div class="card-body">
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 ${this.visitor.tags.length > 0
         ? this.visitor.tags.map(tag => `<span class="tag">${this.escapeHtml(tag)}</span>`).join('')
-        : '<p class="text-secondary" style="font-size: 0.875rem;">No tags</p>'}
+        : `<p class="text-secondary" style="font-size: 0.875rem;">${t('view.noTags')}</p>`}
               </div>
             </div>
           </div>
@@ -181,27 +186,27 @@ export class VisitorView {
     return `
       <div class="details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
         <div>
-          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Phones</label>
-          ${contact.phones.length > 0
-        ? contact.phones.map(p => `<div>📞 ${this.escapeHtml(p)}</div>`).join('')
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">${t('view.phones')}</label>
+          ${(contact.phones || []).length > 0
+        ? (contact.phones || []).map(p => `<div>📞 ${this.escapeHtml(p)}</div>`).join('')
         : '<div class="text-secondary">---</div>'}
         </div>
         <div>
-          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Emails</label>
-          ${contact.emails.length > 0
-        ? contact.emails.map(e => `<div>📧 ${this.escapeHtml(e)}</div>`).join('')
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">${t('view.emails')}</label>
+          ${(contact.emails || []).length > 0
+        ? (contact.emails || []).map(e => `<div>📧 ${this.escapeHtml(e)}</div>`).join('')
         : '<div class="text-secondary">---</div>'}
         </div>
         <div>
-          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Dates</label>
+          <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">${t('view.dates')}</label>
           ${contact.dob ? `<div>🎂 ${formatDate(contact.dob, contact.dobMonthOnly)} (DOB)</div>` : ''}
           ${contact.marriageDate ? `<div>💍 ${formatDate(contact.marriageDate, contact.marriageMonthOnly)} (Anniversary)</div>` : ''}
           ${contact.deathDate ? `<div>🕯️ ${formatDate(contact.deathDate, contact.deathMonthOnly)} (Death)</div>` : ''}
-          ${!contact.dob && !contact.marriageDate && !contact.deathDate ? '<div class="text-secondary">None logged</div>' : ''}
+          ${!contact.dob && !contact.marriageDate && !contact.deathDate ? `<div class="text-secondary">${t('view.noneLogged')}</div>` : ''}
         </div>
         ${contact.notes ? `
           <div style="grid-column: 1 / -1;">
-            <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">Specific Notes</label>
+            <label style="display: block; font-size: 0.75rem; color: var(--color-text-tertiary); text-transform: uppercase;">${t('view.specificNotes')}</label>
             <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">${this.escapeHtml(contact.notes)}</p>
           </div>
         ` : ''}
@@ -217,8 +222,8 @@ export class VisitorView {
       return `
         <div class="empty-state" style="padding: 2rem 1rem;">
           <div class="empty-state-icon">💬</div>
-          <p class="empty-state-text">No interactions yet</p>
-          <p class="empty-state-hint">Use "Log Interaction" to record your first contact.</p>
+          <p class="empty-state-text">${t('view.noInteractions')}</p>
+          <p class="empty-state-hint">${t('view.firstRecordHint')}</p>
         </div>
       `;
     }
@@ -275,9 +280,9 @@ export class VisitorView {
     });
 
     this.container.querySelector('#delete-visitor-btn').addEventListener('click', async () => {
-      const name = this.visitor.contacts.find(c => c.relationType === 'SELF')?.name || 'this visitor';
+      const name = (this.visitor.contacts || []).find(c => c.relationType === 'SELF')?.name || 'this visitor';
       const confirmed = await ConfirmDialog.show({
-        title: 'Delete Visitor',
+        title: t('view.deletePerson'),
         message: `Are you sure you want to delete ${name}?\nThis action can be undone by an administrator.`,
         confirmText: 'Delete',
         cancelText: 'Cancel',
@@ -285,16 +290,16 @@ export class VisitorView {
       });
       if (confirmed) {
         VisitorService.delete(this.visitorId);
-        Toast.show('Visitor deleted successfully', 'success');
+        Toast.show(t('view.deleted'), 'success');
         Router.navigate(ROUTES.VISITORS);
       }
     });
 
     this.container.querySelector('#log-interaction-btn').addEventListener('click', () => {
-      const self = this.visitor.contacts.find(c => c.relationType === 'SELF');
+      const self = (this.visitor.contacts || []).find(c => c.relationType === 'SELF');
       InteractionLogger.showFull({
         visitorId: this.visitorId,
-        visitorName: self?.name || 'Unknown',
+        visitorName: visitorDisplayName(this.visitor),
         onDone: () => {
           this.loadData();
           this.renderTimelineContainer();
@@ -303,7 +308,7 @@ export class VisitorView {
     });
 
     // Communication buttons
-    const self2 = this.visitor.contacts.find(c => c.relationType === 'SELF');
+    const self2 = (this.visitor.contacts || []).find(c => c.relationType === 'SELF');
     const phone2 = self2?.phones?.[0] || '';
     const email2 = self2?.emails?.[0] || '';
 
@@ -347,14 +352,14 @@ export class VisitorView {
       const action = current ? 'allow contact for' : 'mark as Do Not Contact for';
       const name = self2?.name || 'this visitor';
       const confirmed = await ConfirmDialog.show({
-        title: current ? 'Allow Contact' : 'Do Not Contact',
+        title: current ? t('view.allowContact') : t('view.doNotContact'),
         message: `Are you sure you want to ${action} ${name}?${!current ? '\nThey will be hidden from reminders and communication.' : ''}`,
-        confirmText: current ? 'Allow Contact' : 'Mark DNC',
+        confirmText: current ? t('view.allowContact') : t('view.markDnc'),
         type: current ? 'info' : 'warning'
       });
       if (confirmed) {
         VisitorService.update(this.visitorId, { doNotContact: !current });
-        Toast.show(current ? 'Contact allowed' : 'Marked as Do Not Contact', 'success');
+        Toast.show(current ? t('view.dncCleared') : t('view.dncSet'), 'success');
         this.loadData();
         this.fullRefresh();
       }
@@ -474,7 +479,8 @@ export class VisitorView {
 
     if (nextFollowUp && (!nextEvent || nextFollowUp <= nextEvent)) {
       const days = Math.round((nextFollowUp - today) / 86400000);
-      const when = days <= 0 ? 'today (overdue)' : days === 1 ? 'tomorrow' : `in ${days} days`;
+      // "today (overdue)" scolded someone for a thing due today.
+      const when = days <= 0 ? t('status.dueToday') : days === 1 ? 'tomorrow' : `in ${days} days`;
       return `Next: follow-up ${when}`;
     }
     if (nextEvent) {
@@ -490,10 +496,14 @@ export class VisitorView {
    */
   renderLastContactInfo() {
     const daysSince = EngagementService.getDaysSinceLastInteraction(this.visitorId);
-    if (daysSince === Infinity) return ' | <span style="color:#ef4444;">Never contacted</span>';
-    if (daysSince === 0) return ' | Last contact: <span style="color:#22c55e;">Today</span>';
-    const color = daysSince <= 30 ? '#22c55e' : daysSince <= 60 ? '#f59e0b' : '#ef4444';
-    return ` | Last contact: <span style="color:${color};">${daysSince} days ago</span>`;
+    // A brand-new supporter was greeted with a red "Never contacted" — a
+    // reproach for a person who had just arrived (D-10).
+    if (daysSince === Infinity) return ` | <span class="text-secondary">${t('status.neverVisited')}</span>`;
+    if (daysSince === 0) return ` | ${t('status.lastVisit', { when: t('action.today') })}`;
+    // These three escaped the palette repoint: raw Tailwind greens, ambers and
+    // reds sitting in a string the sweep never read.
+    const color = daysSince <= 30 ? 'var(--lg-leaf)' : daysSince <= 60 ? 'var(--lg-marigold-i)' : 'var(--lg-danger)';
+    return ` | ${t('status.lastVisit', { when: `<span style="color:${color};">${daysSince}</span>` })}`;
   }
 
   /**

@@ -1,9 +1,10 @@
 // Main Application Entry Point
 
 import StateManager from './core/state.js';
+import { t, getLang, setLang, initLang } from './utils/i18n.js';
+import { escapeHTML } from './utils/helpers.js';
 import Router, { ROUTES } from './core/router.js';
 import ActivationManager from './core/activation.js';
-import { ActivationScreen } from './components/Activation/ActivationScreen.js';
 import { VisitorList } from './components/Visitors/VisitorList.js';
 import { VisitorForm } from './components/Visitors/VisitorForm.js';
 import { VisitorView } from './components/Visitors/VisitorView.js';
@@ -32,6 +33,7 @@ class App {
    * Initialize the application
    */
   async init() {
+    initLang();   // restore the saved language before anything renders (D-23)
     console.log(`${APP_NAME} v${APP_VERSION} - Initializing...`);
 
     // Initialize state
@@ -40,26 +42,12 @@ class App {
     // Get app container
     this.appContainer = document.getElementById('app');
 
-    // Check activation status
-    if (!ActivationManager.isActivated()) {
-      this.showActivationScreen();
-    } else {
-      this.initializeMainApp();
-    }
-  }
-
-  /**
-   * Show activation screen
-   */
-  showActivationScreen() {
-    console.log('App not activated - showing activation screen');
-
-    const activationScreen = new ActivationScreen();
-    const view = activationScreen.render();
-
-    this.appContainer.innerHTML = '';
-    this.appContainer.appendChild(view);
-    this.currentView = activationScreen;
+    // D-28 — no gate. Give the device an identity and get out of the way.
+    // The master key never protected anything (the valid keys shipped in
+    // KEYS.md); it only stood in the doorway, and adoption from zero is the
+    // problem we actually have.
+    ActivationManager.ensureActivated();
+    this.initializeMainApp();
   }
 
   /**
@@ -97,33 +85,43 @@ class App {
    * Render main application layout
    */
   renderLayout() {
-    const machineInfo = ActivationManager.getMachineInfo();
+    // D-22 — three layers of identity, and only the middle one is editable:
+    //   the Seva Sankalp mark      fixed, always present
+    //   the NGO's own name         configurable, and the LARGEST thing here
+    //   ज्ञानी मित्र                fixed, always present, quietly
+    //
+    // The NGO's name is bigger than the product's on purpose. The NGO is who
+    // the user is; the app is only the tool they picked up. Making that
+    // hierarchy visible is the cheapest available answer to "it felt like
+    // somebody else's app".
+    const settings = StateManager.getSettings() || {};
+    const orgName = (settings.organizationName || '').trim();
+    const lang = getLang();
+
     this.appContainer.innerHTML = `
       <header class="app-header">
         <div class="container">
-          <div class="header-content">
-            <div class="header-logo">
-              <img src="${logoSrc}" alt="Logo" style="height: 48px;">
-              <div>
-                <h1 class="header-title">Dnyani Mitr</h1>
-                <p class="header-subtitle">Verified Visitor & Reminder System</p>
-              </div>
+          <div class="lg-brand">
+            <img class="lg-brand-mark" src="${logoSrc}" alt="${escapeHTML(t('app.by'))}">
+            <div class="lg-brand-names">
+              ${orgName
+                ? `<h1 class="lg-brand-org">${escapeHTML(orgName)}</h1>
+                   <p class="lg-brand-app">${escapeHTML(t('app.name'))}</p>`
+                : `<h1 class="lg-brand-org">${escapeHTML(t('app.name'))}</h1>
+                   <p class="lg-brand-app">${escapeHTML(t('app.by'))}</p>`}
             </div>
-            <div class="machine-info text-secondary" style="font-size: 0.875rem;">
-              <div><strong>${machineInfo.machineName}</strong></div>
-              <div>${machineInfo.machineRole === 'root' ? '📊 Root Machine' : '📱 Satellite Machine'}</div>
+            <div class="lg-lang" role="group" aria-label="${escapeHTML(t('settings.language'))}">
+              <button type="button" data-lang="mr" aria-pressed="${lang === 'mr'}">मराठी</button>
+              <button type="button" data-lang="en" aria-pressed="${lang === 'en'}">English</button>
             </div>
           </div>
-          
+
           <nav class="app-nav">
-            <a href="#${ROUTES.CALENDAR}" class="nav-link">Calendar</a>
-            <a href="#${ROUTES.DASHBOARD}" class="nav-link">My Day</a>
-            <a href="#${ROUTES.VISITORS}" class="nav-link">Visitors</a>
-            <a href="#${ROUTES.REMINDERS}" class="nav-link">Reminders</a>
-            <a href="#${ROUTES.CAMPAIGNS}" class="nav-link">Campaigns</a>
-            <a href="#${ROUTES.INTERACTIONS}" class="nav-link">History</a>
-            <a href="#${ROUTES.SYNC}" class="nav-link">Sync</a>
-            <a href="#${ROUTES.SETTINGS}" class="nav-link">Settings</a>
+            <a href="#${ROUTES.CALENDAR}" class="nav-link">${escapeHTML(t('nav.today'))}</a>
+            <a href="#${ROUTES.VISITORS}" class="nav-link">${escapeHTML(t('nav.people'))}</a>
+            <a href="#${ROUTES.REMINDERS}" class="nav-link">${escapeHTML(t('nav.remember'))}</a>
+            <a href="#${ROUTES.REPORTS}" class="nav-link">${escapeHTML(t('nav.reports'))}</a>
+            <a href="#${ROUTES.SETTINGS}" class="nav-link">${escapeHTML(t('nav.settings'))}</a>
           </nav>
         </div>
       </header>
@@ -145,6 +143,19 @@ class App {
       </footer>
     `;
 
+    // The toggle reloads rather than re-rendering: screens are built as DOM
+    // strings with no binding, so a partial re-render leaves half the app in
+    // the old language — which looks broken in exactly the way we are fixing.
+    this.appContainer.querySelectorAll('.lg-lang button').forEach(b => {
+      b.addEventListener('click', () => {
+        const code = b.dataset.lang;
+        if (code === getLang()) return;
+        StateManager.updateSettings({ language: code });
+        setLang(code);
+        window.location.reload();
+      });
+    });
+
     // Update active nav link on route change
     this.updateActiveNavLink();
   }
@@ -153,9 +164,10 @@ class App {
    * Register application routes
    */
   registerRoutes() {
-    // Activation route
+    // The activation route survives only so an old bookmark or a deep link
+    // does not dead-end. There is no screen behind it any more.
     Router.register(ROUTES.ACTIVATION, () => {
-      this.showActivationScreen();
+      Router.navigate(this.landingRoute());
     });
 
     // Calendar route (Iter 11) — the landing screen.
@@ -226,6 +238,12 @@ class App {
     Router.register(ROUTES.INTERACTIONS, () => {
       const history = new InteractionHistory();
       this.renderComponent(history.render());
+    });
+
+    // Reports route (J4) — the अहवाल tab used to land on My Day.
+    Router.register(ROUTES.REPORTS, () => {
+      const reports = new ReportsPage();
+      this.renderComponent(reports.render());
     });
 
     // Sync route

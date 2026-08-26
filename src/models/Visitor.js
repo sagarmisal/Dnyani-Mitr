@@ -1,6 +1,7 @@
 // Contact Model
 
 import { generateId } from '../utils/helpers.js';
+import { visitorDisplayName } from '../utils/formatters.js';
 import { getCurrentDate } from '../utils/formatters.js';
 import { RELATIONSHIP_TYPES } from '../utils/constants.js';
 
@@ -46,8 +47,9 @@ export class Visitor {
      * Get display name (from SELF contact)
      */
     getDisplayName() {
-        const self = this.getSelfContact();
-        return self ? self.name : 'Unknown';
+        // D-07 — falls back to the number, so a nameless record is legible
+        // rather than a blank row. Display only; never used to address anyone.
+        return visitorDisplayName(this);
     }
 
     /**

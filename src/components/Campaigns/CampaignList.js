@@ -2,6 +2,7 @@
 // of past campaigns. Entry point to the CampaignBuilder.
 
 import Router from '../../core/router.js';
+import { t } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import OccasionService from '../../services/OccasionService.js';
 import CampaignService from '../../services/CampaignService.js';
@@ -34,14 +35,14 @@ export class CampaignList {
         this.container.innerHTML = `
             <div class="dashboard-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
                 <div>
-                    <h2>Campaigns</h2>
+                    <h2>${t('camp.list')}</h2>
                     <p class="text-secondary">Send festival / occasion greetings & invitations in bulk.</p>
                 </div>
                 <button id="camp-new-btn" class="btn btn-primary">+ New Campaign</button>
             </div>
 
             <div class="card" style="margin-top:1rem;">
-                <div class="card-header"><h3 class="card-title">Upcoming occasions</h3></div>
+                <div class="card-header"><h3 class="card-title">${t('camp.upcoming')}</h3></div>
                 <div class="card-body">
                     ${upcoming.length ? `
                         <div style="display:flex; flex-direction:column; gap:0.6rem;">
@@ -52,9 +53,9 @@ export class CampaignList {
             </div>
 
             <div class="card" style="margin-top:1.5rem;">
-                <div class="card-header"><h3 class="card-title">Past campaigns</h3></div>
+                <div class="card-header"><h3 class="card-title">${t('camp.past')}</h3></div>
                 <div class="card-body">
-                    ${campaigns.length ? campaigns.map(c => this._campaignRow(c)).join('') : '<p class="text-secondary">No campaigns yet.</p>'}
+                    ${campaigns.length ? campaigns.map(c => this._campaignRow(c)).join('') : `<p class="text-secondary">${t('p.noCampaigns')}</p>`}
                 </div>
             </div>
         `;
@@ -72,7 +73,7 @@ export class CampaignList {
                     <strong>${this._esc(o.nameMr || o.name)}</strong>
                     <div class="text-secondary" style="font-size:0.85rem;">${when} · ${formatDateShort(u.isoDate)} · ≈ ${audienceCount} beneficiaries</div>
                 </div>
-                <button class="btn btn-primary btn-sm camp-from-occasion" data-id="${o.id}">Create</button>
+                <button class="btn btn-primary btn-sm camp-from-occasion" data-id="${o.id}">${t('camp.create')}</button>
             </div>
         `;
     }

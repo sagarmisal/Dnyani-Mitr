@@ -1,0 +1,509 @@
+/* ==========================================================================
+   Component kit — INITIATIVE.md D-05 / D-11, P1.9
+   ==========================================================================
+   Every rule reads a --lg-* token from variables.css. Nothing here hardcodes a
+   colour, so when Q-03 answers, one file changes and the kit follows.
+
+   Namespaced `lg-` so it cannot collide with the 2,392 lines of existing
+   component CSS. Existing screens are untouched until P1.8b.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ Sheet */
+/* A bottom sheet: it rises from the thumb rather than floating in the middle
+   of the screen. `align-items: flex-end` is the whole difference between a
+   phone idiom and a desktop one. */
+.lg-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 43, 54, 0.46);
+  display: flex;
+  align-items: flex-end;      /* NOT center — this is the point */
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.lg-sheet-overlay.is-open { opacity: 1; }
+
+.lg-sheet {
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  width: 100%;
+  max-width: 640px;
+  max-height: 86vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--lg-r-sheet) var(--lg-r-sheet) 0 0;
+  padding: 8px 16px 20px;
+  transform: translateY(100%);
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 -8px 32px rgba(35, 43, 54, 0.18);
+}
+.lg-sheet-overlay.is-open .lg-sheet { transform: translateY(0); }
+
+.lg-sheet-grab {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lg-rule);
+  margin: 6px auto 14px;
+}
+.lg-sheet-title { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+/* Explanation at the point of confusion, not in a help page. */
+.lg-sheet-hint { margin: 0 0 14px; font-size: 12.5px; color: var(--lg-ink-soft); }
+.lg-sheet-body > * + * { margin-top: 14px; }
+.lg-sheet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+/* ----------------------------------------------------------------- Button */
+.lg-btn {
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: var(--lg-pad) 16px;
+  border-radius: var(--lg-r-ctl);
+  min-height: var(--lg-tap);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.lg-btn--primary { background: var(--lg-bind); color: #fff; }
+.lg-btn--primary:active { background: var(--lg-bind-dark); }
+.lg-btn--quiet   { background: var(--lg-wash); color: var(--lg-ink); }
+.lg-btn--danger  { background: var(--lg-danger); color: #fff; }
+.lg-btn--sm      { padding: 7px 13px; font-size: 12.5px; min-height: 36px; }
+
+/* ------------------------------------------------------------------ Chips */
+.lg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.lg-chip {
+  border: 1.5px solid var(--lg-rule);
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: var(--lg-r-chip);
+  min-height: var(--lg-tap);   /* the floor for a target on a cheap handset */
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+.lg-chip[aria-pressed="true"] {
+  background: var(--lg-bind);
+  border-color: var(--lg-bind);
+  color: #fff;
+}
+/* Marigold is reserved for occasions. It never appears in chrome. */
+.lg-chips--occasion .lg-chip[aria-pressed="true"] {
+  background: var(--lg-marigold);
+  border-color: var(--lg-marigold);
+  color: #3d2a06;
+}
+
+/* ------------------------------------------------------------------- Tile */
+.lg-tile {
+  border: 0;
+  background: var(--lg-wash);
+  color: var(--lg-ink);
+  font: inherit;
+  text-align: left;
+  padding: 14px;
+  border-radius: var(--lg-r-card);
+  min-height: 64px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.25;
+}
+.lg-tile--primary { background: var(--lg-bind); color: #fff; }
+.lg-tile-icon  { font-size: 18px; }
+.lg-tile-label { font-weight: 700; font-size: 13.5px; }
+.lg-tile-sub   { font-size: 11.5px; opacity: 0.85; }
+
+/* -------------------------------------------------------------------- Row */
+.lg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--lg-rule-faint);
+}
+.lg-row:last-child { border-bottom: 0; }
+.lg-row-main    { min-width: 0; }
+.lg-row-title   { display: block; font-size: 14px; }
+.lg-row-meta    { display: block; font-size: 12px; color: var(--lg-ink-soft); margin-top: 2px; }
+.lg-row-chips   { margin-top: 5px; }
+.lg-row-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
+.lg-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--lg-r-chip);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--lg-marigold-w);
+  color: var(--lg-marigold-i);
+  margin: 3px 3px 0 0;
+}
+
+/* ---------------------------------------------------------------- Section */
+/* The signature: the label hangs from a rule, the way a ledger heads a column
+   and the way Devanagari hangs from the शिरोरेखा. */
+.lg-section {
+  display: flex;
+  align-items: baseline;
+  border-top: 1.5px solid var(--lg-ink);
+  margin: 18px 0 8px;
+}
+.lg-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: var(--lg-page);
+  padding-right: 10px;
+  transform: translateY(-50%);
+}
+.lg-section-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--lg-ink-soft);
+  background: var(--lg-page);
+  padding: 0 8px;
+  transform: translateY(-50%);
+}
+
+/* ------------------------------------------------------------------ Empty */
+/* An invitation to act, never a blank. Most days have nothing scheduled, so
+   this is a screen people see often. */
+.lg-empty {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--lg-ink-soft);
+}
+.lg-empty-message { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
+
+/* ------------------------------------------------------------- a11y basics */
+.lg-chip:focus-visible,
+.lg-btn:focus-visible,
+.lg-tile:focus-visible {
+  outline: 3px solid var(--lg-marigold-l);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-sheet-overlay,
+  .lg-sheet { transition: none; }
+  .lg-sheet { transform: none; }
+}
+
+/* ==========================================================================
+   Capture sheet — P1.12. Uses the kit; adds only what a form needs.
+   ========================================================================== */
+.si-form > div + div { margin-top: 16px; }
+
+.si-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lg-ink-soft);
+  margin: 12px 0 6px;
+}
+.si-input {
+  width: 100%;
+  padding: var(--lg-pad);
+  font: inherit;
+  font-size: var(--lg-font);
+  border: 1px solid var(--lg-rule);
+  border-radius: var(--lg-r-ctl);
+  background: var(--lg-page);
+  color: var(--lg-ink);
+  min-height: var(--lg-tap);
+}
+.si-input:disabled { background: var(--lg-wash); color: var(--lg-ink-soft); }
+textarea.si-input { min-height: 64px; resize: vertical; }
+
+.si-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Explanation at the point of confusion (PR-4). */
+.si-hint { margin: 6px 0 0; font-size: 11.5px; color: var(--lg-ink-soft); line-height: 1.45; }
+.si-hint--warn { color: var(--lg-danger); font-weight: 600; }
+
+.si-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: var(--lg-tap);
+  cursor: pointer;
+}
+.si-check input { width: 20px; height: 20px; flex: none; }
+
+/* Identity resolution feedback — the payoff for typing the number first. */
+.si-match { min-height: 20px; margin-top: 6px; }
+.si-match-hit,
+.si-match-new { font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.si-match-hit { color: var(--lg-leaf); }
+.si-match-hit span { display: block; font-weight: 400; color: var(--lg-ink-soft); }
+.si-match-new { color: var(--lg-ink-soft); }
+
+.si-occasion { border-top: 1px solid var(--lg-rule-faint); padding-top: 14px; }
+.si-occ-detail { margin-top: 12px; }
+
+.si-errors {
+  background: var(--lg-danger-w);
+  color: var(--lg-danger);
+  border-radius: var(--lg-r-ctl);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.si-errors > div + div { margin-top: 4px; }
+
+.si-form .hidden { display: none !important; }
+
+/* ==========================================================================
+   Brand header — D-22. Three layers of identity, one of them editable.
+   ==========================================================================
+   The NGO's own name is the largest thing on screen. The Seva Sankalp mark and
+   "ज्ञानी मित्र" are always present and never editable. That hierarchy is the
+   point: the NGO is who the user is, the app is the tool they picked up.
+   ========================================================================== */
+.lg-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 10px;
+}
+.lg-brand-mark {
+  height: 40px;
+  width: auto;
+  flex: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 3px;
+}
+.lg-brand-names { min-width: 0; flex: 1; }
+
+/* Larger than the app's own name, deliberately. */
+.lg-brand-org {
+  margin: 0;
+  font-size: clamp(17px, 4.6vw, 22px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  /* Long Marathi org names must wrap, never truncate — a half-shown name is
+     worse than a two-line one. */
+  overflow-wrap: anywhere;
+}
+.lg-brand-app {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+
+/* Language toggle: visible, never buried in Settings (D-23). */
+.lg-lang {
+  display: flex;
+  gap: 2px;
+  flex: none;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: var(--lg-r-chip);
+  padding: 3px;
+}
+.lg-lang button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: var(--lg-r-chip);
+  cursor: pointer;
+  opacity: 0.8;
+  min-height: 32px;
+}
+.lg-lang button[aria-pressed="true"] {
+  background: var(--lg-page);
+  color: var(--lg-bind);
+  opacity: 1;
+}
+.lg-lang button:focus-visible { outline: 2px solid var(--lg-marigold); outline-offset: 1px; }
+
+/* On a narrow phone the toggle drops below the name rather than squeezing it. */
+@media (max-width: 380px) {
+  .lg-brand { flex-wrap: wrap; }
+  .lg-lang { margin-left: 52px; }
+}
+
+/* ==========================================================================
+   Today — the landing screen answers "how is today?" (P2.2–P2.4)
+   ==========================================================================
+   It used to open on a month grid, which answers "what date is it?" — a
+   question nobody had.
+   ========================================================================== */
+.lg-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.lg-stat {
+  background: var(--lg-page);
+  border: 1px solid var(--lg-rule-faint);
+  border-radius: var(--lg-r-ctl);
+  padding: 10px 6px;
+  text-align: center;
+}
+.lg-stat b {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.lg-stat span {
+  display: block;
+  font-size: 10px;
+  color: var(--lg-ink-soft);
+  line-height: 1.25;
+  margin-top: 3px;
+}
+/* A count that needs doing today, not a count that is wrong. */
+.lg-stat--now b { color: var(--lg-bind); }
+
+.lg-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.lg-tiles .lg-tile { text-decoration: none; }
+
+@media (min-width: 700px) {
+  .lg-stats { grid-template-columns: repeat(4, 1fr); }
+  .lg-tiles { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- "a year ago today" (UC-06) ---------- */
+.lg-memories { margin-top: 20px; }
+
+/* Warmer than the rest of the pane: this is the one section that is a pleasure
+   rather than a task. It renders last, always — a memory is never more
+   important than someone arriving today. */
+.lg-memory {
+  background: linear-gradient(180deg, var(--lg-marigold-w), var(--lg-wash));
+  border: 1px solid var(--lg-rule-faint);
+  border-radius: var(--lg-r-card);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.lg-memory-when {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lg-marigold-i);
+  margin-bottom: 5px;
+}
+.lg-memory b { display: block; font-size: 14px; }
+.lg-memory-note {
+  display: block;
+  font-size: 12px;
+  color: var(--lg-ink-soft);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+.lg-memory-actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+
+/* ---------- Settings → More: the way back to Backup, History, Campaigns ----------
+   These four lost their nav tabs when it went from eight to five. Backup leads
+   and is visually heavier than the rest: it is the one behaviour we ask of
+   these NGOs, and it is what keeps the register alive when a phone dies. */
+.lg-more { padding-bottom: 4px; }
+.lg-more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px;
+  border-top: 1px solid var(--lg-rule-faint);
+  color: var(--lg-ink);
+  text-decoration: none;
+  min-height: var(--lg-tap);
+}
+.lg-more-item:first-of-type { border-top: 0; }
+.lg-more-item--lead { background: var(--lg-wash); border-radius: var(--lg-r-ctl); padding: 14px 12px; }
+.lg-more-icon { font-size: 20px; flex: none; }
+.lg-more-text { min-width: 0; }
+.lg-more-text b { display: block; font-size: 14.5px; }
+.lg-more-text span {
+  display: block;
+  font-size: 12px;
+  color: var(--lg-ink-soft);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.lg-more-item:focus-visible { outline: 3px solid var(--lg-marigold-l); outline-offset: 2px; }
+
+/* ---------- Reports (J4) ---------- */
+.lg-page-title { margin: 0 0 14px; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+.si-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- the backup nudge (PR-5) ---------- */
+/* The only place the app asks for the one behaviour we ask for. Warm, not
+   alarming: this is a reminder, not a failure. */
+.lg-nudge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--lg-marigold-w);
+  border: 1px solid var(--lg-marigold-l);
+  border-radius: var(--lg-r-card);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.lg-nudge-icon { font-size: 20px; flex: none; }
+.lg-nudge-text { min-width: 0; flex: 1; }
+.lg-nudge-text b { display: block; font-size: 13.5px; color: var(--lg-marigold-i); }
+.lg-nudge-text span { display: block; font-size: 11.5px; color: var(--lg-ink-soft); margin-top: 2px; }
+.lg-nudge-actions { display: flex; gap: 7px; flex: none; }
+.lg-nudge-actions .lg-btn { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* ---------- Sync screen layout ----------
+   These three classes were used by SyncManager and defined nowhere: the same
+   family as the button that once shipped invisible. The primary actions are
+   what a person came here to do; the rest are set apart rather than competing
+   with them. */
+.sync-primary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.sync-more-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--lg-rule-faint);
+}
+.sync-capability-hint {
+  font-size: 11.5px;
+  color: var(--lg-ink-soft);
+  line-height: 1.45;
+  margin: 6px 0 0;
+}

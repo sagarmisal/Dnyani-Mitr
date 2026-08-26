@@ -1,6 +1,8 @@
 // Visitor List Component
 
 import VisitorService from '../../services/VisitorService.js';
+import { t } from '../../utils/i18n.js';
+import { visitorDisplayName } from '../../utils/formatters.js';
 import SearchService from '../../services/SearchService.js';
 import EngagementService from '../../services/EngagementService.js';
 import Router, { ROUTES } from '../../core/router.js';
@@ -30,9 +32,9 @@ export class VisitorList {
     container.innerHTML = `
       <div class="visitor-list-header" style="margin-bottom: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h2>Visitors</h2>
+          <h2>${t('people.title')}</h2>
           <button id="add-visitor-btn" class="btn btn-primary">
-            ➕ Add Visitor
+            ➕ ${t('people.add')}
           </button>
         </div>
 
@@ -42,29 +44,29 @@ export class VisitorList {
               type="search" 
               id="visitor-search" 
               class="form-input" 
-              placeholder="Search visitors..."
+              placeholder="${t('people.search')}"
               value="${this.escapeHtml(this.searchQuery)}"
             />
           </div>
           
           <div class="filter-group-select">
             <select id="visitor-category-filter" class="form-select">
-              <option value="">All Categories</option>
+              <option value="">${t('people.allCategories')}</option>
             </select>
           </div>
 
           <div class="filter-group-select">
             <select id="visitor-city-filter" class="form-select">
-              <option value="">All Cities</option>
+              <option value="">${t('people.allCities')}</option>
             </select>
           </div>
 
           <div class="filter-group-select">
             <select id="visitor-sort" class="form-select">
-              <option value="updatedAt:desc">Last Updated</option>
-              <option value="createdAt:desc">Recently Added</option>
-              <option value="name:asc">Name (A-Z)</option>
-              <option value="city:asc">City (A-Z)</option>
+              <option value="updatedAt:desc">${t('sort.lastUpdated')}</option>
+              <option value="createdAt:desc">${t('sort.recentlyAdded')}</option>
+              <option value="name:asc">${t('sort.name')}</option>
+              <option value="city:asc">${t('sort.city')}</option>
             </select>
           </div>
         </div>
@@ -152,7 +154,7 @@ export class VisitorList {
     // Categories
     const categories = VisitorService.getCategories();
     const catSelect = this.container.querySelector('#visitor-category-filter');
-    catSelect.innerHTML = '<option value="">All Categories</option>';
+    catSelect.innerHTML = `<option value="">${t('people.allCategories')}</option>`;
     categories.forEach(cat => {
       const option = document.createElement('option');
       option.value = cat;
@@ -165,7 +167,7 @@ export class VisitorList {
     const cities = [...new Set(visitors.map(v => v.city).filter(c => c))].sort();
 
     const citySelect = this.container.querySelector('#visitor-city-filter');
-    citySelect.innerHTML = '<option value="">All Cities</option>';
+    citySelect.innerHTML = `<option value="">${t('people.allCities')}</option>`;
     cities.forEach(city => {
       const option = document.createElement('option');
       option.value = city;
@@ -211,9 +213,11 @@ export class VisitorList {
     const stats = VisitorService.getStats();
     const statsDiv = this.container.querySelector('#visitor-stats');
 
-    let text = `Showing ${count} visitor${count !== 1 ? 's' : ''}`;
+    // No English pluralisation: Marathi does not form plurals that way, and
+    // "{n} माणसं" reads correctly for every n.
+    let text = t('people.showing', { n: count });
     if (this.searchQuery || this.filterCategory) {
-      text += ` (filtered from ${stats.active} total)`;
+      text += ` — ${t('people.filtered', { total: stats.active })}`;
     }
 
     statsDiv.textContent = text;
@@ -230,9 +234,9 @@ export class VisitorList {
       listContent.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">${hasFilters ? '🔍' : '👋'}</div>
-          <p class="empty-state-text">${hasFilters ? 'No visitors match your search' : 'No visitors yet!'}</p>
-          <p class="empty-state-hint">${hasFilters ? 'Try broadening your search or clearing filters.' : 'Start by adding your first visitor to build your community network.'}</p>
-          ${!hasFilters ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">Add Your First Visitor</button>` : ''}
+          <p class="empty-state-text">${hasFilters ? t('empty.search') : t('empty.people')}</p>
+          <p class="empty-state-hint">${hasFilters ? t('empty.searchHint') : t('empty.peopleHint')}</p>
+          ${!hasFilters ? `<button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.hash='${ROUTES.VISITOR_ADD}'">${t('action.addFirst')}</button>` : ''}
         </div>
       `;
       return;
@@ -262,7 +266,7 @@ export class VisitorList {
     return `
       <div class="visitor-card tile-card" data-visitor-id="${visitor.id}">
         <div class="tile-header">
-           <h3 class="tile-title" title="${this.escapeHtml(self?.name)}">${this.escapeHtml(self?.name || 'Unknown')}</h3>
+           <h3 class="tile-title" title="${this.escapeHtml(visitorDisplayName(visitor))}">${this.escapeHtml(visitorDisplayName(visitor))}</h3>
            <div style="display:flex; gap:0.25rem; align-items:center;">
              <span class="badge ${scoreClass}" style="font-size:0.65rem;" title="Engagement: ${score}">${score}</span>
              <span class="badge ${visitor.category === 'Donor' ? 'badge-success' : 'badge-primary'}">${visitor.category || 'General'}</span>

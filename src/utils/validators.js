@@ -1,6 +1,7 @@
 // Data Validators
 
 import { VALIDATION, RELATIONSHIP_TYPES } from './constants.js';
+import { normalizePhone } from './formatters.js';
 
 /**
  * Validate visitor object
@@ -20,6 +21,22 @@ export function validateVisitor(visitor) {
         errors.push('Visitor must have exactly one SELF contact');
     } else if (selfContacts.length > 1) {
         errors.push('Visitor cannot have more than one SELF contact');
+    }
+
+    // D-07 — the SELF contact must carry something we can find them by. A
+    // phone is what we want (PR-1), but a caller who rings off without giving
+    // one is a real case, and refusing to save it loses the visit entirely.
+    // So: a phone, or failing that a name. Never neither — an anonymous empty
+    // record cannot be found, thanked, or deduplicated, and quietly bloats
+    // every list it appears in.
+    const self = selfContacts[0];
+    if (self) {
+        const hasPhone = Array.isArray(self.phones) &&
+            self.phones.some(ph => normalizePhone(ph));
+        const hasName = !!(self.name && String(self.name).trim());
+        if (!hasPhone && !hasName) {
+            errors.push('Enter a phone number, or a name if they did not give one');
+        }
     }
 
     // Validate each contact
@@ -42,9 +59,14 @@ export function validateVisitor(visitor) {
 export function validateContact(contact) {
     const errors = [];
 
-    // Name is required
-    if (!contact.name || contact.name.trim().length < VALIDATION.MIN_NAME_LENGTH) {
-        errors.push(`Name must be at least ${VALIDATION.MIN_NAME_LENGTH} characters`);
+    // D-07 — a name is NOT required. The app used to mandate the field with
+    // spelling variance and treat the identity key as optional, which is
+    // backwards: a volunteer taking a call who gets a number and no name could
+    // not save at all, so they invented a name or recorded nothing. A minimum
+    // length still applies to a name that IS given, to catch a stray keypress.
+    if (contact.name && contact.name.trim().length > 0 &&
+        contact.name.trim().length < VALIDATION.MIN_NAME_LENGTH) {
+        errors.push(`A name, if given, must be at least ${VALIDATION.MIN_NAME_LENGTH} characters`);
     }
 
     if (contact.name && contact.name.length > VALIDATION.MAX_NAME_LENGTH) {

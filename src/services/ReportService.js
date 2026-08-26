@@ -129,27 +129,64 @@ class ReportService {
      * Generate a CSV string of all visitors with summary columns.
      * Fields: Name, Phone, Email, City, Category, DoB, TotalInteractions, LastInteractionDate, EngagementScore, ConsentGiven
      */
-    generateVisitorCSV() {
+    /**
+     * A period of the register, as a spreadsheet (J4, UC-10).
+     *
+     * `from`/`to` narrow it to the period a trustee actually asked about.
+     * Without them it exports everything, which is what it did before and what
+     * every existing call site still expects.
+     *
+     * Columns are what a trustee reads, not what an analyst would want:
+     * EngagementScore and ConsentGiven are gone (§6), and what people BROUGHT
+     * is here, because "42 visits, 18 brought a meal" is the sentence this
+     * exists to produce.
+     *
+     * @param {Object} [range]
+     * @param {string} [range.from] 'YYYY-MM-DD' inclusive
+     * @param {string} [range.to]   'YYYY-MM-DD' inclusive
+     */
+    generateVisitorCSV({ from = null, to = null } = {}) {
         const visitors = VisitorService.getAll();
-        const interactions = StateManager.getInteractions();
+        const all = StateManager.getInteractions();
+
+        // Bounds are whole local days: `to` must include everything that
+        // happened on that date, not stop at its midnight.
+        const lo = from ? new Date(from + 'T00:00:00').getTime() : -Infinity;
+        const hi = to ? new Date(to + 'T23:59:59.999').getTime() : Infinity;
+        const inRange = (d) => {
+            const t = new Date(d).getTime();
+            return !isNaN(t) && t >= lo && t <= hi;
+        };
+        const interactions = (from || to) ? all.filter(i => inRange(i.interactionDate)) : all;
 
         // Count interactions per visitor
         const interactionCounts = new Map();
         const lastInteractionDates = new Map();
+        const thankedCounts = new Map();
         interactions.forEach(i => {
             interactionCounts.set(i.visitorId, (interactionCounts.get(i.visitorId) || 0) + 1);
+            if (i.thankedAt) thankedCounts.set(i.visitorId, (thankedCounts.get(i.visitorId) || 0) + 1);
             const existing = lastInteractionDates.get(i.visitorId);
             if (!existing || new Date(i.interactionDate) > new Date(existing)) {
                 lastInteractionDates.set(i.visitorId, i.interactionDate);
             }
         });
 
+        // What they brought, counted per visitor over the period.
+        const broughtBy = new Map();
+        interactions.forEach(i => {
+            const c = Array.isArray(i.contribution) ? i.contribution : [];
+            if (!c.length) return;
+            const set = broughtBy.get(i.visitorId) || new Set();
+            c.forEach(x => set.add(x));
+            broughtBy.set(i.visitorId, set);
+        });
+
         const headers = [
             'Name', 'Phone', 'Email', 'City', 'Category', 'Tags',
             'DateOfBirth', 'MarriageDate',
-            'TotalInteractions', 'LastInteractionDate', 'EngagementScore',
-            'ConsentGiven', 'DoNotContact', 'ContactFrequencyDays',
-            'CreatedAt', 'UpdatedAt'
+            'Visits', 'LastVisit', 'Brought', 'Thanked',
+            'DoNotContact', 'CreatedAt'
         ];
 
         const rows = visitors.map(v => {
@@ -165,16 +202,40 @@ class ReportService {
                 self?.marriageDate || '',
                 interactionCounts.get(v.id) || 0,
                 lastInteractionDates.get(v.id) || '',
-                v.engagementScore ?? 0,
-                v.consentGiven ? 'yes' : 'no',
+                [...(broughtBy.get(v.id) || [])].join('; '),
+                thankedCounts.get(v.id) || 0,
                 v.doNotContact ? 'yes' : 'no',
-                v.contactFrequencyDays ?? '',
-                v.createdAt || '',
-                v.updatedAt || ''
+                v.createdAt || ''
             ];
         });
 
         return this._rowsToCSV([headers, ...rows]);
+    }
+
+    /**
+     * The numbers a trustee meeting asks for, over a period.
+     * Derived on demand — nothing here is stored, so nothing can go stale.
+     */
+    summarise({ from = null, to = null } = {}) {
+        const lo = from ? new Date(from + 'T00:00:00').getTime() : -Infinity;
+        const hi = to ? new Date(to + 'T23:59:59.999').getTime() : Infinity;
+        const inRange = (d) => { const t = new Date(d).getTime(); return !isNaN(t) && t >= lo && t <= hi; };
+
+        const items = (StateManager.getInteractions() || []).filter(i => inRange(i.interactionDate));
+        const visits = items.filter(i => i.interactionType === 'visit');
+        const brought = {};
+        visits.forEach(i => (Array.isArray(i.contribution) ? i.contribution : [])
+            .forEach(c => { brought[c] = (brought[c] || 0) + 1; }));
+
+        return {
+            from, to,
+            visits: visits.length,
+            interactions: items.length,
+            people: new Set(items.map(i => i.visitorId)).size,
+            withContribution: visits.filter(i => (i.contribution || []).length).length,
+            thanked: items.filter(i => i.thankedAt).length,
+            brought
+        };
     }
 
     _rowsToCSV(rows) {

@@ -1,4 +1,5 @@
 import ActivationManager from '../../core/activation.js';
+import { t } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import VisitorService from '../../services/VisitorService.js';
 import SyncService from '../../services/SyncService.js';
@@ -35,35 +36,35 @@ export class SyncManager {
 
         // Role-aware copy
         const sendTitle = isRoot
-            ? 'Share with volunteers'
-            : (peerOnly ? 'Send to another device' : 'Send to coordinator');
+            ? `${t('sync.shareVolunteers')}`
+            : (peerOnly ? `${t('sync.sendDevice')}` : `${t('sync.sendCoordinator')}`);
         const sendDesc = isRoot
-            ? 'Send your master contact list to field volunteers.'
+            ? `${t('sync.shareVolunteersHint')}`
             : (peerOnly
-                ? 'Send your visit notes and new contacts to another device.'
-                : 'Send your visit notes and new contacts to the coordinator.');
+                ? `${t('sync.sendDeviceHint')}`
+                : `${t('sync.sendCoordinatorHint')}`);
         const receiveTitle = isRoot
-            ? 'Import from a volunteer'
-            : (peerOnly ? 'Receive from another device' : 'Get latest from coordinator');
+            ? `${t('sync.importVolunteer')}`
+            : (peerOnly ? `${t('sync.receiveDevice')}` : `${t('sync.getCoordinator')}`);
         const receiveDesc = isRoot
-            ? 'Bring in field updates from a volunteer device.'
+            ? `${t('sync.importVolunteerHint')}`
             : (peerOnly
-                ? 'Add contacts and notes shared from another device.'
+                ? `${t('sync.receiveDeviceHint')}`
                 : 'Add the coordinator\'s latest contact list to your device.');
 
         // Recommended path label based on device capabilities
         const recommendedShare = this.caps.canShareText
-            ? 'Share via WhatsApp'
-            : 'Copy and paste into WhatsApp';
+            ? `${t('sync.viaWhatsApp')}`
+            : `${t('sync.copyPaste')}`;
         const recommendedSave = this.caps.canShareFiles
             ? 'Save (opens share sheet)'
-            : 'Save as file';
+            : `${t('sync.saveFile')}`;
 
         const backupInfo = SyncService.getBackupInfo();
 
         container.innerHTML = `
       <div class="dashboard-header" style="margin-bottom: 1.5rem;">
-        <h2 style="margin: 0;">Sync your data</h2>
+        <h2 style="margin: 0;">${t('sync.title')}</h2>
         <p class="text-secondary" style="margin: 0.25rem 0 0 0;">
           ${this.escapeHtml(this.machineInfo.machineName)} · ${roleLabel}
         </p>
@@ -129,7 +130,7 @@ export class SyncManager {
               ${this.escapeHtml(receiveDesc)}
             </p>
 
-            <label class="form-label" for="receive-textarea" style="margin-bottom: 0.25rem;">Paste sync message</label>
+            <label class="form-label" for="receive-textarea" style="margin-bottom: 0.25rem;">${t('sync.paste')}</label>
             <textarea id="receive-textarea" rows="4" class="form-textarea" style="font-size: 0.85rem;" placeholder="Long-press in WhatsApp → Copy → paste here. If multiple messages, paste them one after another."></textarea>
             <div id="receive-status" style="margin-top: 0.5rem; min-height: 1.4rem; font-size: 0.85rem;"></div>
 
@@ -154,13 +155,13 @@ export class SyncManager {
       <!-- Import preview (shared by paste + file paths) -->
       <div id="import-preview" class="hidden card" style="margin-bottom: 1.5rem; border: 2px solid var(--color-warning);">
         <div class="card-header">
-          <h3 class="card-title">Review import</h3>
+          <h3 class="card-title">${t('sync.review')}</h3>
         </div>
         <div class="card-body">
           <div id="preview-stats" style="font-size: 0.9rem; margin-bottom: 1rem;"></div>
           <div style="display: flex; gap: 0.5rem;">
-            <button id="confirm-import-btn" class="btn btn-success" style="flex: 1;">Import</button>
-            <button id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-import-btn" class="btn btn-success" style="flex: 1;">${t('sync.import')}</button>
+            <button id="cancel-import-btn" class="btn btn-secondary">${t('action.cancel')}</button>
           </div>
         </div>
       </div>
@@ -212,12 +213,12 @@ export class SyncManager {
 
           <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border);" />
 
-          <h4 style="margin: 0 0 0.5rem 0;">Restore from backup</h4>
+          <h4 style="margin: 0 0 0.5rem 0;">${t('sync.restore')}</h4>
           <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0 0 0.75rem 0;">
             Paste a backup message below. Restoring replaces ALL current data.
           </p>
           <textarea id="restore-textarea" rows="3" class="form-textarea" style="font-size: 0.85rem;" placeholder="Paste backup message here..."></textarea>
-          <button id="restore-text-btn" class="btn btn-error btn-sm" style="margin-top: 0.5rem; width: 100%;">Restore from pasted backup</button>
+          <button id="restore-text-btn" class="btn btn-error btn-sm" style="margin-top: 0.5rem; width: 100%;">${t('sync.restorePasted')}</button>
 
           ${this.renderSyncLog()}
           ${this.renderKnownMachines()}
@@ -238,12 +239,12 @@ export class SyncManager {
       <div class="card" id="undo-card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--color-warning);">
         <div class="card-body" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px;">
-            <strong>Need to undo your last import?</strong>
+            <strong>${t('sync.undoQ')}</strong>
             <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--color-text-secondary);">
               We saved a snapshot just before it: ${new Date(backupInfo.createdAt).toLocaleString()}
             </p>
           </div>
-          <button id="undo-sync-btn" class="btn btn-secondary btn-sm">Undo last import</button>
+          <button id="undo-sync-btn" class="btn btn-secondary btn-sm">${t('sync.undo')}</button>
         </div>
       </div>
     `;
@@ -267,7 +268,7 @@ export class SyncManager {
             } else {
                 const ta = this.container.querySelector('#send-textarea');
                 ta.select();
-                Toast.show('Select the text and copy manually.', 'warning', 5000);
+                Toast.show(`${t('sync.copyManual')}`, 'warning', 5000);
             }
         });
 
@@ -338,7 +339,7 @@ export class SyncManager {
                 }
                 this.showPreview(this.pendingImport);
             } catch (err) {
-                Toast.show(err.message || 'Could not read this data.', 'error', 6000);
+                Toast.show(err.message || `${t('sync.unreadable')}`, 'error', 6000);
             }
         });
 
@@ -381,11 +382,11 @@ export class SyncManager {
             const ta = this.container.querySelector('#restore-textarea');
             const raw = ta.value?.trim();
             if (!raw) {
-                Toast.show('Paste the backup text first.', 'warning');
+                Toast.show(`${t('sync.pasteFirst')}`, 'warning');
                 return;
             }
             const confirmed = await ConfirmDialog.show({
-                title: 'Restore full backup?',
+                title: `${t('sync.restoreQ')}`,
                 message: 'This replaces ALL current data (visitors, visit notes, settings) with the backup. Your current data will be saved as a safety snapshot first.',
                 confirmText: 'Restore',
                 cancelText: 'Cancel',
@@ -400,7 +401,7 @@ export class SyncManager {
         if (undoBtn) {
             undoBtn.addEventListener('click', async () => {
                 const confirmed = await ConfirmDialog.show({
-                    title: 'Undo last import',
+                    title: `${t('p.undoImport')}`,
                     message: 'Restore your data to the snapshot from just before the last import. Are you sure?',
                     confirmText: 'Undo',
                     cancelText: 'Cancel',
@@ -413,7 +414,7 @@ export class SyncManager {
                         Toast.show(`Restored to ${new Date(restoredAt).toLocaleString()}`, 'success', 5000);
                         setTimeout(() => window.location.reload(), 500);
                     } else {
-                        Toast.show('No snapshot found.', 'warning');
+                        Toast.show(`${t('sync.noSnapshot')}`, 'warning');
                     }
                 } catch (err) {
                     Toast.show('Undo failed: ' + err.message, 'error', 5000);
@@ -518,7 +519,7 @@ export class SyncManager {
     async sendPlans(opts = {}) {
         const pkg = SyncService.preparePlansExport(opts);
         if (!pkg.data.scheduledItems.length) {
-            Toast.show('Nothing planned to send yet.', 'info');
+            Toast.show(`${t('sync.nothingToSend')}`, 'info');
             return;
         }
         try {
@@ -533,7 +534,7 @@ export class SyncManager {
             output.classList.remove('hidden');
 
             const copied = await TextSyncService.copyText(message);
-            Toast.show(copied ? 'Plans copied. Paste into WhatsApp.' : 'Select the text and copy manually.',
+            Toast.show(copied ? 'Plans copied. Paste into WhatsApp.' : `${t('sync.copyManual')}`,
                 copied ? 'success' : 'info', 5000);
         } catch (err) {
             Toast.show('Could not prepare plans: ' + err.message, 'error', 5000);
@@ -554,7 +555,7 @@ export class SyncManager {
             // URI through the FileProvider, which is what OEM ROMs do not break.
             // The browser path below still serves desktop unchanged.
             if (FileService.isAvailable()) {
-                const native = await FileService.shareFile(payload, filename, 'Dnyani Mitr backup');
+                const native = await FileService.shareFile(payload, filename, `${t('p.backupName')}`);
                 if (native.ok && !native.cancelled) {
                     // F2: also drop a copy in Documents, so a backup exists even
                     // if the share sheet is dismissed or WhatsApp misbehaves.
@@ -597,7 +598,7 @@ export class SyncManager {
                 Toast.show('Backup copied. Send it to yourself on WhatsApp to keep it safe.', 'success', 6000);
             } else {
                 ta.select();
-                Toast.show('Select the text and copy manually.', 'info', 5000);
+                Toast.show(`${t('sync.copyManual')}`, 'info', 5000);
             }
         } catch (err) {
             Toast.show('Could not generate backup: ' + err.message, 'error', 5000);
@@ -652,7 +653,7 @@ export class SyncManager {
             try {
                 let text = e.target.result;
                 if (!text?.trim()) {
-                    Toast.show('File is empty.', 'warning');
+                    Toast.show(t('p.fileEmpty'), 'warning');
                     return;
                 }
                 if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
@@ -718,7 +719,7 @@ export class SyncManager {
         const when = meta.exportedAt ? new Date(meta.exportedAt).toLocaleDateString() : 'an unknown date';
 
         const confirmed = await ConfirmDialog.show({
-            title: 'Restore this backup?',
+            title: t('p.restoreQ'),
             message: `This REPLACES everything on this device with the backup from ${meta.machineName || 'another device'}, taken on ${when}.\n\n`
                 + `${counts.visitors?.length || 0} visitors, ${counts.interactions?.length || 0} visit notes.\n\n`
                 + 'Your current data is snapshotted first, but anything added since that backup will be gone.',
@@ -760,7 +761,7 @@ export class SyncManager {
         }
 
         const confirmed = await ConfirmDialog.show({
-            title: 'Import this data?',
+            title: t('p.importQ'),
             message: 'Merge into your current list. A safety snapshot is saved first — you can undo afterwards.',
             confirmText: 'Import',
             cancelText: 'Cancel',
@@ -831,11 +832,17 @@ export class SyncManager {
       <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--color-border);" />
       <h4 style="margin: 0 0 0.5rem 0;">📋 Sync history</h4>
       <div style="max-height: 280px; overflow-y: auto;">
-        ${syncLog.slice(0, 20).map(entry => `
+        ${syncLog
+            // A malformed entry must never take this screen down. syncLog
+            // arrives through merge from other machines, so a bad record from
+            // someone else's phone could otherwise brick the one screen that
+            // gets a register back after a device dies.
+            .filter(entry => entry && typeof entry === 'object')
+            .slice(0, 20).map(entry => `
           <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.85rem;">
             <div style="display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
               <span><strong>${entry.direction === 'import' ? '📥 In' : '📤 Out'}</strong> · ${this.escapeHtml(entry.machineName || 'Unknown')}</span>
-              <span style="color: var(--color-text-secondary); font-size: 0.8rem;">${new Date(entry.timestamp).toLocaleString()}</span>
+              <span style="color: var(--color-text-secondary); font-size: 0.8rem;">${this._when(entry.timestamp)}</span>
             </div>
             <div style="color: var(--color-text-secondary); margin-top: 0.15rem;">
               ${entry.direction === 'import'
@@ -846,6 +853,12 @@ export class SyncManager {
         `).join('')}
       </div>
     `;
+    }
+
+    /** A timestamp we cannot parse is shown as unknown, never as "Invalid Date". */
+    _when(value) {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleString();
     }
 
     renderKnownMachines() {
@@ -872,15 +885,15 @@ export class SyncManager {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 1rem; text-align: center;">
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${VisitorService.getAll().length}</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Visitors</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.visitors')}</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${StateManager.getState().interactions?.length || 0}</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Visit notes</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.visitNotes')}</div>
         </div>
         <div>
           <div style="font-size: 1.5rem; font-weight: 700;">${this.calculateStorageSize()} KB</div>
-          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">Used</div>
+          <div style="color: var(--color-text-secondary); font-size: 0.85rem;">${t('sync.used')}</div>
         </div>
       </div>
     `;

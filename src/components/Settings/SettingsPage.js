@@ -1,6 +1,8 @@
 // Settings Page Component
 
 import StateManager from '../../core/state.js';
+import { ROUTES } from '../../core/router.js';
+import { t } from '../../utils/i18n.js';
 import StorageManager from '../../core/storage.js';
 import ActivationManager from '../../core/activation.js';
 import { Toast } from '../UI/Toast.js';
@@ -30,15 +32,51 @@ export class SettingsPage {
     this.container.innerHTML = `
       <div class="settings-grid">
         <div>
+          <!-- These four lost their nav tabs when it went from eight to five
+               (D-25, and section 6 of INITIATIVE.md). Removing the tab without
+               adding an entry point here left Backup and Sync UNREACHABLE, so
+               an NGO could not have backed up or restored at all. Backup leads
+               because it is the one behaviour we ask of them (PR-5). -->
+          <div class="card lg-more">
+            <div class="card-header">
+              <h2 class="card-title">${t('more.title')}</h2>
+            </div>
+            <a class="lg-more-item lg-more-item--lead" href="#${ROUTES.SYNC}">
+              <span class="lg-more-icon">💾</span>
+              <span class="lg-more-text">
+                <b>${t('more.backup')}</b>
+                <span>${t('more.backupHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.INTERACTIONS}">
+              <span class="lg-more-icon">📋</span>
+              <span class="lg-more-text">
+                <b>${t('more.history')}</b>
+                <span>${t('more.historyHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.CAMPAIGNS}">
+              <span class="lg-more-icon">🪔</span>
+              <span class="lg-more-text">
+                <b>${t('more.campaigns')}</b>
+                <span>${t('more.campaignsHint')}</span>
+              </span>
+            </a>
+            <a class="lg-more-item" href="#${ROUTES.ABOUT}">
+              <span class="lg-more-icon">ℹ️</span>
+              <span class="lg-more-text"><b>${t('more.about')}</b></span>
+            </a>
+          </div>
+
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Preferences</h2>
+              <h2 class="card-title">${t('set.preferences')}</h2>
             </div>
             <div class="card-body">
               <div class="setting-item">
-                <label for="org-name">Organization Name</label>
+                <label for="org-name">${t('set.orgName')}</label>
                 <input type="text" id="org-name" class="form-input"
-                  value="${this.escapeHtml(orgName)}" placeholder="Your NGO name" />
+                  value="${this.escapeHtml(orgName)}" placeholder="${t('set.orgPlaceholder')}" />
                 <div class="setting-help">Used in message templates as {org}. Appears in WhatsApp/SMS greetings.</div>
               </div>
 
@@ -46,7 +84,7 @@ export class SettingsPage {
                    landing confusing can put My Day back themselves, over the
                    phone, with no rebuild and no new APK. -->
               <div class="setting-item">
-                <label for="landing-screen">Opening screen</label>
+                <label for="landing-screen">${t('set.opening')}</label>
                 <select id="landing-screen" class="form-input">
                   <option value="calendar" ${this.settings.landingScreen !== 'dashboard' ? 'selected' : ''}>🗓 Calendar (recommended)</option>
                   <option value="dashboard" ${this.settings.landingScreen === 'dashboard' ? 'selected' : ''}>📋 My Day</option>
@@ -55,52 +93,52 @@ export class SettingsPage {
               </div>
 
               <div class="setting-item">
-                <label for="calendar-starts-on">Week starts on</label>
+                <label for="calendar-starts-on">${t('set.weekStart')}</label>
                 <select id="calendar-starts-on" class="form-input">
-                  <option value="sun" ${this.settings.calendarStartsOn !== 'mon' ? 'selected' : ''}>Sunday</option>
-                  <option value="mon" ${this.settings.calendarStartsOn === 'mon' ? 'selected' : ''}>Monday</option>
+                  <option value="sun" ${this.settings.calendarStartsOn !== 'mon' ? 'selected' : ''}>${t('set.sunday')}</option>
+                  <option value="mon" ${this.settings.calendarStartsOn === 'mon' ? 'selected' : ''}>${t('set.monday')}</option>
                 </select>
-                <div class="setting-help">Sunday matches most Indian wall calendars.</div>
+                <div class="setting-help">${t('p.sundayHint')}</div>
               </div>
 
               <div class="setting-item">
-                <label for="reminder-lookahead">Reminder Lookahead (days)</label>
+                <label for="reminder-lookahead">${t('set.lookahead')}</label>
                 <input type="number" id="reminder-lookahead" class="form-input"
                   min="1" max="90" value="${lookahead}" />
                 <div class="setting-help">How many days ahead to show upcoming reminders (1–90)</div>
               </div>
 
               <div class="setting-item">
-                <label for="auto-backup-days">Backup Reminder Interval (days)</label>
+                <label for="auto-backup-days">${t('set.backupEvery')}</label>
                 <input type="number" id="auto-backup-days" class="form-input"
                   min="1" max="30" value="${backupDays}" />
                 <div class="setting-help">Remind to export data backup after this many days (1–30)</div>
               </div>
 
               <div class="setting-item">
-                <label for="lapse-threshold">Lapse Threshold (days)</label>
+                <label for="lapse-threshold">${t('set.lapseAfter')}</label>
                 <input type="number" id="lapse-threshold" class="form-input"
                   min="7" max="365" value="${lapseThreshold}" />
-                <div class="setting-help">Mark visitors as "needs attention" if no contact for this many days (7–365)</div>
+                <div class="setting-help">${t('set.markAs')} "needs attention" if no contact for this many days (7–365)</div>
               </div>
 
               <div class="setting-item">
-                <label for="tagline-mr">Campaign sign-off (Marathi tagline)</label>
+                <label for="tagline-mr">${t('set.tagline')}</label>
                 <input type="text" id="tagline-mr" class="form-input"
                   value="${this.escapeHtml(this.settings.taglineMr || '')}" placeholder="चला जरा वेगळे जगुया ..." />
                 <div class="setting-help">Appended to campaign greetings/invitations as {tagline}.</div>
               </div>
 
               <div class="setting-item">
-                <label for="default-campaign-lang">Default campaign language</label>
+                <label for="default-campaign-lang">${t('set.campaignLang')}</label>
                 <select id="default-campaign-lang" class="form-select">
                   <option value="mr" ${this.settings.defaultCampaignLanguage === 'mr' ? 'selected' : ''}>मराठी (Marathi)</option>
-                  <option value="en" ${this.settings.defaultCampaignLanguage === 'en' ? 'selected' : ''}>English</option>
+                  <option value="en" ${this.settings.defaultCampaignLanguage === 'en' ? 'selected' : ''}>${t('set.english')}</option>
                 </select>
               </div>
 
               <div style="margin-top: 1.5rem;">
-                <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+                <button id="save-settings-btn" class="btn btn-primary">${t('set.save')}</button>
               </div>
             </div>
           </div>
@@ -109,24 +147,24 @@ export class SettingsPage {
         <div>
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Machine Information</h2>
+              <h2 class="card-title">${t('set.thisDevice')}</h2>
             </div>
             <div class="card-body">
               <table class="machine-info-table">
                 <tr>
-                  <td>Machine Name</td>
+                  <td>${t('set.deviceName')}</td>
                   <td>${this.escapeHtml(machineInfo.machineName || '—')}</td>
                 </tr>
                 <tr>
-                  <td>Role</td>
+                  <td>${t('set.role')}</td>
                   <td>${machineInfo.machineRole === 'root' ? 'Root (Data Aggregator)' : 'Satellite (Field Collection)'}</td>
                 </tr>
                 <tr>
-                  <td>Machine ID</td>
+                  <td>${t('set.deviceId')}</td>
                   <td><code style="font-size: 0.8rem;">${this.escapeHtml(machineInfo.machineId || '—')}</code></td>
                 </tr>
                 <tr>
-                  <td>Activated</td>
+                  <td>${t('set.since')}</td>
                   <td>${machineInfo.activatedAt ? new Date(machineInfo.activatedAt).toLocaleDateString() : '—'}</td>
                 </tr>
               </table>
@@ -135,7 +173,7 @@ export class SettingsPage {
 
           <div class="card" style="margin-top: 1.5rem;">
             <div class="card-header">
-              <h2 class="card-title">About</h2>
+              <h2 class="card-title">${t('set.about')}</h2>
             </div>
             <div class="card-body">
               <p><strong>${APP_NAME}</strong></p>
@@ -147,7 +185,7 @@ export class SettingsPage {
 
       <div class="card" style="margin-top: 1.5rem;">
         <div class="card-header">
-          <h2 class="card-title">Message Templates</h2>
+          <h2 class="card-title">${t('set.templates')}</h2>
         </div>
         <div class="card-body">
           <p class="text-secondary" style="margin-bottom: 1rem;">
@@ -171,8 +209,8 @@ export class SettingsPage {
           `).join('')}
 
           <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-            <button id="save-templates-btn" class="btn btn-primary">Save Templates</button>
-            <button id="reset-templates-btn" class="btn btn-secondary">Reset to Defaults</button>
+            <button id="save-templates-btn" class="btn btn-primary">${t('set.saveTemplates')}</button>
+            <button id="reset-templates-btn" class="btn btn-secondary">${t('set.resetTemplates')}</button>
           </div>
         </div>
       </div>
@@ -190,7 +228,7 @@ export class SettingsPage {
           <div id="sms-permission-status" class="sms-perm-row" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding: 0.75rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 0.5rem;">
             <span id="sms-perm-state" style="font-weight: 600;">Checking…</span>
             <div style="flex: 1;"></div>
-            <button id="sms-perm-request-btn" class="btn btn-primary btn-sm" style="display:none;">Grant SMS permission</button>
+            <button id="sms-perm-request-btn" class="btn btn-primary btn-sm" style="display:none;">${t('set.smsPermission')}</button>
             <span id="sms-perm-note" class="text-secondary" style="font-size: 0.85rem;"></span>
           </div>
         </div>
@@ -205,10 +243,10 @@ export class SettingsPage {
             Local reminders on this device (works offline). A daily digest of due reminders plus a nudge before upcoming occasions. Available in the Android app.
           </p>
           <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-            <input type="checkbox" id="notif-enabled" ${this.settings.notificationsEnabled ? 'checked' : ''}/> Enable daily notifications
+            <input type="checkbox" id="notif-enabled" ${this.settings.notificationsEnabled ? 'checked' : ''}/> ${t('set.dailyNotif')}
           </label>
           <div class="setting-item" style="margin-top:0.75rem;">
-            <label for="notif-time">Daily time</label>
+            <label for="notif-time">${t('set.dailyTime')}</label>
             <input type="time" id="notif-time" class="form-input" value="${this.escapeHtml(this.settings.notificationDigestTime || '09:00')}" style="max-width:160px;" />
           </div>
           <button id="notif-save" class="btn btn-primary btn-sm" style="margin-top:0.5rem;">Save &amp; apply</button>
@@ -238,7 +276,7 @@ export class SettingsPage {
       const lapseThreshold = parseInt(this.container.querySelector('#lapse-threshold').value, 10);
 
       if (!orgNameVal) {
-        Toast.show('Organization name is required', 'error');
+        Toast.show(t('p.orgRequired'), 'error');
         return;
       }
       if (isNaN(lookahead) || lookahead < 1 || lookahead > 90) {
@@ -315,9 +353,9 @@ export class SettingsPage {
         }
         const res = await NotificationService.sync({ ...StateManager.getSettings() });
         if (res.reason === 'denied') {
-          Toast.show('Notification permission was denied.', 'warning');
+          Toast.show(t('p.notifDenied'), 'warning');
         } else {
-          Toast.show(enabled ? `Notifications scheduled (${res.scheduled}).` : 'Notifications turned off.', 'success');
+          Toast.show(enabled ? `Notifications scheduled (${res.scheduled}).` : t('p.notifOff'), 'success');
         }
       });
     }
@@ -341,7 +379,7 @@ export class SettingsPage {
     const lastSync = syncLog[0] || null;
     const lastSyncStr = lastSync
       ? `${lastSync.direction || 'sync'} ${lastSync.machineName ? `with ${this.escapeHtml(lastSync.machineName)}` : ''} on ${formatDateShort(lastSync.timestamp)}`
-      : 'No sync yet';
+      : `${t('p.noSyncYet')}`;
     const platform = this._detectPlatform();
 
     // 5 MB is the conservative localStorage browser cap. Warn at 80%.
@@ -358,18 +396,18 @@ export class SettingsPage {
           </p>
 
           <table class="machine-info-table" style="width: 100%; margin-bottom: 1rem;">
-            <tr><td>Platform</td><td>${platform.label}</td></tr>
-            <tr><td>App version</td><td>${APP_VERSION}</td></tr>
-            <tr><td>Machine</td><td>${this.escapeHtml(machineInfo.machineName || '—')} (${machineInfo.machineRole === 'root' ? 'Root' : 'Satellite'})</td></tr>
-            <tr><td>Visitors</td><td>${visitorCount}</td></tr>
-            <tr><td>Interactions</td><td>${interactionCount}</td></tr>
-            <tr><td>Known machines</td><td>${knownCount}</td></tr>
-            <tr><td>Last sync</td><td>${lastSyncStr}</td></tr>
-            <tr><td>Storage used</td><td><span ${quotaWarn ? 'style="color: #dc2626; font-weight: 600;"' : ''}>${storage.sizeKB} KB${quotaWarn ? ' ⚠️ approaching browser limit' : ''}</span></td></tr>
-            <tr><td>SMS permission</td><td><span id="diag-sms-perm">Checking…</span></td></tr>
+            <tr><td>${t('set.platform')}</td><td>${platform.label}</td></tr>
+            <tr><td>${t('set.appVersion')}</td><td>${APP_VERSION}</td></tr>
+            <tr><td>${t('set.thisDevice')}</td><td>${this.escapeHtml(machineInfo.machineName || '—')} (${machineInfo.machineRole === 'root' ? 'Root' : 'Satellite'})</td></tr>
+            <tr><td>${t('set.people')}</td><td>${visitorCount}</td></tr>
+            <tr><td>${t('set.records')}</td><td>${interactionCount}</td></tr>
+            <tr><td>${t('set.knownDevices')}</td><td>${knownCount}</td></tr>
+            <tr><td>${t('set.lastSync')}</td><td>${lastSyncStr}</td></tr>
+            <tr><td>${t('set.storageUsed')}</td><td><span ${quotaWarn ? 'style="color: #dc2626; font-weight: 600;"' : ''}>${storage.sizeKB} KB${quotaWarn ? ' ⚠️ approaching browser limit' : ''}</span></td></tr>
+            <tr><td>${t('set.smsStatus')}</td><td><span id="diag-sms-perm">Checking…</span></td></tr>
           </table>
 
-          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">Test communication paths</h4>
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem;">${t('set.testPaths')}</h4>
           <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 0.75rem;">
             Enter your own mobile number to test that each path actually reaches your phone. Useful before running a real batch.
           </p>
@@ -493,7 +531,7 @@ export class SettingsPage {
 
       if (!isCapacitor) {
         stateEl.textContent = '🖥 Bulk SMS unavailable on this device';
-        noteEl.textContent = 'Open the Android app to enable bulk SMS sending.';
+        noteEl.textContent = t('p.openAndroid');
         btn.style.display = 'none';
         return;
       }
@@ -515,7 +553,7 @@ export class SettingsPage {
       if (res.granted) {
         Toast.show('SMS permission granted', 'success');
       } else {
-        Toast.show(res.reason ? `Not granted: ${res.reason}` : 'Permission was denied', 'warning');
+        Toast.show(res.reason ? `Not granted: ${res.reason}` : t('p.permDenied'), 'warning');
       }
       await refresh();
     });

@@ -23,7 +23,13 @@ describe('Campaign UI render smoke', () => {
     it('CampaignList renders with the New Campaign button', () => {
         const el = new CampaignList().render();
         expect(el.querySelector('#camp-new-btn')).toBeTruthy();
-        expect(el.textContent).toContain('Campaigns');
+        // Was `toContain('Campaigns')`. That asserted a specific English word as
+        // a stand-in for "the screen rendered", which stopped being true the
+        // moment the app became Marathi-first. Assert the heading exists and is
+        // not empty — the property the English word was standing for.
+        const heading = el.querySelector('h1, h2, h3');
+        expect(heading, 'CampaignList has no heading').toBeTruthy();
+        expect(heading.textContent.trim().length).toBeGreaterThan(0);
     });
 
     it('OccasionManager renders seeded occasions + add control', () => {

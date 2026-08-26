@@ -2,6 +2,7 @@
 // Replaces prompt() for interaction logging throughout the app
 
 import InteractionService from '../../services/InteractionService.js';
+import { t } from '../../utils/i18n.js';
 import ReminderService from '../../services/ReminderService.js';
 import VisitorService from '../../services/VisitorService.js';
 import ActivationManager from '../../core/activation.js';
@@ -81,7 +82,7 @@ export class InteractionLogger {
     };
 
     const interactionType = typeMap[type] || INTERACTION_TYPES.OTHER;
-    const notes = noteMap[type] || 'Action taken via Dashboard';
+    const notes = noteMap[type] || t('p.viaDashboard');
 
     try {
       // Log the interaction
@@ -113,7 +114,7 @@ export class InteractionLogger {
       if (onDone) onDone();
     } catch (err) {
       console.error('Quick action failed:', err);
-      Toast.show('Failed to log action', 'error');
+      Toast.show(t('p.logFailed'), 'error');
     }
   }
 
@@ -126,7 +127,7 @@ export class InteractionLogger {
       Toast.show(`Snoozed for ${days} day(s)`, 'success');
       if (onDone) onDone();
     } catch (err) {
-      Toast.show('Failed to snooze', 'error');
+      Toast.show(t('p.snoozeFailed'), 'error');
     }
   }
 
@@ -151,7 +152,7 @@ export class InteractionLogger {
       <div class="interaction-logger-modal">
         <div class="interaction-logger-header">
           <h3>Log Interaction${visitorName ? ` — ${InteractionLogger._escapeHtml(visitorName)}` : ''}</h3>
-          <button class="interaction-logger-close" aria-label="Close">&times;</button>
+          <button class="interaction-logger-close" aria-label="${t('action.close')}">&times;</button>
         </div>
 
         <div class="interaction-logger-body">
@@ -166,11 +167,11 @@ export class InteractionLogger {
 
           <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
             <div class="form-group">
-              <label class="form-label">Date</label>
+              <label class="form-label">${t('common.date')}</label>
               <input type="date" id="il-date" class="form-input" value="${today}" />
             </div>
             <div class="form-group">
-              <label class="form-label">Outcome</label>
+              <label class="form-label">${t('log.outcome')}</label>
               <select id="il-outcome" class="form-select">
                 <option value="">— Select —</option>
                 ${Object.entries(INTERACTION_OUTCOME_LABELS).map(([val, label]) =>
@@ -181,30 +182,30 @@ export class InteractionLogger {
           </div>
 
           <div class="form-group">
-            <label class="form-label">Notes</label>
+            <label class="form-label">${t('common.notes')}</label>
             <textarea id="il-notes" class="form-textarea" rows="3" placeholder="What happened?">${InteractionLogger._escapeHtml(prefillNotes || '')}</textarea>
           </div>
 
           <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
             <div class="form-group">
-              <label class="form-label">Duration (minutes)</label>
-              <input type="number" id="il-duration" class="form-input" min="0" placeholder="Optional" />
+              <label class="form-label">${t('log.duration')}</label>
+              <input type="number" id="il-duration" class="form-input" min="0" placeholder="${t('common.optional')}" />
             </div>
             <div class="form-group">
-              <label class="form-label">Follow-up Date</label>
+              <label class="form-label">${t('log.followUpDate')}</label>
               <input type="date" id="il-followup-date" class="form-input" />
             </div>
           </div>
 
           <div class="form-group" id="il-followup-notes-group" style="display:none;">
-            <label class="form-label">Follow-up Notes</label>
+            <label class="form-label">${t('log.followUpNotes')}</label>
             <input type="text" id="il-followup-notes" class="form-input" placeholder="What to do next..." />
           </div>
         </div>
 
         <div class="interaction-logger-footer">
-          <button class="btn btn-secondary" id="il-cancel">Cancel</button>
-          <button class="btn btn-primary" id="il-save">Save Interaction</button>
+          <button class="btn btn-secondary" id="il-cancel">${t('action.cancel')}</button>
+          <button class="btn btn-primary" id="il-save">${t('log.save')}</button>
         </div>
       </div>
     `;
@@ -363,7 +364,7 @@ export class InteractionLogger {
     const normalized = normalizePhone(phone);
     if (!normalized) return;
     if (!InteractionLogger._isMobileDevice()) {
-      Toast.show('Phone calls are only available on mobile devices', 'warning');
+      Toast.show(t('p.callMobileOnly'), 'warning');
       return;
     }
     InteractionLogger._openProtocolLink(`tel:+91${normalized}`);

@@ -5,6 +5,7 @@
 // log one Interaction per recipient. Status/stats are recorded back.
 
 import Router, { ROUTES } from '../../core/router.js';
+import { t } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import OccasionService from '../../services/OccasionService.js';
 import CampaignService from '../../services/CampaignService.js';
@@ -47,13 +48,13 @@ export class CampaignBuilder {
         this.container.innerHTML = `
             <div class="dashboard-header" style="display:flex; align-items:center; gap:0.5rem;">
                 <button id="camp-back" class="btn btn-secondary btn-sm">← Back</button>
-                <h2 style="margin:0;">New Campaign</h2>
+                <h2 style="margin:0;">${t('camp.new')}</h2>
             </div>
 
             <div class="card" style="margin-top:1rem;">
                 <div class="card-body">
                     <div class="setting-item">
-                        <label for="cb-occasion">Occasion</label>
+                        <label for="cb-occasion">${t('camp.occasion')}</label>
                         <select id="cb-occasion" class="form-select">
                             <option value="">— Custom (no occasion) —</option>
                             ${occasions.map(o => `<option value="${o.id}" ${o.id === this.state.occasionId ? 'selected' : ''}>${this._esc(o.nameMr || o.name)}</option>`).join('')}
@@ -62,40 +63,40 @@ export class CampaignBuilder {
 
                     <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
                         <div class="setting-item" style="flex:1; min-width:150px;">
-                            <label for="cb-date">Date</label>
+                            <label for="cb-date">${t('common.date')}</label>
                             <input id="cb-date" type="date" class="form-input" value="${this._esc(this.state.date)}" />
                         </div>
                         <div class="setting-item" style="flex:1; min-width:150px;">
-                            <label for="cb-type">Message type</label>
+                            <label for="cb-type">${t('camp.messageType')}</label>
                             <select id="cb-type" class="form-select">
-                                <option value="greeting">Greeting</option>
-                                <option value="invitation">Invitation</option>
+                                <option value="greeting">${t('camp.greeting')}</option>
+                                <option value="invitation">${t('camp.invitation')}</option>
                             </select>
                         </div>
                         <div class="setting-item" style="flex:1; min-width:150px;">
-                            <label for="cb-lang">Language</label>
+                            <label for="cb-lang">${t('common.language')}</label>
                             <select id="cb-lang" class="form-select">
                                 <option value="mr" ${this.state.language === 'mr' ? 'selected' : ''}>मराठी (Marathi)</option>
-                                <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>English</option>
+                                <option value="en" ${this.state.language === 'en' ? 'selected' : ''}>${t('set.english')}</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="setting-item">
-                        <label for="cb-template">Message</label>
+                        <label for="cb-template">${t('common.message')}</label>
                         <textarea id="cb-template" class="form-textarea" rows="4">${this._esc(this.state.templateText)}</textarea>
                         <div class="setting-help">Tokens: {name} {org} {occasion} {tagline}</div>
                     </div>
 
                     <div class="setting-item">
-                        <label>Preview</label>
+                        <label>${t('common.preview')}</label>
                         <div id="cb-preview" style="white-space:pre-wrap; padding:0.75rem; background:var(--color-surface); border:1px solid var(--color-border); border-radius:0.5rem; font-size:0.9rem;"></div>
                     </div>
                 </div>
             </div>
 
             <div class="card" style="margin-top:1.5rem;">
-                <div class="card-header"><h3 class="card-title">Channel</h3></div>
+                <div class="card-header"><h3 class="card-title">${t('camp.channel')}</h3></div>
                 <div class="card-body">
                     <div style="display:flex; gap:1rem; flex-wrap:wrap;">
                         <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
@@ -110,24 +111,24 @@ export class CampaignBuilder {
             </div>
 
             <div class="card" style="margin-top:1.5rem;">
-                <div class="card-header"><h3 class="card-title">Recipients</h3></div>
+                <div class="card-header"><h3 class="card-title">${t('camp.recipients')}</h3></div>
                 <div class="card-body">
                     <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
                         <div class="setting-item" style="flex:1; min-width:150px;">
-                            <label for="cb-city">City</label>
-                            <select id="cb-city" class="form-select"><option value="">All cities</option>${cities.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
+                            <label for="cb-city">${t('common.city')}</label>
+                            <select id="cb-city" class="form-select"><option value="">${t('common.allCities')}</option>${cities.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
                         </div>
                         <div class="setting-item" style="flex:1; min-width:150px;">
-                            <label for="cb-category">Category</label>
-                            <select id="cb-category" class="form-select"><option value="">All categories</option>${categories.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
+                            <label for="cb-category">${t('common.category')}</label>
+                            <select id="cb-category" class="form-select"><option value="">${t('common.allCategories')}</option>${categories.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
                         </div>
                         <div class="setting-item" style="flex:1; min-width:150px;">
                             <label for="cb-tag">Tag</label>
-                            <select id="cb-tag" class="form-select"><option value="">Any tag</option>${tags.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
+                            <select id="cb-tag" class="form-select"><option value="">${t('common.anyTag')}</option>${tags.map(c => `<option value="${this._esc(c)}">${this._esc(c)}</option>`).join('')}</select>
                         </div>
                     </div>
                     <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; margin-top:0.25rem;">
-                        <input type="checkbox" id="cb-consented" /> Only contacts who gave consent
+                        <input type="checkbox" id="cb-consented" /> ${t('camp.consentOnly')}
                     </label>
                     <div id="cb-count" style="margin-top:0.75rem; font-weight:600;"></div>
                     <div id="cb-excluded" class="setting-help"></div>
@@ -136,7 +137,7 @@ export class CampaignBuilder {
 
             <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
                 <button id="cb-send" class="btn btn-primary">Review & Send</button>
-                <button id="cb-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="cb-cancel" class="btn btn-secondary">${t('action.cancel')}</button>
             </div>
         `;
 
@@ -229,7 +230,7 @@ export class CampaignBuilder {
         if (!el) return;
         const n = count != null ? count : CampaignService.buildRecipients(this._currentFilter()).recipients.length;
         if (this.state.channel === 'whatsapp' && n > SMS_RECOMMEND_THRESHOLD) {
-            el.innerHTML = `⚠️ ${n} recipients via WhatsApp is one chat at a time. <strong>SMS is recommended</strong> for large lists.`;
+            el.innerHTML = `⚠️ ${n} recipients via WhatsApp is one chat at a time. <strong>${t('camp.smsRecommended')}</strong> for large lists.`;
         } else if (this.state.channel === 'sms') {
             el.textContent = 'SMS sends from your phone\'s SIM. Standard carrier charges apply; needs the Android app + SMS permission.';
         } else {
@@ -241,8 +242,8 @@ export class CampaignBuilder {
     _send() {
         const filter = this._currentFilter();
         const { recipients } = CampaignService.buildRecipients(filter);
-        if (!recipients.length) { Toast.show('No recipients match this filter.', 'warning'); return; }
-        if (!this.state.templateText.trim()) { Toast.show('Message cannot be empty.', 'warning'); return; }
+        if (!recipients.length) { Toast.show(`${t('p.noRecipients')}`, 'warning'); return; }
+        if (!this.state.templateText.trim()) { Toast.show(`${t('p.messageEmpty')}`, 'warning'); return; }
 
         const occasion = this._selectedOccasion();
         const occasionName = occasion ? (this.state.language === 'mr' ? (occasion.nameMr || occasion.name) : (occasion.name || occasion.nameMr)) : '';

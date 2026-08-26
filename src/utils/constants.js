@@ -1,6 +1,6 @@
 // Application Constants
 
-export const APP_VERSION = '3.2.0';
+export const APP_VERSION = '3.3.0';
 export const APP_NAME = 'Dnyani Mitr';
 export const ORGANIZATION = 'Sewa Sankalp Pratishthan';
 export const ORGANIZATION_URL = 'https://sewasankalp.org/';
@@ -368,7 +368,10 @@ export const VALIDATION = {
     MIN_NAME_LENGTH: 2,
     MAX_NAME_LENGTH: 100,
     MAX_NOTES_LENGTH: 5000,
-    PHONE_PATTERN: /^[\d\s\-\+\(\)]+$/,
+    // P1.5 — \d is ASCII-only, so a number typed on a Devanagari or Arabic-Indic
+    // layout failed validation with a message the user cannot act on. Accept the
+    // digits; normalizePhone folds them to ASCII before they are stored.
+    PHONE_PATTERN: /^[\d\s\-\+\(\)\u0966-\u096F\u0660-\u0669\u06F0-\u06F9]+$/,
     EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 };
 
@@ -377,3 +380,17 @@ export const MASTER_KEY_FORMAT = /^SSP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 // For development/testing only
 export const DEV_MASTER_KEY = 'SSP-DEV1-2026-TEST';
+
+
+// P2.13 — what a supporter brought. Tally marks, not donation accounting:
+// no amounts, no receipts, nothing to reconcile. These are the six things a
+// balikashram actually receives, and the list is short on purpose — a long one
+// is a form, and a form does not get filled in while someone is standing there.
+export const CONTRIBUTION_TYPES = [
+    { value: 'meal',      icon: '\u{1F371}', mr: '\u091C\u0947\u0935\u0923',                         en: 'Meal' },
+    { value: 'donation',  icon: '\u{1F4B0}', mr: '\u0926\u0947\u0923\u0917\u0940',                  en: 'Donation' },
+    { value: 'books',     icon: '\u{1F4DA}', mr: '\u092A\u0941\u0938\u094D\u0924\u0915\u0902',    en: 'Books' },
+    { value: 'clothes',   icon: '\u{1F455}', mr: '\u0915\u092A\u0921\u0947',                         en: 'Clothes' },
+    { value: 'education', icon: '\u{1F392}', mr: '\u0936\u0948\u0915\u094D\u0937\u0923\u093F\u0915', en: 'Educational' },
+    { value: 'grocery',   icon: '\u{1F6CD}', mr: '\u0915\u093F\u0930\u093E\u0923\u093E',           en: 'Grocery' }
+];

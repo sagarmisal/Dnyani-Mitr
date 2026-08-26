@@ -2,6 +2,9 @@
 // matches how these NGOs actually work (G10-R): inbound first.
 
 import CalendarService, { CALENDAR_ITEM_KINDS } from '../../services/CalendarService.js';
+import ThanksService, { MESSAGE_KINDS } from '../../services/ThanksService.js';
+import { CONTRIBUTION_TYPES } from '../../utils/constants.js';
+import { t, getLang } from '../../utils/i18n.js';
 import StateManager from '../../core/state.js';
 import InteractionService from '../../services/InteractionService.js';
 import { Toast } from '../UI/Toast.js';
@@ -49,8 +52,8 @@ export class DayPane {
             <div class="day-pane-header">
                 <h3>${this.formatDate()}</h3>
                 <div class="day-pane-nav">
-                    <button class="btn btn-icon" data-shift="-1" aria-label="Previous day">‹</button>
-                    <button class="btn btn-icon" data-shift="1" aria-label="Next day">›</button>
+                    <button class="btn btn-icon" data-shift="-1" aria-label="${t('nav.prevDay')}">‹</button>
+                    <button class="btn btn-icon" data-shift="1" aria-label="${t('nav.nextDay')}">›</button>
                 </div>
             </div>
 
@@ -58,6 +61,7 @@ export class DayPane {
             ${isToday ? this.renderBacklog() : ''}
             ${this.section('We are going · आपण जाणार', outbound, 'outbound')}
             ${this.renderRest(rest)}
+            ${this.renderMemories()}
             ${isPast ? this.renderBackfill() : ''}
 
             <div class="day-pane-actions">
@@ -79,7 +83,7 @@ export class DayPane {
             if (kind === 'inbound') {
                 return `<div class="day-section">
                     <h4>${title}</h4>
-                    <p class="day-empty">Nobody has told us they are coming this day.</p>
+                    <p class="day-empty">${t('p.noneComing')}</p>
                 </div>`;
             }
             return '';
@@ -106,8 +110,8 @@ export class DayPane {
                 </div>
                 ${done || cancelled ? `<span class="day-item-state">${done ? '✓ done' : 'cancelled'}</span>` : `
                     <div class="day-item-actions">
-                        <button class="btn btn-xs btn-primary" data-done="${escapeHTML(item.scheduledItemId)}">Done</button>
-                        <button class="btn btn-xs" data-edit="${escapeHTML(item.scheduledItemId)}">Edit</button>
+                        <button class="btn btn-xs btn-primary" data-done="${escapeHTML(item.scheduledItemId)}">${t('action.done')}</button>
+                        <button class="btn btn-xs" data-edit="${escapeHTML(item.scheduledItemId)}">${t('action.edit')}</button>
                     </div>`}
             </li>
         `;
@@ -127,7 +131,7 @@ export class DayPane {
                                 <span class="day-item-title">${escapeHTML(i.title)}</span>
                                 <span class="day-item-meta">${escapeHTML(i.date)}</span>
                             </div>
-                            <button class="btn btn-xs" data-goto="${escapeHTML(i.date)}">Open</button>
+                            <button class="btn btn-xs" data-goto="${escapeHTML(i.date)}">${t('action.open')}</button>
                         </li>`).join('')}
                 </ul>
                 ${!this.showAllBacklog && total > BACKLOG_VISIBLE
@@ -149,11 +153,94 @@ export class DayPane {
                                 <span class="day-item-title">${escapeHTML(i.title)}</span>
                                 <span class="day-item-meta">${escapeHTML(this.kindLabel(i))}</span>
                             </div>
-                            ${i.visitorId ? `<button class="btn btn-xs" data-visitor="${escapeHTML(i.visitorId)}">Open</button>` : ''}
+                            ${i.visitorId ? `<button class="btn btn-xs" data-visitor="${escapeHTML(i.visitorId)}">${t('action.open')}</button>` : ''}
                         </li>`).join('')}
                 </ul>
             </div>
         `;
+    }
+
+
+    /**
+     * "A year ago today" (UC-06, P2.6/P2.7) — the section the NGO asked for.
+     *
+     * Renders LAST in the day pane, always. A memory is pleasant; it is not
+     * more important than someone arriving today, and Iteration 11 deliberately
+     * put "coming to us" first.
+     *
+     * The three guards from getMemories() surface here as three rules:
+     *   - the section is not rendered at all when there is nothing (guard 1)
+     *   - "we miss you" appears only when it is honest (guard 2)
+     *   - the gift is named only when one was actually recorded (guard 3)
+     */
+    /**
+     * Say what actually happened, never what we hope happened (PR-3).
+     *
+     * We opened WhatsApp. We do not know whether the person pressed send, and
+     * the message says so — "WhatsApp उघडलं", not "पाठवलं".
+     */
+    reportSend(res) {
+        if (res.ok) {
+            Toast.show(getLang() === 'mr'
+                ? 'WhatsApp उघडलं. पाठवा आणि परत या.'
+                : 'WhatsApp opened. Send it, then come back.', 'success');
+            this.onChange?.();
+            return;
+        }
+        Toast.show(
+            res.reason === 'no-phone'
+                ? (getLang() === 'mr' ? 'त्यांचा नंबर नाही, त्यामुळे पाठवता येत नाही.' : 'No number saved, so this cannot be sent.')
+                : (getLang() === 'mr' ? 'हा संदेश पाठवता येत नाही.' : t('p.cannotSend')),
+            'warning', 4000);
+    }
+
+    renderMemories() {
+        const { items, widened, windowDays } = CalendarService.getMemories(this.date);
+        if (!items.length) return '';          // guard 1 — never an empty section
+
+        const label = (n) => n === 1
+            ? (getLang() === 'mr' ? 'गेल्या वर्षी' : 'a year ago')
+            : (getLang() === 'mr' ? `${n} वर्षांपूर्वी` : `${n} years ago`);
+
+        return `
+            <div class="day-section lg-memories">
+                <div class="lg-section">
+                    <span class="lg-section-label">${escapeHTML(t('today.yearAgo'))}</span>
+                    <span class="lg-section-count">${items.length}</span>
+                </div>
+                ${widened ? `<p class="si-hint">${escapeHTML(getLang() === 'mr'
+                    ? `याच सुमारास (±${windowDays} दिवस)`
+                    : `around this time (±${windowDays} days)`)}</p>` : ''}
+                ${items.map(m => this.renderMemory(m, label(m.yearsAgo))).join('')}
+            </div>`;
+    }
+
+    renderMemory(m, when) {
+        const gift = m.contribution.length
+            ? CONTRIBUTION_TYPES
+                .filter(c => m.contribution.includes(c.value))
+                .map(c => `${c.icon} ${getLang() === 'mr' ? c.mr : c.en}`)
+                .join(' · ')
+            : '';
+
+        return `
+            <div class="lg-memory">
+                <div class="lg-memory-when">${escapeHTML(m.date)} · ${escapeHTML(when)}</div>
+                <b>${escapeHTML(m.visitorName)}</b>
+                ${gift ? `<span class="lg-tag">${escapeHTML(gift)}</span>` : ''}
+                ${m.notes ? `<span class="lg-memory-note">${escapeHTML(m.notes)}</span>` : ''}
+                <div class="lg-memory-actions">
+                    <button class="lg-btn lg-btn--sm lg-btn--primary"
+                            data-thank="${escapeHTML(m.visitorId)}"
+                            data-gift="${escapeHTML(m.contribution.join(','))}">
+                        💐 ${escapeHTML(t('action.sendThanks'))}
+                    </button>
+                    ${m.canSayMissYou ? `
+                        <button class="lg-btn lg-btn--sm" data-miss="${escapeHTML(m.visitorId)}">
+                            ${escapeHTML(t('p.missYou'))}
+                        </button>` : ''}
+                </div>
+            </div>`;
     }
 
     kindLabel(item) {
@@ -172,7 +259,7 @@ export class DayPane {
     renderBackfill() {
         return `
             <div class="day-section day-backfill">
-                <button class="btn btn-sm" id="backfill">Log what happened that day</button>
+                <button class="btn btn-sm" id="backfill">${t('action.logThatDay')}</button>
             </div>
         `;
     }
@@ -212,6 +299,21 @@ export class DayPane {
 
         q('[data-done]').forEach(b => b.addEventListener('click', () => this.markDone(b.dataset.done)));
 
+        // The memory card's two buttons (P2.10). Thanks is always offered;
+        // "we miss you" only appears when getMemories judged it honest.
+        q('[data-thank]').forEach(b => b.addEventListener('click', () => {
+            const gift = (b.dataset.gift || '').split(',').filter(Boolean);
+            const res = ThanksService.send(b.dataset.thank, {
+                kind: gift.length ? MESSAGE_KINDS.THANKS_GIFT : MESSAGE_KINDS.THANKS,
+                contribution: gift
+            });
+            this.reportSend(res);
+        }));
+        q('[data-miss]').forEach(b => b.addEventListener('click', () => {
+            const res = ThanksService.send(b.dataset.miss, { kind: MESSAGE_KINDS.MISS });
+            this.reportSend(res);
+        }));
+
         const backfill = this.container.querySelector('#backfill');
         if (backfill) backfill.addEventListener('click', () => this.openBackfill());
     }
@@ -231,7 +333,7 @@ export class DayPane {
         let outcome = SCHEDULED_ITEM_OUTCOME.HAPPENED;
         if (item.direction === SCHEDULED_ITEM_DIRECTION.INBOUND) {
             const came = await ConfirmDialog.show({
-                title: 'Did they come?',
+                title: t('p.didTheyCome'),
                 message: `${item.visitorName || item.title} was expected on ${item.date}.`,
                 confirmText: 'Yes, they came',
                 cancelText: 'No, they did not',
@@ -265,7 +367,7 @@ export class DayPane {
         }
 
         StateManager.updateScheduledItem(itemId, updates);
-        Toast.show(outcome === SCHEDULED_ITEM_OUTCOME.NO_SHOW ? 'Marked as did not come.' : 'Done.', 'success');
+        Toast.show(outcome === SCHEDULED_ITEM_OUTCOME.NO_SHOW ? t('p.markedNoShow') : 'Done.', 'success');
         this.onChange();
     }
 

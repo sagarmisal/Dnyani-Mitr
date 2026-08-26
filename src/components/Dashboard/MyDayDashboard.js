@@ -1,6 +1,7 @@
 // My Day Dashboard - Default home screen for daily planning
 
 import ReminderService from '../../services/ReminderService.js';
+import { t } from '../../utils/i18n.js';
 import OccasionService from '../../services/OccasionService.js';
 import VisitorService from '../../services/VisitorService.js';
 import InteractionService from '../../services/InteractionService.js';
@@ -30,11 +31,10 @@ export class MyDayDashboard {
         const followUps = this._getFollowUpsDue();
         const lapsedData = EngagementService.getLapsedVisitors();
         const weekStats = this._getWeekStats();
-        const dataQuality = EngagementService.getDataQualityMetrics();
 
         container.innerHTML = `
             <div class="dashboard-header">
-                <h2>My Day</h2>
+                <h2>${t('day.title')}</h2>
                 <a class="btn btn-sm btn-link" href="#/calendar">🗓 Open the calendar</a>
                 <p class="text-secondary">${this._getGreeting()} &mdash; ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             </div>
@@ -51,7 +51,6 @@ export class MyDayDashboard {
 
             ${this._renderNeedsAttentionSection(lapsedData)}
 
-            ${this._renderDataQualitySection(dataQuality)}
 
             ${this._renderReportsSection()}
         `;
@@ -87,7 +86,7 @@ export class MyDayDashboard {
                     <div style="flex:1; min-width:0;">
                         🎉 <strong>${name}</strong> is ${when}. Send greetings to your beneficiaries in bulk.
                     </div>
-                    <button id="dash-occasion-cta" class="btn btn-primary btn-sm" data-id="${esc(u.occasion.id)}">Create campaign</button>
+                    <button id="dash-occasion-cta" class="btn btn-primary btn-sm" data-id="${esc(u.occasion.id)}">${t('day.createCampaign')}</button>
                 </div>
             </div>
         `;
@@ -161,14 +160,14 @@ export class MyDayDashboard {
             <div class="dashboard-stats-bar">
                 <div class="stat-item">
                     <span class="stat-number">${stats.contacted}</span>
-                    <span class="stat-label">Contacted this week</span>
+                    <span class="stat-label">${t('day.contactedWeek')}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-number">${stats.remindersCompleted}</span>
-                    <span class="stat-label">Reminders completed</span>
+                    <span class="stat-label">${t('day.remindersDone')}</span>
                 </div>
                 <div class="stat-item stat-breakdown">
-                    <span class="stat-detail">${typeBreakdown || 'No activity yet'}</span>
+                    <span class="stat-detail">${typeBreakdown || `${t('p.noActivity')}`}</span>
                 </div>
             </div>
         `;
@@ -179,10 +178,10 @@ export class MyDayDashboard {
             return `
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
-                        <h3>Today</h3>
-                        <span class="badge badge-success">All clear</span>
+                        <h3>${t('action.today')}</h3>
+                        <span class="badge badge-success">${t('day.allClear')}</span>
                     </div>
-                    <div class="empty-state-compact">No birthdays or anniversaries today.</div>
+                    <div class="empty-state-compact">${t('p.noBirthdays')}</div>
                 </div>`;
         }
 
@@ -193,7 +192,7 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-today">
                 <div class="dashboard-card-header">
-                    <h3>Today</h3>
+                    <h3>${t('action.today')}</h3>
                     <span class="badge badge-primary">${reminders.length}</span>
                 </div>
                 ${showSmsBulk ? `
@@ -255,12 +254,12 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-overdue">
                 <div class="dashboard-card-header">
-                    <h3>Overdue</h3>
+                    <h3>${t('status.waitingSince')}</h3>
                     <span class="badge badge-danger">${reminders.length}</span>
                 </div>
                 <div class="dashboard-card-body">
                     ${reminders.slice(0, 10).map(r => this._renderReminderRow(r, true)).join('')}
-                    ${reminders.length > 10 ? `<div class="dashboard-more-link"><a href="#${ROUTES.REMINDERS}">View all ${reminders.length} overdue...</a></div>` : ''}
+                    ${reminders.length > 10 ? `<div class="dashboard-more-link"><a href="#${ROUTES.REMINDERS}">${t('status.viewAll', { n: reminders.length })}</a></div>` : ''}
                 </div>
             </div>`;
     }
@@ -288,8 +287,8 @@ export class MyDayDashboard {
                 <div class="reminder-row-actions">
                     ${hasValidPhone ? `<button class="btn btn-sm qa-whatsapp" data-action="whatsapp" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone)}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="WhatsApp">💬</button>` : ''}
                     ${hasValidPhone ? `<button class="btn btn-sm qa-sms" data-action="sms" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone)}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="SMS">📱</button>` : ''}
-                    <button class="btn btn-sm qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone || '')}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="Called">📞</button>
-                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${visitor?.id}">View</button>
+                    <button class="btn btn-sm qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this._escapeHtml(phone || '')}" data-name="${this._escapeHtml(name)}" data-event="${reminder.eventType}" title="${t('day.called')}">📞</button>
+                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${visitor?.id}">${t('day.view')}</button>
                 </div>
             </div>`;
     }
@@ -300,7 +299,7 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-followups">
                 <div class="dashboard-card-header">
-                    <h3>Follow-ups Due</h3>
+                    <h3>${t('status.worthACall')}</h3>
                     <span class="badge badge-warning">${followUps.length}</span>
                 </div>
                 <div class="dashboard-card-body">
@@ -313,7 +312,7 @@ export class MyDayDashboard {
                             </div>
                             <div class="followup-actions">
                                 <button class="btn btn-sm btn-primary log-followup-btn" data-vid="${fu.visitor?.id}" data-name="${this._escapeHtml(fu.visitorName)}">Log</button>
-                                <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${fu.visitor?.id}">View</button>
+                                <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${fu.visitor?.id}">${t('day.view')}</button>
                             </div>
                         </div>
                     `).join('')}
@@ -332,7 +331,7 @@ export class MyDayDashboard {
         return `
             <div class="dashboard-card dashboard-card-attention">
                 <div class="dashboard-card-header">
-                    <h3>Needs Attention</h3>
+                    <h3>${t('day.needsAttention')}</h3>
                     <span class="badge badge-danger">${lapsedData.lapsed.length + lapsedData.neverContacted.length}</span>
                 </div>
                 <div class="dashboard-card-body">
@@ -347,8 +346,8 @@ export class MyDayDashboard {
                                     <span class="lapsed-detail">${item.daysSince} days since last contact${lastType ? ` (${lastType})` : ''}</span>
                                 </div>
                                 <div class="lapsed-actions">
-                                    <button class="btn btn-sm btn-primary log-interaction-btn" data-vid="${item.visitor.id}" data-name="${this._escapeHtml(name)}">Contact</button>
-                                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${item.visitor.id}">View</button>
+                                    <button class="btn btn-sm btn-primary log-interaction-btn" data-vid="${item.visitor.id}" data-name="${this._escapeHtml(name)}">${t('day.contact')}</button>
+                                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${item.visitor.id}">${t('day.view')}</button>
                                 </div>
                             </div>`;
                     }).join('')}
@@ -359,11 +358,11 @@ export class MyDayDashboard {
                             <div class="dashboard-lapsed-row never-contacted">
                                 <div class="lapsed-info">
                                     <span class="lapsed-name">${this._escapeHtml(name)}</span>
-                                    <span class="lapsed-detail">Never contacted</span>
+                                    <span class="lapsed-detail">${t('status.neverVisited')}</span>
                                 </div>
                                 <div class="lapsed-actions">
-                                    <button class="btn btn-sm btn-primary log-interaction-btn" data-vid="${item.visitor.id}" data-name="${this._escapeHtml(name)}">Contact</button>
-                                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${item.visitor.id}">View</button>
+                                    <button class="btn btn-sm btn-primary log-interaction-btn" data-vid="${item.visitor.id}" data-name="${this._escapeHtml(name)}">${t('day.contact')}</button>
+                                    <button class="btn btn-sm btn-secondary view-visitor-btn" data-vid="${item.visitor.id}">${t('day.view')}</button>
                                 </div>
                             </div>`;
                     }).join('')}
@@ -374,21 +373,11 @@ export class MyDayDashboard {
             </div>`;
     }
 
-    _renderDataQualitySection(metrics) {
-        if (metrics.totalVisitors === 0) return '';
+    // P2.17 — the Data Quality section is gone. It counted missing phone
+    // numbers and empty fields: a maintainer's concern wearing a user's
+    // clothing, serving none of the six jobs. The metrics themselves survive in
+    // EngagementService, where WE can read them via the backup analyzer.
 
-        return `
-            <div class="dashboard-card dashboard-card-quality">
-                <div class="dashboard-card-header">
-                    <h3>Data Quality</h3>
-                </div>
-                <div class="dashboard-quality-bars">
-                    ${this._renderQualityBar('With Phone', metrics.phonePercent)}
-                    ${this._renderQualityBar('With Events', metrics.eventsPercent)}
-                    ${metrics.totalInteractions > 0 ? this._renderQualityBar('With Outcome', metrics.outcomePercent) : ''}
-                </div>
-            </div>`;
-    }
 
     _renderReportsSection() {
         return `
@@ -403,7 +392,7 @@ export class MyDayDashboard {
                     <button id="report-download-csv-btn" class="btn btn-secondary btn-sm">📄 Download Visitor CSV</button>
                 </div>
                 <details class="dashboard-report-preview">
-                    <summary>Preview monthly report</summary>
+                    <summary>${t('day.previewReport')}</summary>
                     <pre id="report-preview-text" class="dashboard-report-pre"></pre>
                 </details>
             </div>`;
@@ -429,7 +418,7 @@ export class MyDayDashboard {
                 const reminders = this._getTodayReminders();
                 const items = this._collectSmsItems(reminders);
                 if (items.length === 0) {
-                    Toast.show('No contacts with valid phone numbers for today.', 'warning');
+                    Toast.show(t('p.noPhonesToday'), 'warning');
                     return;
                 }
                 SmsBatchQueue.start(items, () => this._refresh());
@@ -500,7 +489,7 @@ export class MyDayDashboard {
             const text = ReportService.generateMonthlyTextReport();
             const result = await TextSyncService.shareText(text, 'Monthly Report');
             if (result.method === 'share') {
-                Toast.show('Share sheet opened.', 'success');
+                Toast.show(t('p.shareOpened'), 'success');
             } else if (result.method === 'clipboard') {
                 Toast.show('Share not available — report copied to clipboard.', 'info', 4000);
             } else if (result.method === 'none' && result.error) {
@@ -513,7 +502,7 @@ export class MyDayDashboard {
             const csv = ReportService.generateVisitorCSV();
             const filename = `Visitors_${new Date().toISOString().split('T')[0]}.csv`;
             // Prepend BOM so Excel handles UTF-8 correctly
-            downloadFile('\ufeff' + csv, filename);
+            downloadFile(csv, filename, 'text/csv;charset=utf-8;');   // BOM added in saveFile (P1.4)
             Toast.show('CSV downloaded.', 'success');
         });
     }

@@ -326,6 +326,25 @@ class StateManager {
      *   re-stamps, B relays to C — C then compares against B's import time,
      *   so a genuinely later edit from A can lose to an earlier relayed one).
      */
+    /**
+     * Update one interaction in place (P2.10).
+     *
+     * Needed so a thank-you can be recorded against the visit it thanks. Like
+     * updateScheduledItem it preserves the caller's own updatedAt when asked,
+     * so a record arriving through sync keeps the sender's timestamp and
+     * last-write-wins still resolves correctly.
+     */
+    updateInteraction(interactionId, updates, preserveUpdatedAt = false) {
+        const list = this.state.interactions || [];
+        const index = list.findIndex(i => i.id === interactionId);
+        if (index === -1) return false;
+        const stamp = (preserveUpdatedAt && updates.updatedAt)
+            ? updates.updatedAt
+            : new Date().toISOString();
+        list[index] = { ...list[index], ...updates, updatedAt: stamp };
+        return this._saveAndNotify();
+    }
+
     updateScheduledItem(itemId, updates, preserveUpdatedAt = false) {
         const list = this.state.scheduledItems || [];
         const index = list.findIndex(i => i.id === itemId);

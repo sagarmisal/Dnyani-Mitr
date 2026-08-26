@@ -4,10 +4,14 @@
  * Format ISO date to display format
  */
 export function formatDate(isoDate, monthOnly = false) {
-    if (!isoDate) return 'N/A';
+    // '—' rather than 'N/A' or 'Invalid Date'. Both of those are developer
+    // words: they tell a volunteer that something is broken when the truthful
+    // message is simply that we do not have this date. An em dash says that in
+    // any language, and a record arriving through merge can carry anything.
+    if (!isoDate) return '—';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'Invalid Date';
+    if (isNaN(date.getTime())) return '—';
 
     const options = monthOnly
         ? { month: 'long', year: 'numeric' }
@@ -20,10 +24,10 @@ export function formatDate(isoDate, monthOnly = false) {
  * Format date for display (short format)
  */
 export function formatDateShort(isoDate) {
-    if (!isoDate) return 'N/A';
+    if (!isoDate) return '—';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'Invalid Date';
+    if (isNaN(date.getTime())) return '—';
 
     return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -38,7 +42,7 @@ export function formatRelativeTime(isoDate) {
     if (!isoDate) return 'Never';
 
     const date = new Date(isoDate);
-    if (isNaN(date.getTime())) return 'N/A';
+    if (isNaN(date.getTime())) return '—';
 
     const now = new Date();
     const diffMs = now - date;
@@ -189,9 +193,34 @@ export function formatPhone(phone) {
  * Strips non-digits, takes last 10 digits.
  * Returns null if result is less than 10 digits.
  */
+/**
+ * Fold non-ASCII digits to ASCII (P1.5).
+ *
+ * `\D` in JavaScript is ASCII-only, so a number typed on a Devanagari layout
+ * (९८२२०१२३४५) is stripped to nothing and normalizePhone returns null. The
+ * phone number is this app's identity key (PR-1), so that silently costs a
+ * visitor their identity — dedup misses them, sync will not match them, and
+ * next year's reminder never finds them.
+ *
+ * Transliteration keyboards, which is how these volunteers actually type, keep
+ * the number row ASCII — so this is uncommon rather than routine. It is cheap
+ * insurance on the one field we ask people to get right.
+ */
+function foldDigits(str) {
+    let out = '';
+    for (const ch of String(str)) {
+        const c = ch.codePointAt(0);
+        if (c >= 0x0966 && c <= 0x096F) out += String(c - 0x0966);        // Devanagari ०-९
+        else if (c >= 0x0660 && c <= 0x0669) out += String(c - 0x0660);   // Arabic-Indic ٠-٩
+        else if (c >= 0x06F0 && c <= 0x06F9) out += String(c - 0x06F0);   // Extended Arabic-Indic ۰-۹
+        else out += ch;
+    }
+    return out;
+}
+
 export function normalizePhone(phone) {
     if (!phone) return null;
-    const digits = phone.replace(/\D/g, '');
+    const digits = foldDigits(phone).replace(/\D/g, '');
     if (digits.length < 10) return null;
     return digits.slice(-10);
 }
@@ -232,4 +261,30 @@ export function formatEmail(email) {
 export function pluralize(count, singular, plural = null) {
     if (count === 1) return singular;
     return plural || `${singular}s`;
+}
+
+/**
+ * What to show for a visitor in a list, a heading, or a day pane (D-07).
+ *
+ * A nameless visitor is ordinary now, not an error — someone rang, gave a
+ * number, and hung up. Showing a blank row would make the record look broken;
+ * showing the number makes it useful, because the number is what the next
+ * person will search for anyway.
+ *
+ * DISPLAY ONLY. Never use this to address someone in a message: "Dear
+ * 98220 12345 ji" is worse than sending nothing. Message composition reads the
+ * real name and skips the recipient when there is none.
+ */
+export function visitorDisplayName(visitor) {
+    if (!visitor) return 'Unknown';
+    const contacts = Array.isArray(visitor.contacts) ? visitor.contacts : [];
+    const self = contacts.find(c => c && c.relationType === 'SELF') || contacts[0];
+
+    const name = self && self.name ? String(self.name).trim() : '';
+    if (name) return name;
+
+    const phone = normalizePhone((self && self.phones && self.phones[0]) || '');
+    if (phone) return phone.slice(0, 5) + ' ' + phone.slice(5);   // 98220 12345
+
+    return 'Unknown';
 }

@@ -3,13 +3,18 @@
 import { generateId } from '../utils/helpers.js';
 import { getCurrentDate } from '../utils/formatters.js';
 import { RELATIONSHIP_TYPES } from '../utils/constants.js';
+import { normalizeText } from '../utils/devanagari.js';
 
 export class Contact {
     constructor(data = {}) {
         this.id = data.id || generateId('contact');
         this.visitorId = data.visitorId || null;
         this.relationType = data.relationType || RELATIONSHIP_TYPES.SELF;
-        this.name = data.name || '';
+        // P1.2 — NFC on the way in. Devanagari has characters writable two
+        // ways (क़ is either U+0958, or क + nukta U+093C); they look identical
+        // and compare unequal. Normalising here means every name in storage is
+        // in one form, whatever keyboard produced it.
+        this.name = normalizeText(data.name || '');
         this.phones = data.phones || [];
         this.emails = data.emails || [];
         this.dob = data.dob || null;

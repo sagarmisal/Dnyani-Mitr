@@ -1,6 +1,7 @@
 // Reminder Dashboard Component
 
 import ReminderService from '../../services/ReminderService.js';
+import { t } from '../../utils/i18n.js';
 import VisitorService from '../../services/VisitorService.js';
 import StateManager from '../../core/state.js';
 import Router, { ROUTES } from '../../core/router.js';
@@ -133,7 +134,7 @@ export class ReminderDashboard {
         <!-- Top bar: title + view toggle + filter toggle -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
           <div>
-            <h2 style="margin: 0;">Reminders</h2>
+            <h2 style="margin: 0;">${t('rem.title')}</h2>
             <p style="margin: 0.15rem 0 0 0; color: var(--color-text-secondary); font-size: 0.9rem;">
               ${this.stats.total} ${this.stats.total === 1 ? 'reminder' : 'reminders'} · ${this.escapeHtml(headerLabel)}
             </p>
@@ -144,7 +145,7 @@ export class ReminderDashboard {
               ${hasFilters ? '✓ Filters active' : '☰ Filters'}
             </button>
             <select id="month-filter" class="form-select" style="min-width: 150px; max-width: 200px;">
-              <option value="">Upcoming view</option>
+              <option value="">${t('rem.upcoming')}</option>
               ${months.map((m, i) => `<option value="${i}" ${this.selectedMonth === String(i) ? 'selected' : ''}>${m}</option>`).join('')}
             </select>
           </div>
@@ -154,23 +155,23 @@ export class ReminderDashboard {
         <div id="filter-bar" class="${(this.filtersOpen || hasFilters) ? '' : 'hidden'}" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem;">
           <div class="filter-toolbar" style="margin: 0;">
             <div class="filter-group-search" style="flex: 2; min-width: 180px;">
-              <input type="text" id="search-filter" class="form-input" placeholder="Search by name" value="${this.escapeHtml(this.filters.search)}" />
+              <input type="text" id="search-filter" class="form-input" placeholder="${t('rem.search')}" value="${this.escapeHtml(this.filters.search)}" />
             </div>
             <div class="filter-group-select" style="flex: 1; min-width: 140px;">
               <select id="city-filter" class="form-select">
-                <option value="">All cities</option>
+                <option value="">${t('rem.allCities')}</option>
               </select>
             </div>
             <div class="filter-group-select" style="flex: 1; min-width: 140px;">
               <select id="type-filter" class="form-select">
-                <option value="all" ${this.filters.type === 'all' ? 'selected' : ''}>All events</option>
+                <option value="all" ${this.filters.type === 'all' ? 'selected' : ''}>${t('rem.allEvents')}</option>
                 <option value="Birthday" ${this.filters.type === 'Birthday' ? 'selected' : ''}>🎂 Birthday</option>
                 <option value="Anniversary" ${this.filters.type === 'Anniversary' ? 'selected' : ''}>💍 Anniversary</option>
                 <option value="Death" ${this.filters.type === 'Death' ? 'selected' : ''}>🕯️ Death</option>
               </select>
             </div>
             ${hasFilters ? `
-              <button id="clear-filters" class="btn btn-secondary btn-sm">Clear</button>
+              <button id="clear-filters" class="btn btn-secondary btn-sm">${t('rem.clear')}</button>
             ` : ''}
           </div>
         </div>
@@ -179,13 +180,13 @@ export class ReminderDashboard {
         <div id="batch-bar" class="${this.selectedIds.size > 0 ? '' : 'hidden'}" style="background: #f0f9ff; border: 1px solid #38bdf8; border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
           <span id="selected-count" style="font-weight: 600;">0 selected</span>
           <div style="flex: 1;"></div>
-          <button id="select-all-visible" class="btn btn-secondary btn-sm">Select all visible</button>
-          <button id="clear-selection" class="btn btn-secondary btn-sm">Clear selection</button>
+          <button id="select-all-visible" class="btn btn-secondary btn-sm">${t('rem.selectAll')}</button>
+          <button id="clear-selection" class="btn btn-secondary btn-sm">${t('rem.clearSelection')}</button>
           ${this._isCapacitor() ? `
-            <button id="send-sms-batch-btn" class="btn btn-primary btn-sm" style="background: #0ea5e9; border-color: #0ea5e9;" title="Send SMS to all selected from your phone">
+            <button id="send-sms-batch-btn" class="btn btn-primary btn-sm" style="background: #0ea5e9; border-color: #0ea5e9;" title="${t('rem.smsAll')}">
               📱 Send SMS
             </button>` : ''}
-          <button id="send-greetings-btn" class="btn btn-sm" style="background: #25d366; border-color: #25d366; color: white;" title="Open WhatsApp for each selected contact">
+          <button id="send-greetings-btn" class="btn btn-sm" style="background: #25d366; border-color: #25d366; color: white;" title="${t('rem.whatsappEach')}">
             💬 WhatsApp
           </button>
         </div>
@@ -213,7 +214,7 @@ export class ReminderDashboard {
     if (!select) return;
     const visitors = VisitorService.getAll();
     const cities = [...new Set(visitors.map(v => v.city).filter(c => c))].sort();
-    let html = '<option value="">All cities</option>';
+    let html = `<option value="">${t('rem.allCities')}</option>`;
     cities.forEach(c => {
       html += `<option value="${this.escapeHtml(c)}" ${this.filters.city === c ? 'selected' : ''}>${this.escapeHtml(c)}</option>`;
     });
@@ -241,7 +242,7 @@ export class ReminderDashboard {
         <section style="margin-bottom: 1.5rem;">
           <h3 style="margin: 0 0 0.75rem 0; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #b91c1c;"></span>
-            Overdue
+            ${t('rem.waiting')}
             <span style="color: var(--color-text-secondary); font-weight: 400;">(${overdue.length})</span>
           </h3>
           ${this.renderList(overdue, 'overdue')}
@@ -253,7 +254,7 @@ export class ReminderDashboard {
         <section style="margin-bottom: 1.5rem;">
           <h3 style="margin: 0 0 0.75rem 0; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span>
-            This week
+            ${t('rem.thisWeek')}
             <span style="color: var(--color-text-secondary); font-weight: 400;">(${urgent.length})</span>
           </h3>
           ${this.renderList(urgent, 'urgent')}
@@ -265,7 +266,7 @@ export class ReminderDashboard {
         <section>
           <h3 style="margin: 0 0 0.75rem 0; font-size: 1rem; color: var(--color-text-primary); display: flex; align-items: center; gap: 0.5rem;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
-            Upcoming
+            ${t('rem.later')}
             <span style="color: var(--color-text-secondary); font-weight: 400;">(${upcoming.length})</span>
           </h3>
           ${this.renderPaginatedList(upcoming)}
@@ -291,8 +292,8 @@ export class ReminderDashboard {
       return `
         <div class="empty-state" style="padding: 2.5rem 1rem;">
           <div class="empty-state-icon">👋</div>
-          <p class="empty-state-text">No visitors yet</p>
-          <p class="empty-state-hint">Add your first visitor with a birthday or anniversary to start getting reminders.</p>
+          <p class="empty-state-text">${t('rem.none')}</p>
+          <p class="empty-state-hint">${t('p.addFirstBirthday')}</p>
           <div style="margin-top: 1.25rem;">
             <a href="#${ROUTES.VISITOR_NEW}" class="btn btn-primary btn-sm">+ Add Visitor</a>
           </div>
@@ -317,7 +318,7 @@ export class ReminderDashboard {
         <div class="empty-state" style="padding: 2rem 1rem;">
           <div class="empty-state-icon">📭</div>
           <p class="empty-state-text">No ${type} found</p>
-          <p class="empty-state-hint">Try adjusting your filters or adding more visitors with birthdays.</p>
+          <p class="empty-state-hint">${t('p.tryOtherFilters')}</p>
         </div>`;
     }
     return `
@@ -344,11 +345,11 @@ export class ReminderDashboard {
    */
   _renderHandledBadge(reminder) {
     if (reminder.handledReason === 'snoozed' && reminder.handledUntil) {
-      return `<span style="font-size: 0.75rem; color: #075985; background: #e0f2fe; padding: 0.15rem 0.5rem; border-radius: 999px;" title="Snoozed">💤 Until ${this.escapeHtml(formatDateShort(reminder.handledUntil))}</span>`;
+      return `<span style="font-size: 0.75rem; color: #075985; background: #e0f2fe; padding: 0.15rem 0.5rem; border-radius: 999px;" title="${t('rem.snoozed')}">💤 Until ${this.escapeHtml(formatDateShort(reminder.handledUntil))}</span>`;
     }
     if (reminder.handledReason === 'contacted') {
       const when = reminder.handledAt ? formatDateShort(reminder.handledAt) : '';
-      return `<span style="font-size: 0.75rem; color: #065f46; background: #d1fae5; padding: 0.15rem 0.5rem; border-radius: 999px;" title="Already contacted this cycle">✓ Contacted${when ? ' ' + this.escapeHtml(when) : ''}</span>`;
+      return `<span style="font-size: 0.75rem; color: #065f46; background: #d1fae5; padding: 0.15rem 0.5rem; border-radius: 999px;" title="${t('rem.alreadyDone')}">✓ Contacted${when ? ' ' + this.escapeHtml(when) : ''}</span>`;
     }
     return '';
   }
@@ -398,7 +399,7 @@ export class ReminderDashboard {
         <!-- Top: checkbox + date + handled badge + event type pill -->
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
           ${hasValidPhone ? `
-            <input type="checkbox" class="tile-select" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" ${isSelected ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;" aria-label="Select for batch greeting" />
+            <input type="checkbox" class="tile-select" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" ${isSelected ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;" aria-label="${t('rem.selectForGreeting')}" />
           ` : ''}
           <span style="font-size: 1.1rem; flex-shrink: 0;" aria-hidden="true">${icon}</span>
           <span style="font-weight: 700; color: ${dateColor};">${dateText}</span>
@@ -420,17 +421,17 @@ export class ReminderDashboard {
         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: stretch;">
           ${hasValidPhone ? `
             <button class="btn btn-sm quick-action-btn qa-whatsapp" data-action="whatsapp" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 2; min-width: 130px;">💬 WhatsApp</button>
-            <button class="btn btn-sm quick-action-btn qa-sms" data-action="sms" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="Open SMS app">📱 SMS</button>
+            <button class="btn btn-sm quick-action-btn qa-sms" data-action="sms" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone)}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="${t('rem.openSms')}">📱 SMS</button>
           ` : ''}
-          <button class="btn btn-sm quick-action-btn qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone || '')}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="Mark as called">📞 Called</button>
-          <button class="btn btn-sm quick-action-btn qa-visited" data-action="visited" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="Mark as visited">🏠 Visited</button>
-          <select class="form-select snooze-select" data-rid="${reminder.id}" style="flex: 1; min-width: 110px; min-height: 44px; font-size: 0.9rem;" aria-label="Snooze reminder">
+          <button class="btn btn-sm quick-action-btn qa-called" data-action="called" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-phone="${this.escapeHtml(phone || '')}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="${t('rem.markCalled')}">📞 Called</button>
+          <button class="btn btn-sm quick-action-btn qa-visited" data-action="visited" data-rid="${reminder.id}" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}" data-event="${reminder.eventType}" style="flex: 1; min-width: 95px;" title="${t('rem.markVisited')}">🏠 Visited</button>
+          <select class="form-select snooze-select" data-rid="${reminder.id}" style="flex: 1; min-width: 110px; min-height: 44px; font-size: 0.9rem;" aria-label="${t('rem.snooze')}">
             <option value="">💤 Later...</option>
-            <option value="1">Tomorrow</option>
+            <option value="1">${t('rem.tomorrow')}</option>
             <option value="3">In 3 days</option>
             <option value="7">In 1 week</option>
           </select>
-          <button class="btn btn-sm btn-secondary more-action-btn" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}" style="flex: 0 0 auto; min-width: 44px;" title="Log details (notes, outcome, follow-up)" aria-label="Log details">⋯</button>
+          <button class="btn btn-sm btn-secondary more-action-btn" data-vid="${visitor?.id}" data-name="${this.escapeHtml(contact?.name || '')}" style="flex: 0 0 auto; min-width: 44px;" title="${t('rem.logDetails')}" aria-label="${t('rem.logDetails')}">⋯</button>
           <button class="btn btn-sm btn-primary view-btn" data-vid="${visitor?.id}" style="flex: 1; min-width: 80px;">View →</button>
         </div>
       </div>
@@ -601,7 +602,7 @@ export class ReminderDashboard {
       sendBtn.addEventListener('click', () => {
         const items = collectSelected();
         if (items.length === 0) {
-          Toast.show('Pick reminders first.', 'warning');
+          Toast.show(t('p.pickFirst'), 'warning');
           return;
         }
         GreetingQueue.start(items, () => {
@@ -617,7 +618,7 @@ export class ReminderDashboard {
       smsBtn.addEventListener('click', () => {
         const items = collectSelected();
         if (items.length === 0) {
-          Toast.show('Pick reminders first.', 'warning');
+          Toast.show(t('p.pickFirst'), 'warning');
           return;
         }
         SmsBatchQueue.start(items, () => {

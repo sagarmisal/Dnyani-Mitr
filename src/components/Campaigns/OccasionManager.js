@@ -2,6 +2,7 @@
 // greeting + invitation templates. Mounted inside the Settings page.
 
 import OccasionService from '../../services/OccasionService.js';
+import { t } from '../../utils/i18n.js';
 import { Toast } from '../UI/Toast.js';
 
 export class OccasionManager {
@@ -34,7 +35,7 @@ export class OccasionManager {
                 <div class="occasion-list">
                     ${occasions.length
                         ? occasions.map(o => this._row(o)).join('')
-                        : '<p class="text-secondary">No occasions yet.</p>'}
+                        : `<p class="text-secondary">${t('p.noOccasions')}</p>`}
                 </div>
                 <button id="occ-add-btn" class="btn btn-primary btn-sm" style="margin-top: 1rem;">+ Add occasion</button>
                 <div id="occ-editor" style="margin-top: 1rem;"></div>
@@ -56,8 +57,8 @@ export class OccasionManager {
                     <strong>${primary}</strong>${secondary}${builtin}
                     <div class="text-secondary" style="font-size:0.85rem;">${o.day}/${o.month}</div>
                 </div>
-                <button class="btn btn-secondary btn-sm occ-edit" data-id="${o.id}">Edit</button>
-                <button class="btn btn-error btn-sm occ-del" data-id="${o.id}" aria-label="Delete occasion">Delete</button>
+                <button class="btn btn-secondary btn-sm occ-edit" data-id="${o.id}">${t('action.edit')}</button>
+                <button class="btn btn-error btn-sm occ-del" data-id="${o.id}" aria-label="${t('occ.delete')}">${t('action.delete')}</button>
             </div>
         `;
     }
@@ -96,11 +97,11 @@ export class OccasionManager {
                 <h4 style="margin:0 0 0.75rem 0;">${isNew ? 'Add occasion' : 'Edit occasion'}</h4>
                 <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                     <div class="setting-item" style="flex:1; min-width:160px;">
-                        <label for="occ-name">Name (English)</label>
+                        <label for="occ-name">${t('occ.nameEn')}</label>
                         <input id="occ-name" class="form-input" value="${this._esc(o?.name || '')}" placeholder="e.g. Foundation Day" />
                     </div>
                     <div class="setting-item" style="flex:1; min-width:160px;">
-                        <label for="occ-nameMr">Name (Marathi)</label>
+                        <label for="occ-nameMr">${t('occ.nameMr')}</label>
                         <input id="occ-nameMr" class="form-input" value="${this._esc(o?.nameMr || '')}" placeholder="उदा. स्थापना दिन" />
                     </div>
                 </div>
@@ -132,7 +133,7 @@ export class OccasionManager {
                 </div>
                 <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
                     <button id="occ-save" class="btn btn-primary btn-sm">${isNew ? 'Add' : 'Save'}</button>
-                    <button id="occ-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+                    <button id="occ-cancel" class="btn btn-secondary btn-sm">${t('action.cancel')}</button>
                 </div>
             </div>
         `;

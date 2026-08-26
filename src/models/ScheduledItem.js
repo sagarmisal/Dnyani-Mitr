@@ -3,7 +3,7 @@
 // is DERIVED from visitor event dates and cannot be created by hand.
 //
 // Device-local by design: scheduled items are not part of the sync package
-// (see ITERATION_11_PLAN.md G2). The Interaction that completing a
+// (see INITIATIVE.md §5; rationale in git history). The Interaction that completing a
 // visitor-linked item creates DOES sync — the record of what happened travels
 // even though the plan does not.
 

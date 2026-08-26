@@ -1,5 +1,13 @@
 # NGO Visitor & Reminder Manager v2.0
 
+> **Start here: [`INITIATIVE.md`](INITIATIVE.md)** — the source of truth for what we are
+> building and why. Six jobs, six principles, every decision with its reasoning, and an
+> append-only progress log.
+>
+> Superseded plan documents (PROJECT_PLAN, VERSION_3_VISION, ITERATION_*_PLAN, RESUME) were
+> removed on 2026-08-24 so there is exactly one baseline. They remain in git history:
+> `git show 9af1a1f:ngo-visitor-manager/<file>`
+
 **Developed by Sewa Sankalp Pratishthan**
 
 An offline-first visitor relationship and reminder management system designed for NGOs worldwide.

@@ -9,43 +9,43 @@
   color-scheme: light;
 
   /* Colors - Primary */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #3b82f6;
+  --color-primary: var(--lg-bind);
+  --color-primary-dark: var(--lg-bind-dark);
+  --color-primary-light: #a35049;
   
   /* Colors - Saffron (Branding) */
-  --color-saffron: #f59e0b;
-  --color-saffron-dark: #d97706;
-  --color-saffron-light: #fbbf24;
+  --color-saffron: var(--lg-marigold);
+  --color-saffron-dark: #b87d1f;
+  --color-saffron-light: #e8b45c;
   
   /* Colors - Success */
-  --color-success: #10b981;
-  --color-success-dark: #059669;
-  --color-success-light: #34d399;
+  --color-success: var(--lg-leaf);
+  --color-success-dark: #35543d;
+  --color-success-light: #6a8a72;
   
   /* Colors - Warning */
-  --color-warning: #f59e0b;
-  --color-warning-dark: #d97706;
-  --color-warning-light: #fbbf24;
+  --color-warning: var(--lg-marigold);
+  --color-warning-dark: var(--lg-marigold-i);
+  --color-warning-light: #e8b45c;
   
   /* Colors - Error */
-  --color-error: #ef4444;
-  --color-error-dark: #dc2626;
-  --color-error-light: #f87171;
+  --color-error: var(--lg-danger);
+  --color-error-dark: #853730;
+  --color-error-light: #c26a62;
   
   /* Colors - Info */
-  --color-info: #3b82f6;
-  --color-info-dark: #2563eb;
-  --color-info-light: #60a5fa;
+  --color-info: var(--lg-bind);
+  --color-info-dark: var(--lg-bind-dark);
+  --color-info-light: #a35049;
   
   /* Neutral Colors - Light Mode */
-  --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f3f4f6;
-  --color-border: #e5e7eb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #6b7280;
+  --color-bg: var(--lg-paper);
+  --color-surface: var(--lg-page);
+  --color-surface-hover: var(--lg-wash);
+  --color-border: var(--lg-rule-faint);
+  --color-text-primary: var(--lg-ink);
+  --color-text-secondary: var(--lg-ink-soft);
+  --color-text-tertiary: var(--lg-ink-faint);
   
   /* Spacing */
   --space-xs: 0.25rem;
@@ -106,3 +106,57 @@
    The removed `@media (prefers-color-scheme: dark)` block + unused `.dark`
    class lived here. Dark mode was deliberately dropped (Iter 9.4); bringing
    it back would be a fresh, planned iteration, not an accidental side effect. */
+
+/* ==========================================================================
+   LEDGER TOKENS — INITIATIVE.md D-11, P1.8a
+   ==========================================================================
+   Drawn from the object this software replaces: a bound paper visitor
+   register. Aged paper as the ground, the blue ruling of ledger paper as the
+   structural line, binding-cloth red for actions, marigold for occasions.
+
+   Deliberately NOT the Tailwind defaults above (#2563eb / #10b981 / #ef4444),
+   which are the most common palette on the web and read as a developer tool.
+
+   STATUS: D-11 is PROVISIONAL until the three NGOs react to
+   docs/design-preview-v3.3.html (Q-03). These values are used ONLY by the
+   component kit for now — every existing screen still runs on the --color-*
+   tokens above and is visually unchanged. Repointing the app onto these is a
+   separate step (P1.8b), gated on that answer, and is one file when it comes.
+   ========================================================================== */
+:root {
+  --lg-paper:      #f6f2e8;   /* aged ledger page */
+  --lg-page:       #fffdf7;   /* a fresher leaf — cards, sheets */
+  --lg-ink:        #232b36;   /* ballpoint blue-black */
+  --lg-ink-soft:   #5f6875;   /* faded ink — secondary text */
+  --lg-rule:       #c3ccdb;   /* the blue ruling of ledger paper */
+  --lg-rule-faint: #e2e5dd;   /* hairline borders */
+  --lg-bind:       #8a3b36;   /* binding cloth — every primary action */
+  --lg-bind-dark:  #6d2d29;
+  /* Two marigolds, because a fill and a line are different jobs and no single
+     value does both: bright enough to carry dark text at 4.5:1 as a chip
+     background, and dark enough to read as a boundary at 3:1 against the page,
+     are opposite requirements. Trying to satisfy both with one token fails one
+     of them silently. */
+  --lg-marigold:    #dc9a2e;  /* झेंडू — FILLS: chips, washes. Dark text on it. */
+  --lg-marigold-l:  #b06f16;  /* LINES: focus rings, dots, thin borders. */
+  --lg-marigold-w: #faedd4;   /* marigold wash */
+  --lg-marigold-i: #8a5f10;   /* readable ink on that wash */
+  --lg-leaf:       #456a4f;   /* quiet positive */
+  --lg-leaf-w:     #e4ede6;   /* positive wash */
+  --lg-ink-faint:  #8b9199;   /* placeholder / disabled ink */
+  --lg-danger:     #a4443c;
+  --lg-danger-w:   #fdecea;   /* error wash */
+  --lg-wash:       #efe8d8;   /* warm fill — chips, tiles */
+
+  /* Geometry. One set, applied to everything — the coherence is the point. */
+  --lg-r-card:  14px;
+  --lg-r-ctl:   11px;
+  --lg-r-chip:  999px;
+  --lg-r-sheet: 20px;
+
+  /* Touch. 44px is the floor for a target anyone can hit reliably on a
+     cheap handset; 11px padding with a 15px type size lands just above it. */
+  --lg-tap:     44px;
+  --lg-pad:     11px;
+  --lg-font:    15px;
+}
